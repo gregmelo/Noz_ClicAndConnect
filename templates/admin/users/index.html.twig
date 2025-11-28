@@ -1,0 +1,267 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des Utilisateurs{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    {% include 'components/_breadcrumb.html.twig' with {
+        'breadcrumbs': [
+            {'label': 'Administration', 'url': null},
+            {'label': 'Utilisateurs', 'url': null}
+        ]
+    } %}
+    
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
+        <h1 class="text-2xl sm:text-3xl font-bold text-noz-blue">Gestion des Utilisateurs</h1>
+        <a href="{{ path('app_admin_users_new') }}" class="w-full sm:w-auto bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-center text-sm sm:text-base">
+            + Nouvel Utilisateur
+        </a>
+    </div>
+
+    <!-- Search and Filter Form -->
+    <div class="bg-white p-4 rounded shadow-md mb-6">
+        <form method="get" class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1">
+                <input type="text" name="q" value="{{ currentQuery }}" placeholder="Rechercher par nom, prénom ou email..." class="w-full px-4 py-2 border rounded focus:outline-none focus:border-noz-blue">
+            </div>
+            <div class="w-full md:w-48">
+                <select name="role" class="w-full px-4 py-2 border rounded focus:outline-none focus:border-noz-blue">
+                    <option value="">Tous les rôles</option>
+                    <option value="ROLE_DEVELOPER" {% if currentRole == 'ROLE_DEVELOPER' %}selected{% endif %}>Développeur</option>
+                    <option value="ROLE_SUPER_ADMIN" {% if currentRole == 'ROLE_SUPER_ADMIN' %}selected{% endif %}>Super Admin</option>
+                    <option value="ROLE_ADMIN" {% if currentRole == 'ROLE_ADMIN' %}selected{% endif %}>Administrateur</option>
+                    <option value="ROLE_EMPLOYEE" {% if currentRole == 'ROLE_EMPLOYEE' %}selected{% endif %}>Employé</option>
+                    <option value="ROLE_CLIENT" {% if currentRole == 'ROLE_CLIENT' %}selected{% endif %}>Client</option>
+                </select>
+            </div>
+            <button type="submit" class="bg-noz-btn hover:bg-blue-700 text-white font-bold py-2 px-6 rounded transition">
+                Filtrer
+            </button>
+            {% if currentQuery or currentRole %}
+                <a href="{{ path('app_admin_users_index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition text-center">
+                    Réinitialiser
+                </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Desktop: Table view (hidden on mobile) -->
+    <div class="hidden lg:block bg-white shadow-md rounded my-6">
+        <div class="overflow-x-auto">
+            <table class="min-w-full table-auto">
+            <thead>
+                <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                    <th class="py-3 px-6 text-left">Email</th>
+                    <th class="py-3 px-6 text-left">Nom</th>
+                    <th class="py-3 px-6 text-center">Rôle</th>
+                    <th class="py-3 px-6 text-center">Strikes</th>
+                    <th class="py-3 px-6 text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-600 text-sm font-light">
+                {% for user in users %}
+                    <tr class="border-b border-gray-200 hover:bg-gray-100">
+                        <td class="py-3 px-6 text-left">
+                            <span class="font-medium">{{ user.email }}</span>
+                        </td>
+                        <td class="py-3 px-6 text-left">
+                            {{ user.firstName }} {{ user.lastName }}
+                        </td>
+                        <td class="py-3 px-6 text-center">
+                            {% if 'ROLE_DEVELOPER' in user.roles %}
+                                <span class="bg-purple-200 text-purple-600 py-1 px-3 rounded-full text-xs">Développeur</span>
+                            {% elseif 'ROLE_SUPER_ADMIN' in user.roles %}
+                                <span class="bg-yellow-200 text-yellow-800 py-1 px-3 rounded-full text-xs">Super Admin</span>
+                            {% elseif 'ROLE_ADMIN' in user.roles %}
+                                <span class="bg-red-200 text-red-600 py-1 px-3 rounded-full text-xs">Admin</span>
+                            {% elseif 'ROLE_EMPLOYEE' in user.roles %}
+                                <span class="bg-blue-200 text-blue-600 py-1 px-3 rounded-full text-xs">Employé</span>
+                            {% else %}
+                                <span class="bg-gray-200 text-gray-600 py-1 px-3 rounded-full text-xs">Client</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-6 text-center">
+                            <span class="{% if user.strikes >= 3 %}text-red-600 font-bold{% elseif user.strikes > 0 %}text-orange-600{% else %}text-green-600{% endif %}">
+                                {{ user.strikes }}/3
+                            </span>
+                        </td>
+                        <td class="py-3 px-6 text-center">
+                            <div class="flex item-center justify-center gap-3">
+                                {% if is_granted('USER_EDIT', user) %}
+                                    <a href="{{ path('app_admin_users_edit', {'id': user.id}) }}" class="text-green-500 hover:text-green-700" title="Modifier">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                        </svg>
+                                    </a>
+                                {% endif %}
+                                {% if is_granted('USER_DELETE', user) %}
+                                    <button onclick="openDeleteModal({{ user.id }}, '{{ user.email|e('js') }}')" class="text-red-500 hover:text-red-700" title="Supprimer">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="py-3 px-6 text-center">Aucun utilisateur trouvé.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    <!-- Mobile/Tablet: Card view (hidden on desktop) -->
+    <div class="lg:hidden space-y-3 sm:space-y-4">
+        {% for user in users %}
+            <div class="bg-white rounded-lg shadow-md p-3 sm:p-4">
+                <!-- Header with name and role badge -->
+                <div class="flex justify-between items-start mb-2 sm:mb-3 gap-2">
+                    <div class="flex-1">
+                        <h3 class="font-bold text-base sm:text-lg text-gray-800">{{ user.firstName }} {{ user.lastName }}</h3>
+                        <p class="text-xs sm:text-sm text-gray-500">{{ user.email }}</p>
+                    </div>
+                    {% if 'ROLE_DEVELOPER' in user.roles %}
+                        <span class="bg-purple-200 text-purple-600 py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap">Développeur</span>
+                    {% elseif 'ROLE_SUPER_ADMIN' in user.roles %}
+                        <span class="bg-yellow-200 text-yellow-800 py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap">Super Admin</span>
+                    {% elseif 'ROLE_ADMIN' in user.roles %}
+                        <span class="bg-red-200 text-red-600 py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap">Admin</span>
+                    {% elseif 'ROLE_EMPLOYEE' in user.roles %}
+                        <span class="bg-blue-200 text-blue-600 py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap">Employé</span>
+                    {% else %}
+                        <span class="bg-gray-200 text-gray-600 py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap">Client</span>
+                    {% endif %}
+                </div>
+                
+                <!-- Strikes indicator -->
+                <div class="mb-3 sm:mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs sm:text-sm text-gray-600">Strikes:</span>
+                        <span class="font-bold {% if user.strikes >= 3 %}text-red-600{% elseif user.strikes > 0 %}text-orange-600{% else %}text-green-600{% endif %}">
+                            {{ user.strikes }}/3
+                        </span>
+                        {% if user.strikes >= 3 %}
+                            <span class="text-xs text-red-600">⚠️ Banni</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="flex flex-col xs:flex-row gap-2">
+                    {% if is_granted('USER_EDIT', user) %}
+                        <a href="{{ path('app_admin_users_edit', {'id': user.id}) }}" 
+                           class="flex-1 bg-green-500 hover:bg-green-600 text-white text-center py-1.5 sm:py-2 px-2 sm:px-3 rounded text-xs sm:text-sm font-medium">
+                            Modifier
+                        </a>
+                    {% endif %}
+                    {% if is_granted('USER_DELETE', user) %}
+                        <button onclick="openDeleteModal({{ user.id }}, '{{ user.email|e('js') }}')" 
+                                class="flex-1 bg-red-500 hover:bg-red-600 text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded text-xs sm:text-sm font-medium">
+                            Supprimer
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <div class="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
+                <p class="text-lg">Aucun utilisateur trouvé.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if totalPages > 1 %}
+        <div class="mt-6 flex justify-center">
+            <nav class="inline-flex rounded-md shadow-sm -space-x-px">
+                {% if currentPage > 1 %}
+                    <a href="{{ path('app_admin_users_index', {page: currentPage - 1, q: currentQuery, role: currentRole}) }}" 
+                       class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        ‹ Précédent
+                    </a>
+                {% else %}
+                    <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-300 cursor-not-allowed">
+                        ‹ Précédent
+                    </span>
+                {% endif %}
+
+                {% for page in 1..totalPages %}
+                    {% if page == currentPage %}
+                        <span class="relative inline-flex items-center px-4 py-2 border border-noz-blue bg-noz-blue text-sm font-medium text-white">
+                            {{ page }}
+                        </span>
+                    {% elseif page == 1 or page == totalPages or (page >= currentPage - 2 and page <= currentPage + 2) %}
+                        <a href="{{ path('app_admin_users_index', {page: page, q: currentQuery, role: currentRole}) }}" 
+                           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            {{ page }}
+                        </a>
+                    {% elseif page == currentPage - 3 or page == currentPage + 3 %}
+                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>
+                    {% endif %}
+                {% endfor %}
+
+                {% if currentPage < totalPages %}
+                    <a href="{{ path('app_admin_users_index', {page: currentPage + 1, q: currentQuery, role: currentRole}) }}" 
+                       class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        Suivant ›
+                    </a>
+                {% else %}
+                    <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-300 cursor-not-allowed">
+                        Suivant ›
+                    </span>
+                {% endif %}
+            </nav>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mt-5">Supprimer l'utilisateur</h3>
+            <div class="mt-2 px-7 py-3">
+                <p class="text-sm text-gray-500" id="deleteModalText">
+                    Êtes-vous sûr de vouloir supprimer cet utilisateur ?
+                </p>
+            </div>
+            <div class="items-center px-4 py-3">
+                <form id="deleteForm" method="post" class="inline">
+                    <button type="submit" class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-24 mr-2 hover:bg-red-600">
+                        Supprimer
+                    </button>
+                </form>
+                <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-24 hover:bg-gray-600">
+                    Annuler
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openDeleteModal(userId, userEmail) {
+        document.getElementById('deleteModalText').textContent = `Êtes-vous sûr de vouloir supprimer l'utilisateur "${userEmail}" ?`;
+        document.getElementById('deleteForm').action = `/admin/users/${userId}`;
+        document.getElementById('deleteModal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+    }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeDeleteModal();
+        }
+    });
+</script>
+{% endblock %}

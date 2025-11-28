@@ -1,0 +1,216 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Noz ClicAndConnect{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-noz-yellow p-6 rounded-lg shadow-md mb-8 text-center">
+        <h1 class="text-4xl font-bold text-noz-black mb-2">ARRIVAGES DU JOUR</h1>
+        <p class="text-xl text-gray-800">Réservez vos articles et récupérez-les en magasin sous 48h !</p>
+    </div>
+
+    <div class="mb-6">
+        <form action="{{ path('app_home') }}" method="get" class="max-w-2xl mx-auto" data-controller="autosubmit">
+            {% if min_price %}<input type="hidden" name="min_price" value="{{ min_price }}">{% endif %}
+            {% if max_price %}<input type="hidden" name="max_price" value="{{ max_price }}">{% endif %}
+            {% if availability %}<input type="hidden" name="availability" value="{{ availability }}">{% endif %}
+            {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+            
+            <div class="flex gap-2">
+                <input type="text" name="search" value="{{ search }}" placeholder="Rechercher un produit..." 
+                       data-action="input->autosubmit#debouncedSubmit"
+                       class="flex-grow shadow appearance-none border rounded py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <button type="submit" class="bg-noz-btn hover:bg-blue-700 text-white font-bold py-3 px-6 rounded">
+                    Rechercher
+                </button>
+                {% if search %}
+                    <a href="{{ path('app_home') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded">
+                        Effacer
+                    </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Filters and Sorting -->
+    <div class="mb-6 bg-white rounded-lg shadow-md p-4">
+        <form action="{{ path('app_home') }}" method="get" class="space-y-4" data-controller="autosubmit">
+            <!-- Keep search value -->
+            {% if search %}
+                <input type="hidden" name="search" value="{{ search }}">
+            {% endif %}
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Price Range -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Prix minimum</label>
+                    <input type="number" name="min_price" value="{{ min_price }}" step="0.01" min="0" 
+                           placeholder="0.00 €"
+                           data-action="input->autosubmit#debouncedSubmit"
+                           class="w-full shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Prix maximum</label>
+                    <input type="number" name="max_price" value="{{ max_price }}" step="0.01" min="0" 
+                           placeholder="999.99 €"
+                           data-action="input->autosubmit#debouncedSubmit"
+                           class="w-full shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+
+                <!-- Availability -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Disponibilité</label>
+                    <select name="availability" 
+                            data-action="change->autosubmit#submit"
+                            class="w-full shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">Tous</option>
+                        <option value="in_stock" {% if availability == 'in_stock' %}selected{% endif %}>En stock</option>
+                        <option value="out_of_stock" {% if availability == 'out_of_stock' %}selected{% endif %}>Rupture</option>
+                        <option value="promotion" {% if availability == 'promotion' %}selected{% endif %}>En promotion</option>
+                    </select>
+                </div>
+
+                <!-- Sorting -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Trier par</label>
+                    <select name="sort" 
+                            data-action="change->autosubmit#submit"
+                            class="w-full shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Plus récents</option>
+                        <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Plus anciens</option>
+                        <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Prix croissant</option>
+                        <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Prix décroissant</option>
+                        <option value="name_asc" {% if sort == 'name_asc' %}selected{% endif %}>Nom A-Z</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex gap-2 justify-end">
+                <noscript>
+                    <button type="submit" class="bg-noz-btn hover:bg-blue-700 text-white font-bold py-2 px-6 rounded">
+                        Appliquer les filtres
+                    </button>
+                </noscript>
+                <a href="{{ path('app_home') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded">
+                    Réinitialiser
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Results count -->
+    <div class="mb-4 text-gray-600">
+        <strong>{{ products|length }}</strong> produit(s) sur cette page
+    </div>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        {% for product in products %}
+            <div class="border rounded-lg p-4 shadow-md bg-white flex flex-col h-full">
+                {% if product.imageFilename %}
+                    <img src="{{ asset('uploads/images/' ~ product.imageFilename) }}" alt="{{ product.name }}" class="w-full h-48 object-cover mb-4 rounded">
+                {% else %}
+                    <img src="{{ asset('uploads/images/placeholder.svg') }}" alt="Image non disponible" class="w-full h-48 object-contain mb-4 rounded bg-gray-100">
+                {% endif %}
+                
+                <h2 class="text-xl font-bold mb-2 text-noz-blue">{{ product.name }}</h2>
+                <p class="text-gray-600 mb-4 flex-grow">{{ product.description }}</p>
+                
+                <div class="mt-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex flex-col">
+                            {% if product.originalPrice and product.originalPrice > product.price %}
+                                <span class="text-xs text-gray-500 line-through">{{ product.originalPrice }} €</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-2xl font-bold text-noz-red">{{ product.price }} €</span>
+                                    <span class="bg-red-100 text-red-800 text-xs font-semibold px-2 py-0.5 rounded animate-blink">Baisse de prix</span>
+                                </div>
+                            {% else %}
+                                <span class="text-2xl font-bold text-noz-red">{{ product.price }} €</span>
+                            {% endif %}
+                        </div>
+                        <span class="text-sm font-semibold {% if product.stock > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                            Stock: {{ product.stock }}
+                        </span>
+                    </div>
+
+                    {% if app.user %}
+                        {% if product.stock > 0 %}
+                            <form action="{{ path('app_cart_add', {'id': product.id}) }}" method="post" class="flex gap-2">
+                                <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="border rounded px-2 py-1 w-20 text-center">
+                                <button type="submit" class="flex-grow bg-noz-btn text-white py-2 rounded hover:bg-blue-700 font-bold uppercase text-sm flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                    Ajouter
+                                </button>
+                            </form>
+                        {% else %}
+                            <button disabled class="w-full bg-gray-300 text-gray-500 py-2 rounded font-bold uppercase text-sm cursor-not-allowed">
+                                Rupture de stock
+                            </button>
+                        {% endif %}
+                    {% else %}
+                        <a href="{{ path('app_login') }}" class="block w-full text-center bg-gray-800 text-white py-2 rounded hover:bg-gray-700 font-bold uppercase text-sm">
+                            Connectez-vous pour réserver
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <div class="col-span-full text-center py-12 text-gray-500">
+                <p class="text-xl">Aucun produit trouvé.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if totalPages > 1 %}
+        <div class="mt-8 flex justify-center">
+            <nav class="inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <!-- Previous -->
+                {% if currentPage > 1 %}
+                    <a href="{{ path('app_home', {page: currentPage - 1, search: search, min_price: min_price, max_price: max_price, availability: availability, sort: sort}) }}" 
+                       class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        ‹ Précédent
+                    </a>
+                {% else %}
+                    <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-300 cursor-not-allowed">
+                        ‹ Précédent
+                    </span>
+                {% endif %}
+
+                <!-- Page numbers -->
+                {% for page in 1..totalPages %}
+                    {% if page == currentPage %}
+                        <span class="relative inline-flex items-center px-4 py-2 border border-noz-blue bg-noz-blue text-sm font-medium text-white">
+                            {{ page }}
+                        </span>
+                    {% elseif page == 1 or page == totalPages or (page >= currentPage - 2 and page <= currentPage + 2) %}
+                        <a href="{{ path('app_home', {page: page, search: search, min_price: min_price, max_price: max_price, availability: availability, sort: sort}) }}" 
+                           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            {{ page }}
+                        </a>
+                    {% elseif page == currentPage - 3 or page == currentPage + 3 %}
+                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                            ...
+                        </span>
+                    {% endif %}
+                {% endfor %}
+
+                <!-- Next -->
+                {% if currentPage < totalPages %}
+                    <a href="{{ path('app_home', {page: currentPage + 1, search: search, min_price: min_price, max_price: max_price, availability: availability, sort: sort}) }}" 
+                       class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        Suivant ›
+                    </a>
+                {% else %}
+                    <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-300 cursor-not-allowed">
+                        Suivant ›
+                    </span>
+                {% endif %}
+            </nav>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

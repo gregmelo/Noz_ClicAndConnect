@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Email de réinitialisation envoyé{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-md mx-auto bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 text-center">
+        <div class="mb-6">
+            <svg class="w-16 h-16 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+        </div>
+        
+        <h1 class="text-2xl font-bold text-noz-blue mb-4">Email envoyé !</h1>
+        
+        <p class="text-gray-600 mb-4">
+            Si un compte correspond à votre adresse email, un email vient d'être envoyé contenant un lien pour réinitialiser votre mot de passe.
+            Ce lien expirera dans {{ resetToken.expirationMessageKey|trans(resetToken.expirationMessageData, 'ResetPasswordBundle') }}.
+        </p>
+        
+        <p class="text-sm text-gray-500 mb-6">
+            Si vous ne recevez pas d'email, veuillez vérifier votre dossier spam ou <a href="{{ path('app_forgot_password_request') }}" class="text-blue-500 hover:text-blue-700">réessayer</a>.
+        </p>
+
+        <a href="{{ path('app_login') }}" class="inline-block bg-noz-btn hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200">
+            Retour à la connexion
+        </a>
+    </div>
+</div>
+{% endblock %}

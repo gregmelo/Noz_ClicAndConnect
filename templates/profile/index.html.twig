@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Profil{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6 text-noz-blue">Mon Profil</h1>
+
+        <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                <p class="text-gray-900">{{ app.user.email }}</p>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Prénom</label>
+                <p class="text-gray-900">{{ app.user.firstName }}</p>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Nom</label>
+                <p class="text-gray-900">{{ app.user.lastName }}</p>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Rôle</label>
+                <p class="text-gray-900">
+                    {% if is_granted('ROLE_DEVELOPER') %}
+                        Développeur
+                    {% elseif is_granted('ROLE_SUPER_ADMIN') %}
+                        Super Admin
+                    {% elseif is_granted('ROLE_ADMIN') %}
+                        Admin
+                    {% elseif is_granted('ROLE_EMPLOYEE') %}
+                        Employé
+                    {% else %}
+                        Client
+                    {% endif %}
+                </p>
+            </div>
+
+            {% if is_granted('ROLE_CLIENT') and not is_granted('ROLE_EMPLOYEE') %}
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Avertissements</label>
+                    <p class="text-gray-900">{{ app.user.strikes }} / 3</p>
+                    {% if app.user.banExpiresAt and app.user.banExpiresAt > date() %}
+                        <p class="text-red-600 font-bold mt-2">Banni jusqu'au {{ app.user.banExpiresAt|date('d/m/Y H:i') }}</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <div class="flex space-x-4 mt-6">
+                <a href="{{ path('app_profile_edit') }}" class="bg-noz-btn hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Modifier mes informations
+                </a>
+                <a href="{{ path('app_profile_change_password') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                    Changer mon mot de passe
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

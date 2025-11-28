@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #e30613;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #ffebee;
+            padding: 30px;
+            border: 1px solid #e30613;
+        }
+        .product-box {
+            background-color: white;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #e30613;
+        }
+        .warning-box {
+            background-color: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #005bbb;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚠️ Réservation expirée</h1>
+    </div>
+    
+    <div class="content">
+        <p>Bonjour <strong>{{ user.firstName }}</strong>,</p>
+        
+        <p>Malheureusement, votre réservation a expiré car elle n'a pas été récupérée dans les délais.</p>
+        
+        <p><strong>Référence :</strong> {{ reservation.reference }}</p>
+
+        {% for item in reservation.reservationItems %}
+            <div class="product-box">
+                <h3>📦 {{ item.product.name }}</h3>
+                <p><strong>Quantité :</strong> {{ item.quantity }}</p>
+                <p><strong>Expiré le :</strong> {{ reservation.expiresAt|date('d/m/Y à H:i') }}</p>
+            </div>
+        {% endfor %}
+        
+        <div class="warning-box">
+            <h3>⚠️ Avertissement (Strike)</h3>
+            <p>Vous avez reçu un avertissement pour cette réservation non récupérée.</p>
+            <p><strong>Strikes actuels :</strong> {{ user.strikes }} / 3</p>
+            {% if user.strikes >= 3 %}
+                <p style="color: #e30613; font-weight: bold;">🚫 Votre compte a été temporairement suspendu suite à 3 avertissements.</p>
+            {% else %}
+                <p>Attention : après 3 avertissements, votre compte sera temporairement suspendu.</p>
+            {% endif %}
+        </div>
+        
+        <p><strong>Que faire maintenant ?</strong></p>
+        <ul>
+            <li>✅ Le produit est à nouveau disponible pour d'autres clients</li>
+            <li>📱 Vous pouvez faire une nouvelle réservation si le produit est toujours en stock</li>
+            <li>⏰ Pensez à récupérer vos prochaines réservations dans les 48h</li>
+        </ul>
+        
+        <p style="text-align: center;">
+            <a href="http://localhost:8000" class="button">Voir les produits disponibles</a>
+        </p>
+        
+        <p>Merci de votre compréhension.</p>
+    </div>
+    
+    <div class="footer">
+        <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
+        <p>&copy; {{ 'now'|date('Y') }} Noz ClicAndConnect - Tous droits réservés</p>
+    </div>
+</body>
+</html>

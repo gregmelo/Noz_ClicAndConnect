@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}Welcome!{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text></svg>">
+        {% block stylesheets %}
+        {% endblock %}
+
+        {% block javascripts %}
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
+        {% endblock %}
+    </head>
+    <body class="bg-gray-100 flex flex-col min-h-screen" data-controller="mobile-menu">
+        <nav class="bg-noz-blue text-white shadow-lg">
+            <div class="container mx-auto px-4 py-3">
+                <div class="flex justify-between items-center">
+                    <!-- Logo -->
+                    <a href="{{ path('app_home') }}" class="text-2xl font-bold italic tracking-wider">
+                        <span class="text-white">NOZ AMBERIEU</span> <span class="text-noz-yellow text-sm">ClicAndCollect</span>
+                    </a>
+                    
+                    <!-- Mobile menu button -->
+                    <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none p-2 hover:bg-blue-700 rounded" style="display: block;" data-action="click->mobile-menu#toggle">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+
+                    <style>
+                        /* Force hamburger menu visibility on mobile */
+                        @media (max-width: 767px) {
+                            #mobile-menu-button {
+                                display: block !important;
+                            }
+                        }
+                        @media (min-width: 768px) {
+                            #mobile-menu-button {
+                                display: none !important;
+                            }
+                        }
+                    </style>
+
+                    <!-- Desktop Navigation -->
+                    <div class="hidden md:flex md:items-center md:space-x-2 xl:space-x-4">
+                        <!-- Always visible links -->
+                        <a href="{{ path('app_home') }}" class="hover:text-noz-yellow transition flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            </svg>
+                            <span class="text-sm xl:text-base">Accueil</span>
+                        </a>
+                        
+                        {% if is_granted('ROLE_EMPLOYEE') %}
+                            <!-- Visible on all desktop sizes -->
+                            <a href="{{ path('app_product_index') }}" class="hover:text-noz-yellow transition flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                </svg>
+                                <span class="text-sm xl:text-base">Produits</span>
+                            </a>
+                            <a href="{{ path('app_employee_reservations') }}" class="hover:text-noz-yellow transition flex items-center gap-1.5 relative">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                </svg>
+                                <span class="text-sm xl:text-base">Réservations</span>
+                                {% set todoCount = store_todo_count() %}
+                                {% if todoCount > 0 %}
+                                    <span class="bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm ml-1">
+                                        {{ todoCount }}
+                                    </span>
+                                {% endif %}
+                            </a>
+                            
+                            <!-- Dashboard: Hidden on md, visible on xl+ -->
+                            <a href="{{ path('app_dashboard') }}" class="hidden xl:flex hover:text-noz-yellow transition items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                                <span class="text-base">Dashboard</span>
+                            </a>
+                        {% endif %}
+
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <!-- Users: Hidden on md, visible on xl+ -->
+                            <a href="{{ path('app_admin_users_index') }}" class="hidden xl:flex hover:text-noz-yellow transition items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                </svg>
+                                <span class="text-base">Utilisateurs</span>
+                            </a>
+                        {% endif %}
+
+                        {% if app.user %}
+                            <!-- My Reservations: Always visible -->
+                            <a href="{{ path('app_my_reservations') }}" class="hover:text-noz-yellow transition flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                                <span class="text-sm xl:text-base">Mes Résa</span>
+                            </a>
+
+                            <!-- Cart: Moved to right and styled -->
+                            <a href="{{ path('app_cart_index') }}" class="bg-white text-noz-blue hover:bg-noz-yellow hover:text-noz-black transition px-3 py-1.5 rounded font-bold flex items-center gap-1.5 shadow-sm ml-2">
+                                {% set cartCount = cart_count() %}
+                                {% if cartCount > 0 %}
+                                    <span class="bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm mr-1">
+                                        {{ cartCount }}
+                                    </span>
+                                {% endif %}
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                                <span class="text-sm xl:text-base">Panier</span>
+                            </a>
+                            
+                            <!-- Dropdown "Plus" menu: Visible only on md-lg (768-1280px) -->
+                            <div class="relative xl:hidden" data-controller="dropdown">
+                                <button id="more-menu-button" class="hover:text-noz-yellow transition flex items-center gap-1.5 focus:outline-none" data-action="click->dropdown#toggle">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                                    </svg>
+                                    <span class="text-sm">Plus</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                </button>
+                                <div id="more-menu-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50" data-dropdown-target="menu">
+                                    {% if is_granted('ROLE_EMPLOYEE') %}
+                                        <a href="{{ path('app_dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                            </svg>
+                                            Dashboard
+                                        </a>
+                                    {% endif %}
+                                    {% if is_granted('ROLE_ADMIN') %}
+                                        <a href="{{ path('app_admin_users_index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                            </svg>
+                                            Utilisateurs
+                                        </a>
+                                    {% endif %}
+                                    <a href="{{ path('app_profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                        </svg>
+                                        Profil
+                                    </a>
+                                    <div class="border-t border-gray-100 my-1"></div>
+                                    <a href="{{ path('app_logout') }}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                        </svg>
+                                        Déconnexion
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Profile & Logout: Visible only on xl+ -->
+                            <a href="{{ path('app_profile') }}" class="hidden xl:flex hover:text-noz-yellow transition items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                                <span class="text-base">Profil</span>
+                            </a>
+                            <a href="{{ path('app_logout') }}" class="hidden xl:flex hover:text-noz-yellow transition items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                </svg>
+                                <span class="text-base">Déconnexion</span>
+                            </a>
+                        {% else %}
+                            <a href="{{ path('app_login') }}" class="hover:text-noz-yellow transition flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                                </svg>
+                                <span class="text-sm xl:text-base">Connexion</span>
+                            </a>
+                            <a href="{{ path('app_register') }}" class="bg-noz-yellow text-noz-black px-3 py-1 rounded hover:bg-yellow-400 transition text-sm xl:text-base flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                                <span class="text-sm xl:text-base">Inscription</span>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Mobile Navigation (hidden by default) -->
+                <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4 space-y-2" data-mobile-menu-target="menu">
+                    <a href="{{ path('app_home') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Accueil</a>
+                    
+                    {% if is_granted('ROLE_EMPLOYEE') %}
+                        <a href="{{ path('app_employee_reservations') }}" 
+                           class="block py-2 px-4 hover:bg-blue-700 rounded transition relative"
+                           data-controller="reservation-alert"
+                           data-reservation-alert-url-value="{{ path('api_reservations_count_new') }}">
+                            Espace Employé
+                            <span data-reservation-alert-target="badge" class="hidden absolute top-1 right-4 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+                                <span data-reservation-alert-target="count">0</span>
+                            </span>
+                        </a>
+                        <a href="{{ path('app_dashboard') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Dashboard</a>
+                        <a href="{{ path('app_product_index') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Gestion Produits</a>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_admin_users_index') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Gestion Utilisateurs</a>
+                    {% endif %}
+
+                    {% if app.user %}
+                        <a href="{{ path('app_cart_index') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Mon Panier</a>
+                        <a href="{{ path('app_my_reservations') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Mes Réservations</a>
+                        <a href="{{ path('app_profile') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Mon Profil</a>
+                        <div class="border-t border-blue-600 my-2"></div>
+                        <div class="px-4 py-2 text-sm">Connecté : {{ app.user.firstName }}</div>
+                        <a href="{{ path('app_logout') }}" class="block py-2 px-4 bg-noz-red hover:bg-red-700 rounded transition">Déconnexion</a>
+                    {% else %}
+                        <a href="{{ path('app_login') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Connexion</a>
+                        <a href="{{ path('app_register') }}" class="block py-2 px-4 bg-noz-yellow text-noz-black hover:bg-yellow-400 rounded transition">Inscription</a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+
+        <main class="flex-grow container mx-auto px-4 py-8">
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="mb-4 p-4 rounded 
+                        {% if label == 'success' %}bg-green-100 text-green-700 border border-green-400
+                        {% elseif label == 'danger' %}bg-red-100 text-red-700 border border-red-400
+                        {% else %}bg-blue-100 text-blue-700 border border-blue-400{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+
+            {% if is_granted('ROLE_EMPLOYEE') %}
+            {% set totalRevenue = store_revenue() %}
+            <div data-controller="confetti" data-confetti-amount-value="{{ totalRevenue }}"></div>
+        {% endif %}
+        
+        {% block body %}{% endblock %}
+        </main>
+
+        <footer class="bg-noz-black text-white py-6 mt-auto">
+            <div class="container mx-auto px-4 text-center">
+                <p>&copy; {{ 'now'|date('Y') }} NOZ AMBERIEU ClicAndCollect. Tous droits réservés.</p>
+                <div class="mt-4 space-x-4 text-sm text-gray-400">
+                    <a href="{{ path('app_mentions') }}" class="hover:text-white transition">Mentions Légales</a>
+                    <a href="{{ path('app_privacy') }}" class="hover:text-white transition">Politique de Confidentialité</a>
+                    <a href="{{ path('app_cgv') }}" class="hover:text-white transition">CGV</a>
+                </div>
+                <p class="text-sm text-gray-400 mt-2">100% Bonnes Affaires</p>
+            </div>
+        </footer>
+
+        <!-- Cookie Consent Banner -->
+        <div data-controller="cookie-consent" data-cookie-consent-target="banner" class="hidden fixed left-0 right-0 bg-white text-gray-800 p-4 shadow-2xl z-50 mx-4 rounded-lg border border-gray-200" style="bottom: 30px;">
+            <div class="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="text-sm">
+                    <p>Nous utilisons des cookies pour améliorer votre expérience. En continuant à naviguer sur ce site, vous acceptez notre <a href="{{ path('app_privacy') }}" class="underline hover:text-noz-yellow">politique de confidentialité</a>.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button data-action="click->cookie-consent#reject" class="px-4 py-2 bg-gray-200 text-gray-800 hover:bg-yellow-400 hover:text-white rounded text-sm transition-colors duration-200">Refuser</button>
+                    <button data-action="click->cookie-consent#accept" class="px-4 py-2 bg-noz-btn text-white hover:bg-blue-700 rounded text-sm transition font-bold">Accepter</button>
+                </div>
+            </div>
+        </div>
+
+
+    </body>
+</html>

@@ -1,0 +1,215 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Réservations{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    {% include 'components/_breadcrumb.html.twig' with {
+        'breadcrumbs': [
+            {'label': 'Mes Réservations', 'url': null}
+        ]
+    } %}
+    
+    <h1 class="text-3xl font-bold mb-6 text-noz-blue">Mes Réservations</h1>
+
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-blue-700">
+                    <span class="font-bold">Attention aux strikes :</span> Si vous ne récupérez pas votre commande à temps, vous recevrez un "strike". 
+                    Au bout de <span class="font-bold">3 strikes</span>, votre compte sera banni du site pour 30 jours.
+                    Vous avez actuellement <span class="font-bold text-red-600">{{ app.user.strikes }} strike(s)</span>.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop: Table view (hidden on mobile) -->
+    <div class="hidden lg:block bg-white shadow-md rounded my-6">
+        <div class="overflow-x-auto">
+            <table class="min-w-full table-auto">
+            <thead>
+                <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                    <th class="py-3 px-6 text-left">Référence</th>
+                    <th class="py-3 px-6 text-left">Articles</th>
+                    <th class="py-3 px-6 text-center">Date Réservation</th>
+                    <th class="py-3 px-6 text-center">Expire le</th>
+                    <th class="py-3 px-6 text-center">Statut</th>
+                    <th class="py-3 px-6 text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-600 text-sm font-light">
+                {% for reservation in reservations %}
+                    <tr class="border-b border-gray-200 hover:bg-gray-100">
+                        <td class="py-3 px-6 text-left whitespace-nowrap font-bold">
+                            {{ reservation.reference }}
+                            {% if reservation.comment %}
+                                <div class="text-xs text-gray-500 mt-1 italic" title="{{ reservation.comment }}">
+                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
+                                    Commentaire
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-6 text-left">
+                            <ul class="list-disc list-inside">
+                                {% for item in reservation.reservationItems %}
+                                    <li>{{ item.quantity }}x {{ item.product.name }}</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td class="py-3 px-6 text-center">
+                            {{ reservation.reservedAt|date('d/m/Y H:i') }}
+                        </td>
+                        <td class="py-3 px-6 text-center">
+                            {{ reservation.expiresAt|date('d/m/Y H:i') }}
+                        </td>
+                        <td class="py-3 px-6 text-center">
+                            {% if reservation.status == 'ACTIVE' %}
+                                <span class="bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">Active</span>
+                            {% elseif reservation.status == 'EXPIRED' %}
+                                <span class="bg-red-200 text-red-600 py-1 px-3 rounded-full text-xs">Expirée</span>
+                            {% elseif reservation.status == 'CANCELLED' %}
+                                <span class="bg-gray-200 text-gray-600 py-1 px-3 rounded-full text-xs">Annulée</span>
+                            {% elseif reservation.status == 'COLLECTED' %}
+                                <span class="bg-blue-200 text-blue-600 py-1 px-3 rounded-full text-xs">Récupérée</span>
+                            {% elseif reservation.status == 'READY' %}
+                                <span class="bg-blue-500 text-white py-1 px-3 rounded-full text-xs animate-pulse">Prête à récupérer !</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-6 text-center">
+                            {% if reservation.status == 'ACTIVE' or reservation.status == 'READY' %}
+                                <form action="{{ path('app_reservation_cancel', {'id': reservation.id}) }}" method="post" onsubmit="return confirm('Êtes-vous sûr ?');">
+                                    <button type="submit" class="text-red-500 hover:text-red-700">Annuler</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="py-3 px-6 text-center">Aucune réservation trouvée.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    <!-- Mobile/Tablet: Card view (hidden on desktop) -->
+    <div class="lg:hidden space-y-3 sm:space-y-4">
+        {% for reservation in reservations %}
+            <div class="bg-white rounded-lg shadow-md p-3 sm:p-4">
+                <!-- Header with reference and status -->
+                <div class="flex justify-between items-start mb-2 sm:mb-3 gap-2">
+                    <h3 class="font-bold text-base sm:text-lg text-noz-blue flex-1">{{ reservation.reference }}</h3>
+                    {% if reservation.status == 'ACTIVE' %}
+                        <span class="bg-green-200 text-green-600 py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap">Active</span>
+                    {% elseif reservation.status == 'EXPIRED' %}
+                        <span class="bg-red-200 text-red-600 py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap">Expirée</span>
+                    {% elseif reservation.status == 'CANCELLED' %}
+                        <span class="bg-gray-200 text-gray-600 py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap">Annulée</span>
+                    {% elseif reservation.status == 'COLLECTED' %}
+                        <span class="bg-blue-200 text-blue-600 py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap">Récupérée</span>
+                    {% elseif reservation.status == 'READY' %}
+                        <span class="bg-blue-500 text-white py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap animate-pulse">Prête !</span>
+                    {% endif %}
+                </div>
+                
+                <!-- Items List -->
+                <div class="mb-3 bg-gray-50 p-2 rounded">
+                    <p class="text-xs font-bold text-gray-500 mb-1">Articles :</p>
+                    <ul class="text-sm space-y-1">
+                        {% for item in reservation.reservationItems %}
+                            <li class="flex justify-between">
+                                <span>{{ item.product.name }}</span>
+                                <span class="font-bold">x{{ item.quantity }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                {% if reservation.comment %}
+                    <div class="mb-3 text-xs text-gray-600 italic border-l-2 border-gray-300 pl-2">
+                        "{{ reservation.comment }}"
+                    </div>
+                {% endif %}
+                
+                <!-- Details -->
+                <div class="space-y-1 sm:space-y-2 text-xs sm:text-sm mb-3 sm:mb-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Réservé le:</span>
+                        <span class="font-semibold text-right">{{ reservation.reservedAt|date('d/m/Y à H:i') }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Expire le:</span>
+                        <span class="font-semibold text-right {% if reservation.status == 'ACTIVE' %}text-red-600{% endif %}">
+                            {{ reservation.expiresAt|date('d/m/Y à H:i') }}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Action button -->
+                {% if reservation.status == 'ACTIVE' or reservation.status == 'READY' %}
+                    <form action="{{ path('app_reservation_cancel', {'id': reservation.id}) }}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler cette réservation ?');">
+                        <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white py-1.5 sm:py-2 px-4 rounded font-medium text-sm">
+                            Annuler la réservation
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
+                <p class="text-lg">Aucune réservation trouvée.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if totalPages > 1 %}
+        <div class="mt-6 flex justify-center">
+            <nav class="inline-flex rounded-md shadow-sm -space-x-px">
+                {% if currentPage > 1 %}
+                    <a href="{{ path('app_my_reservations', {page: currentPage - 1}) }}" 
+                       class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        ‹ Précédent
+                    </a>
+                {% else %}
+                    <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-300 cursor-not-allowed">
+                        ‹ Précédent
+                    </span>
+                {% endif %}
+
+                {% for page in 1..totalPages %}
+                    {% if page == currentPage %}
+                        <span class="relative inline-flex items-center px-4 py-2 border border-noz-blue bg-noz-blue text-sm font-medium text-white">
+                            {{ page }}
+                        </span>
+                    {% elseif page == 1 or page == totalPages or (page >= currentPage - 2 and page <= currentPage + 2) %}
+                        <a href="{{ path('app_my_reservations', {page: page}) }}" 
+                           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            {{ page }}
+                        </a>
+                    {% elseif page == currentPage - 3 or page == currentPage + 3 %}
+                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>
+                    {% endif %}
+                {% endfor %}
+
+                {% if currentPage < totalPages %}
+                    <a href="{{ path('app_my_reservations', {page: currentPage + 1}) }}" 
+                       class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        Suivant ›
+                    </a>
+                {% else %}
+                    <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-300 cursor-not-allowed">
+                        Suivant ›
+                    </span>
+                {% endif %}
+            </nav>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

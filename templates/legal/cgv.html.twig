@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Conditions Générales de Vente{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <h1 class="text-3xl font-bold text-noz-blue mb-8">Conditions Générales de Vente</h1>
+
+    <div class="bg-white shadow-md rounded-lg p-6 space-y-6">
+        <section>
+            <h2 class="text-xl font-semibold text-gray-800 mb-2">1. Objet</h2>
+            <p class="text-gray-600">
+                Les présentes conditions régissent les réservations de produits effectuées sur le site NOZ AMBERIEU ClicAndCollect.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-semibold text-gray-800 mb-2">2. Réservation</h2>
+            <p class="text-gray-600">
+                La réservation de produits est gratuite et sans obligation d'achat immédiat. Le paiement s'effectue en magasin lors du retrait.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-semibold text-gray-800 mb-2">3. Retrait</h2>
+            <p class="text-gray-600">
+                Les produits réservés doivent être retirés en magasin sous 48h. Passé ce délai, la réservation sera annulée et le produit remis en vente.
+            </p>
+        </section>
+    </div>
+</div>
+{% endblock %}

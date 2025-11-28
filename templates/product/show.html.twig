@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails du Produit{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    {% include 'components/_breadcrumb.html.twig' with {
+        'breadcrumbs': [
+            {'label': 'Produits', 'url': path('app_product_index')},
+            {'label': product.name, 'url': null}
+        ]
+    } %}
+
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="md:flex">
+            <!-- Product Image -->
+            <div class="md:w-1/2">
+                {% if product.imageFilename %}
+                    <img class="w-full h-96 object-cover object-center" src="{{ asset('uploads/images/' ~ product.imageFilename) }}" alt="{{ product.name }}">
+                {% else %}
+                    <div class="w-full h-96 bg-gray-200 flex items-center justify-center text-gray-400">
+                        <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Product Details -->
+            <div class="md:w-1/2 p-8 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <h1 class="text-3xl font-bold text-noz-blue mb-4">{{ product.name }}</h1>
+                        <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">
+                            ID: {{ product.id }}
+                        </span>
+                    </div>
+                    
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        {{ product.description }}
+                    </p>
+
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <span class="text-sm text-gray-500 block">Prix</span>
+                            <span class="text-3xl font-bold text-noz-blue">{{ product.price }} €</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm text-gray-500 block">Stock</span>
+                            <span class="text-xl font-bold {% if product.stock > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                                {{ product.stock }} unités
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-200 pt-4 text-sm text-gray-500">
+                        <p>Créé le : {{ product.createdAt ? product.createdAt|date('d/m/Y H:i') : 'N/A' }}</p>
+                        <p>Mis à jour le : {{ product.updatedAt ? product.updatedAt|date('d/m/Y H:i') : 'N/A' }}</p>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="mt-8 flex flex-col gap-3">
+                    <a href="{{ path('app_product_edit', {'id': product.id}) }}" class="w-full bg-noz-btn hover:bg-blue-700 text-white font-bold py-3 px-4 rounded text-center transition duration-200 flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                        Modifier le produit
+                    </a>
+                    
+                    <div class="flex gap-3">
+                        <a href="{{ path('app_product_index') }}" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded text-center transition duration-200">
+                            Retour
+                        </a>
+                        
+                        <form method="post" action="{{ path('app_product_delete', {'id': product.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce produit ?');" class="flex-1">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ product.id) }}">
+                            <button class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded text-center transition duration-200">
+                                Supprimer
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

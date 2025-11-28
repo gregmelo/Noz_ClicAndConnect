@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier Produit{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-noz-blue">Modifier le produit</h1>
+            <a href="{{ path('app_product_index') }}" class="text-gray-600 hover:text-gray-800">
+                ← Retour à la liste
+            </a>
+        </div>
+
+        <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+                
+                <div>
+                    {{ form_label(form.name, null, {'label_attr': {'class': 'block text-gray-700 text-sm font-bold mb-2'}}) }}
+                    {{ form_widget(form.name, {'attr': {'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}}) }}
+                    {{ form_errors(form.name, {'attr': {'class': 'text-red-500 text-xs italic'}}) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.description, null, {'label_attr': {'class': 'block text-gray-700 text-sm font-bold mb-2'}}) }}
+                    {{ form_widget(form.description, {'attr': {'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline', 'rows': 4}}) }}
+                    {{ form_errors(form.description, {'attr': {'class': 'text-red-500 text-xs italic'}}) }}
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        {{ form_label(form.price, null, {'label_attr': {'class': 'block text-gray-700 text-sm font-bold mb-2'}}) }}
+                        {{ form_widget(form.price, {'attr': {'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}}) }}
+                        {{ form_errors(form.price, {'attr': {'class': 'text-red-500 text-xs italic'}}) }}
+
+                        <div class="mt-4">
+                            {{ form_label(form.originalPrice, null, {'label_attr': {'class': 'block text-gray-700 text-sm font-bold mb-2'}}) }}
+                            {{ form_widget(form.originalPrice, {'attr': {'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}}) }}
+                            {{ form_errors(form.originalPrice, {'attr': {'class': 'text-red-500 text-xs italic'}}) }}
+                        </div>
+                    </div>
+
+                    <div>
+                        {{ form_label(form.stock, null, {'label_attr': {'class': 'block text-gray-700 text-sm font-bold mb-2'}}) }}
+                        {{ form_widget(form.stock, {'attr': {'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}}) }}
+                        {{ form_errors(form.stock, {'attr': {'class': 'text-red-500 text-xs italic'}}) }}
+                    </div>
+                </div>
+
+                <div>
+                    {{ form_label(form.imageFile, null, {'label_attr': {'class': 'block text-gray-700 text-sm font-bold mb-2'}}) }}
+                    {% if product.imageFilename %}
+                        <div class="mb-2">
+                            <img src="{{ asset('uploads/images/' ~ product.imageFilename) }}" alt="Image actuelle" class="w-32 h-32 object-cover rounded border">
+                            <p class="text-sm text-gray-600 mt-1">Image actuelle</p>
+                        </div>
+                    {% endif %}
+                    {{ form_widget(form.imageFile, {'attr': {'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}}) }}
+                    {{ form_errors(form.imageFile, {'attr': {'class': 'text-red-500 text-xs italic'}}) }}
+                    <p class="text-xs text-gray-500 mt-1">Formats acceptés: JPG, PNG, WEBP (Max 5MB)</p>
+                </div>
+
+                <div class="flex items-center justify-between pt-4">
+                    <button type="submit" class="bg-noz-btn hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline">
+                        Modifier
+                    </button>
+                    <a href="{{ path('app_product_index') }}" class="text-gray-600 hover:text-gray-800">
+                        Annuler
+                    </a>
+                </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}
