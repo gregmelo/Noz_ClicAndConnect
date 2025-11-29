@@ -58,6 +58,18 @@
                     Changer mon mot de passe
                 </a>
             </div>
+
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <h2 class="text-xl font-bold text-red-600 mb-4">Zone de Danger</h2>
+                <p class="text-gray-600 mb-4">La suppression de votre compte est définitive et entraînera l'annulation de toutes vos réservations en cours.</p>
+                
+                <form action="{{ path('app_profile_delete') }}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_account') }}">
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                        Supprimer mon compte
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>

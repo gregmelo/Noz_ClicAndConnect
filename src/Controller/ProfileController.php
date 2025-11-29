@@ -82,4 +82,30 @@ class ProfileController extends AbstractController
 
         return $this->render('profile/change_password.html.twig');
     }
+
+    #[Route('/delete', name: 'app_profile_delete', methods: ['POST'])]
+    public function delete(Request $request, EntityManagerInterface $entityManager, \Symfony\Bundle\SecurityBundle\Security $security): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if ($this->isCsrfTokenValid('delete_account', $request->request->get('_token'))) {
+            // Manually remove reservations to ensure clean deletion
+            $reservations = $entityManager->getRepository(\App\Entity\Reservation::class)->findBy(['user' => $user]);
+            foreach ($reservations as $reservation) {
+                $entityManager->remove($reservation);
+            }
+
+            $entityManager->remove($user);
+            $entityManager->flush();
+
+            $security->logout(false);
+
+            $this->addFlash('success', 'Votre compte a été supprimé avec succès.');
+            return $this->redirectToRoute('app_home');
+        }
+
+        $this->addFlash('danger', 'Token de sécurité invalide.');
+        return $this->redirectToRoute('app_profile');
+    }
 }

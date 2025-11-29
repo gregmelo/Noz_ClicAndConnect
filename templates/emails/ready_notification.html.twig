@@ -75,7 +75,7 @@
         Vous avez jusqu'au <strong>{{ reservation.expiresAt|date('d/m/Y à H:i') }}</strong> pour la récupérer.</p>
         
         <p style="text-align: center;">
-            <a href="http://localhost:8000/reservation/my-reservations" class="button">Voir ma réservation</a>
+            <a href="{{ url('app_my_reservations') }}" class="button">Voir ma réservation</a>
         </p>
         
         <p>À tout de suite !</p>

@@ -58,7 +58,7 @@ class ReservationController extends AbstractController
         // Check if user is banned
         if ($user->getBanExpiresAt() && $user->getBanExpiresAt() > new \DateTimeImmutable()) {
             $this->addFlash('danger', 'Vous êtes banni jusqu\'au ' . $user->getBanExpiresAt()->format('d/m/Y H:i'));
-            return $this->redirectToRoute('app_home');
+            return $this->redirectToRoute('app_banned');
         }
 
         $cartItems = $this->cartService->getFullCart();

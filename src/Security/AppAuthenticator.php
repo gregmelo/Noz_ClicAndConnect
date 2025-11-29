@@ -48,6 +48,11 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
             return new RedirectResponse($targetPath);
         }
 
+        $user = $token->getUser();
+        if ($user instanceof \App\Entity\User && $user->getBanExpiresAt() && $user->getBanExpiresAt() > new \DateTimeImmutable()) {
+            return new RedirectResponse($this->urlGenerator->generate('app_banned'));
+        }
+
         return new RedirectResponse($this->urlGenerator->generate('app_home'));
     }
 

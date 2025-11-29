@@ -116,7 +116,21 @@ class UserAdminController extends AbstractController
                 $user->setEmail($email);
                 $user->setFirstName($firstName);
                 $user->setLastName($lastName);
+                $user->setLastName($lastName);
                 $user->setRoles([$role]);
+
+                // Handle Strikes
+                $strikes = (int) $request->request->get('strikes');
+                $user->setStrikes($strikes);
+
+                // Auto-ban/Unban logic
+                if ($strikes >= 3) {
+                    if (!$user->getBanExpiresAt() || $user->getBanExpiresAt() < new \DateTimeImmutable()) {
+                        $user->setBanExpiresAt((new \DateTimeImmutable())->modify('+30 days'));
+                    }
+                } else {
+                    $user->setBanExpiresAt(null);
+                }
 
                 $entityManager->flush();
 

@@ -28,6 +28,13 @@ class CartController extends AbstractController
     #[Route('/add/{id}', name: 'app_cart_add')]
     public function add(int $id, Request $request): Response
     {
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+        if ($user && $user->getBanExpiresAt() && $user->getBanExpiresAt() > new \DateTimeImmutable()) {
+            $this->addFlash('danger', 'Votre compte est suspendu. Vous ne pouvez pas ajouter d\'articles.');
+            return $this->redirectToRoute('app_banned');
+        }
+
         $quantity = (int) $request->request->get('quantity', 1);
         $this->cartService->add($id, $quantity);
 
