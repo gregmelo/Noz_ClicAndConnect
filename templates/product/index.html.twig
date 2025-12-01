@@ -43,26 +43,16 @@
                             {% endif %}
                         </td>
                         <td class="py-3 px-6 text-left whitespace-nowrap">
-                            <span class="font-medium">{{ product.name }}</span>
-                        </td>
-                        <td class="py-3 px-6 text-center">
-                            <span class="font-bold text-noz-red">{{ product.price }} €</span>
-                        </td>
-                        <td class="py-3 px-6 text-center">
-                            {% if product.originalPrice %}
-                                <span class="text-gray-500 line-through">{{ product.originalPrice }} €</span>
-                            {% else %}
-                                <span class="text-gray-400">-</span>
-                            {% endif %}
-                        </td>
-                        <td class="py-3 px-6 text-center">
-                            <span class="{% if product.stock > 0 %}text-green-600{% else %}text-red-600{% endif %} font-semibold">
-                                {{ product.stock }}
-                            </span>
                         </td>
                         <td class="py-3 px-6 text-center">
                             {% if product.createdBy %}
-                                <span class="text-xs bg-blue-100 text-blue-800 py-1 px-2 rounded-full">{{ product.createdBy.email }}</span>
+                                <span class="text-xs bg-blue-100 text-blue-800 py-1 px-2 rounded-full">
+                                    {% if product.createdBy.firstName or product.createdBy.lastName %}
+                                        {{ product.createdBy.firstName }} {{ product.createdBy.lastName }}
+                                    {% else %}
+                                        {{ product.createdBy.email }}
+                                    {% endif %}
+                                </span>
                             {% else %}
                                 <span class="text-xs text-gray-400">Inconnu</span>
                             {% endif %}
