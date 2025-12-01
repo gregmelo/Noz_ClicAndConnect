@@ -70,18 +70,6 @@
         <a href="https://www.google.com/maps/search/?api=1&query=19+rue+Vermorel+01500+Amberieu-en-Bugey" target="_blank" style="color: #005bbb; text-decoration: none;">
             19 rue Vermorel, 01500 Ambérieu-en-Bugey (Itinéraire GPS)
         </a></p>
-        
-        <p><strong>⏰ Rappel :</strong><br>
-        Vous avez jusqu'au <strong>{{ reservation.expiresAt|date('d/m/Y à H:i') }}</strong> pour la récupérer.</p>
-        
-        <p style="text-align: center;">
-            <a href="{{ url('app_my_reservations') }}" class="button">Voir ma réservation</a>
-        </p>
-        
-        <p>À tout de suite !</p>
-    </div>
-    
-    <div class="footer">
         <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
         <p>&copy; {{ 'now'|date('Y') }} Noz ClicAndConnect - Tous droits réservés</p>
     </div>

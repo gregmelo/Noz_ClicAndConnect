@@ -28,12 +28,7 @@ class EmailNotificationService
                 'user' => $user,
             ]);
 
-        try {
-            $this->mailer->send($email);
-        } catch (\Exception $e) {
-            // Log error but don't block registration
-            error_log('Failed to send registration email: ' . $e->getMessage());
-        }
+        $this->mailer->send($email);
     }
 
     public function sendReservationConfirmation(Reservation $reservation): void
@@ -48,11 +43,7 @@ class EmailNotificationService
                 'user' => $reservation->getUser(),
             ]);
 
-        try {
-            $this->mailer->send($email);
-        } catch (\Exception $e) {
-            error_log('Failed to send reservation confirmation email: ' . $e->getMessage());
-        }
+        $this->mailer->send($email);
     }
 
     public function sendExpirationReminder(Reservation $reservation): void
@@ -67,11 +58,7 @@ class EmailNotificationService
                 'user' => $reservation->getUser(),
             ]);
 
-        try {
-            $this->mailer->send($email);
-        } catch (\Exception $e) {
-            error_log('Failed to send expiration reminder email: ' . $e->getMessage());
-        }
+        $this->mailer->send($email);
     }
 
     public function sendExpirationWarning(Reservation $reservation): void
@@ -87,11 +74,7 @@ class EmailNotificationService
 
             ]);
 
-        try {
-            $this->mailer->send($email);
-        } catch (\Exception $e) {
-            error_log('Failed to send expiration warning email: ' . $e->getMessage());
-        }
+        $this->mailer->send($email);
     }
     public function sendReadyNotification(Reservation $reservation): void
     {
@@ -105,10 +88,6 @@ class EmailNotificationService
                 'user' => $reservation->getUser(),
             ]);
 
-        try {
-            $this->mailer->send($email);
-        } catch (\Exception $e) {
-            error_log('Failed to send ready notification email: ' . $e->getMessage());
-        }
+        $this->mailer->send($email);
     }
 }

@@ -4,9 +4,28 @@
 
 {% block body %}
 <div class="container mx-auto px-4 py-8">
-    <div class="bg-noz-yellow p-6 rounded-lg shadow-md mb-8 text-center">
-        <h1 class="text-4xl font-bold text-noz-black mb-2">ARRIVAGES DU JOUR</h1>
-        <p class="text-xl text-gray-800">Réservez vos articles et récupérez-les en magasin sous 48h !</p>
+    <div class="bg-gradient-to-r from-noz-blue to-blue-600 rounded-xl shadow-lg mb-8 p-8 text-white relative overflow-hidden">
+        <!-- Decorative Circle -->
+        <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white opacity-10 transform rotate-45"></div>
+        
+        <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="text-center md:text-left animate-fade-in-up">
+                <h1 class="text-3xl md:text-5xl font-extrabold mb-2 tracking-tight">
+                    ARRIVAGES DU JOUR
+                    <span class="inline-block ml-2 bg-yellow-400 text-noz-blue text-xs px-2 py-1 rounded-full align-middle animate-pulse">NOUVEAU</span>
+                </h1>
+                <p class="text-lg md:text-xl text-blue-100 max-w-2xl">
+                    Découvrez nos pépites du moment. Réservez en ligne, récupérez en magasin !
+                </p>
+            </div>
+            
+            <!-- Animated Icon -->
+            <div class="hidden md:block animate-bounce-slow">
+                <svg class="w-24 h-24 text-yellow-400 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path>
+                </svg>
+            </div>
+        </div>
     </div>
 
     <div class="mb-6">
@@ -16,7 +35,7 @@
             {% if availability %}<input type="hidden" name="availability" value="{{ availability }}">{% endif %}
             {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
             
-            <div class="flex gap-2">
+            <div class="flex flex-col sm:flex-row gap-2">
                 <input type="text" name="search" value="{{ search }}" placeholder="Rechercher un produit..." 
                        data-action="input->autosubmit#debouncedSubmit"
                        class="flex-grow shadow appearance-none border rounded py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">

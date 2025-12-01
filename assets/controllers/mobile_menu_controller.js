@@ -4,10 +4,12 @@ export default class extends Controller {
     static targets = ["menu"];
 
     connect() {
-        // Le menu est caché par défaut via la classe 'hidden' dans le HTML
+        console.log('📱 Mobile Menu Controller connected');
     }
 
-    toggle() {
+    toggle(event) {
+        console.log('🍔 Mobile Menu Toggle clicked');
+        if (event) event.preventDefault();
         this.menuTarget.classList.toggle('hidden');
     }
 }

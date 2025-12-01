@@ -115,6 +115,9 @@ class ReservationController extends AbstractController
             $item->setProduct($product);
             $item->setQuantity($quantity);
             $entityManager->persist($item);
+            
+            // Add to collection so it's available for the email immediately
+            $reservation->addReservationItem($item);
         }
 
         $entityManager->flush();

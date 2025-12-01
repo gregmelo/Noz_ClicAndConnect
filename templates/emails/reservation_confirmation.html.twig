@@ -59,6 +59,10 @@
         <p>Bonjour <strong>{{ user.firstName }}</strong>,</p>
         
         <p>Votre réservation a bien été enregistrée !</p>
+
+        <p style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 10px; border-radius: 5px;">
+            <strong>⚠️ Important :</strong> Merci d'attendre la confirmation de la préparation de votre réservation (email "Votre commande est prête") avant de venir la chercher en magasin.
+        </p>
         
         <p><strong>Référence :</strong> {{ reservation.reference }}</p>
 
@@ -77,19 +81,6 @@
                 {{ reservation.comment|nl2br }}
             </div>
         {% endif %}
-        
-        <p><strong>⏰ À récupérer avant le :</strong> <span class="highlight">{{ reservation.expiresAt|date('d/m/Y à H:i') }}</span></p>
-        
-        <p>⚠️ <strong>Important :</strong> Vous avez <strong>48 heures</strong> pour récupérer votre article en magasin. Passé ce délai, votre réservation sera automatiquement annulée.</p>
-        
-        <p style="text-align: center;">
-            <a href="{{ url('app_my_reservations') }}" class="button">Voir mes réservations</a>
-        </p>
-        
-        <p>À très bientôt en magasin !</p>
-    </div>
-    
-    <div class="footer">
         <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
         <p>&copy; {{ 'now'|date('Y') }} Noz ClicAndConnect - Tous droits réservés</p>
     </div>

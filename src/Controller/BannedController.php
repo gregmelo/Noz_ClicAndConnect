@@ -13,6 +13,7 @@ class BannedController extends AbstractController
     #[IsGranted('ROLE_CLIENT')]
     public function index(): Response
     {
+        /** @var \App\Entity\User $user */
         $user = $this->getUser();
 
         if (!$user || !$user->getBanExpiresAt() || $user->getBanExpiresAt() < new \DateTimeImmutable()) {

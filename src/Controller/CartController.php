@@ -64,4 +64,13 @@ class CartController extends AbstractController
 
         return $this->redirectToRoute('app_cart_index');
     }
+
+    #[Route('/clear', name: 'app_cart_clear')]
+    public function clear(): Response
+    {
+        $this->cartService->clear();
+        $this->addFlash('success', 'Votre panier a été vidé.');
+
+        return $this->redirectToRoute('app_cart_index');
+    }
 }

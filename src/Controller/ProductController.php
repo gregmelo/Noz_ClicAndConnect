@@ -68,6 +68,7 @@ final class ProductController extends AbstractController
     #[Route('/{id}/edit', name: 'app_product_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Product $product, EntityManagerInterface $entityManager, FileUploader $fileUploader): Response
     {
+        $oldPrice = $product->getPrice();
         $form = $this->createForm(ProductType::class, $product);
         $form->handleRequest($request);
 
@@ -80,6 +81,19 @@ final class ProductController extends AbstractController
                     $product->setImageFilename($newFilename);
                 } catch (\Exception $e) {
                     $this->addFlash('danger', 'Erreur lors de l\'upload de l\'image : ' . $e->getMessage());
+                }
+            }
+
+            // Automatic Price Drop Logic
+            $newPrice = $product->getPrice();
+            // If original price is not manually set by the user
+            if (!$form->get('originalPrice')->getData()) {
+                if ($newPrice < $oldPrice) {
+                    // Price dropped: Set original price to the old price
+                    $product->setOriginalPrice($oldPrice);
+                } elseif ($newPrice >= $oldPrice) {
+                    // Price increased or same: Remove original price (not a promotion anymore)
+                    $product->setOriginalPrice(null);
                 }
             }
 
