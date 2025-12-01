@@ -44,6 +44,7 @@ final class ProductController extends AbstractController
                 }
             }
 
+            $product->setCreatedBy($this->getUser());
             $entityManager->persist($product);
             $entityManager->flush();
 
