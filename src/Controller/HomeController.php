@@ -11,15 +11,22 @@ use Symfony\Component\Routing\Attribute\Route;
 class HomeController extends AbstractController
 {
     #[Route('/', name: 'app_home')]
-    public function index(Request $request, ProductRepository $productRepository): Response
+    public function index(Request $request, ProductRepository $productRepository, \App\Repository\CategoryRepository $categoryRepository): Response
     {
         $search = $request->query->get('search', '');
         $minPrice = $request->query->get('min_price', '');
         $maxPrice = $request->query->get('max_price', '');
         $availability = $request->query->get('availability', '');
         $sort = $request->query->get('sort', 'newest');
+        $categoryId = $request->query->get('category', '');
         
         $qb = $productRepository->createQueryBuilder('p');
+
+        // Category filter
+        if ($categoryId) {
+            $qb->andWhere('p.category = :categoryId')
+               ->setParameter('categoryId', $categoryId);
+        }
 
         // Search filter
         if ($search) {
@@ -81,6 +88,8 @@ class HomeController extends AbstractController
 
         return $this->render('home/index.html.twig', [
             'products' => $paginatedProducts,
+            'categories' => $categoryRepository->findBy([], ['name' => 'ASC']),
+            'currentCategory' => $categoryId,
             'search' => $search,
             'min_price' => $minPrice,
             'max_price' => $maxPrice,

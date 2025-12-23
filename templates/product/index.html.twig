@@ -27,6 +27,7 @@
                     <th class="py-3 px-6 text-left">Nom</th>
                     <th class="py-3 px-6 text-center">Prix</th>
                     <th class="py-3 px-6 text-center">Prix Origine</th>
+                    <th class="py-3 px-6 text-center">Catégorie</th>
                     <th class="py-3 px-6 text-center">Stock</th>
                     <th class="py-3 px-6 text-center">Créé par</th>
                     <th class="py-3 px-6 text-center">Actions</th>
@@ -53,6 +54,13 @@
                                 <span class="text-gray-500 line-through">{{ product.originalPrice }} €</span>
                             {% else %}
                                 <span class="text-gray-400">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-6 text-center">
+                            {% if product.category %}
+                                <span class="bg-blue-50 text-noz-blue px-2 py-1 rounded text-xs font-bold">{{ product.category.name }}</span>
+                            {% else %}
+                                <span class="text-gray-400 italic">Sans catégorie</span>
                             {% endif %}
                         </td>
                         <td class="py-3 px-6 text-center">
@@ -129,6 +137,11 @@
                                 <span class="font-bold text-noz-red text-base sm:text-lg">{{ product.price }} €</span>
                             </div>
                             
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Catégorie:</span>
+                                <span class="font-medium text-noz-blue">{% if product.category %}{{ product.category.name }}{% else %}-{% endif %}</span>
+                            </div>
+
                             <div class="flex justify-between items-center">
                                 <span class="text-gray-600">Stock:</span>
                                 <span class="{% if product.stock > 0 %}text-green-600{% else %}text-red-600{% endif %} font-semibold">

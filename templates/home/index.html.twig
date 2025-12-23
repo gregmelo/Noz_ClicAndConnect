@@ -28,12 +28,14 @@
         </div>
     </div>
 
+    <div>
     <div class="mb-6">
         <form action="{{ path('app_home') }}" method="get" class="max-w-2xl mx-auto" data-controller="autosubmit">
             {% if min_price %}<input type="hidden" name="min_price" value="{{ min_price }}">{% endif %}
             {% if max_price %}<input type="hidden" name="max_price" value="{{ max_price }}">{% endif %}
             {% if availability %}<input type="hidden" name="availability" value="{{ availability }}">{% endif %}
             {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+            {% if currentCategory %}<input type="hidden" name="category" value="{{ currentCategory }}">{% endif %}
             
             <div class="flex flex-col sm:flex-row gap-2">
                 <input type="text" name="search" value="{{ search }}" placeholder="Rechercher un produit..." 
@@ -41,6 +43,15 @@
                        class="flex-grow shadow appearance-none border rounded py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 <button type="submit" class="bg-noz-btn hover:bg-blue-700 text-white font-bold py-3 px-6 rounded">
                     Rechercher
+                </button>
+                <button type="button" 
+                        onclick="toggleFilters()"
+                        id="filter-toggle-btn"
+                        class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded flex items-center justify-center gap-2 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                    </svg>
+                    <span id="filter-btn-text">{% if (min_price or max_price or availability or currentCategory) %}Masquer Filtres{% else %}Filtres{% endif %}</span>
                 </button>
                 {% if search %}
                     <a href="{{ path('app_home') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded">
@@ -52,14 +63,14 @@
     </div>
 
     <!-- Filters and Sorting -->
-    <div class="mb-6 bg-white rounded-lg shadow-md p-4">
+    <div id="filters-container" class="{% if not (min_price or max_price or availability or currentCategory) %}hidden{% endif %} mb-6 bg-white rounded-lg shadow-md p-4 animate-fade-in">
         <form action="{{ path('app_home') }}" method="get" class="space-y-4" data-controller="autosubmit">
             <!-- Keep search value -->
             {% if search %}
                 <input type="hidden" name="search" value="{{ search }}">
             {% endif %}
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <!-- Price Range -->
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">Prix minimum</label>
@@ -103,6 +114,21 @@
                         <option value="name_asc" {% if sort == 'name_asc' %}selected{% endif %}>Nom A-Z</option>
                     </select>
                 </div>
+
+                <!-- Category -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Catégorie</label>
+                    <select name="category" 
+                            data-action="change->autosubmit#submit"
+                            class="w-full shadow appearance-none border rounded py-2 px-3 text-noz-blue font-bold leading-tight focus:outline-none focus:shadow-outline bg-blue-50">
+                        <option value="">Toutes catégories</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}" {% if currentCategory == category.id %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
 
             <div class="flex gap-2 justify-end">
@@ -116,6 +142,7 @@
                 </a>
             </div>
         </form>
+    </div>
     </div>
     
     <!-- Results count -->
@@ -132,7 +159,14 @@
                     <img src="{{ asset('uploads/images/placeholder.svg') }}" alt="Image non disponible" class="w-full h-48 object-contain mb-4 rounded bg-gray-100">
                 {% endif %}
                 
-                <h2 class="text-xl font-bold mb-2 text-noz-blue">{{ product.name }}</h2>
+                <h2 class="text-xl font-bold mb-1 text-noz-blue">{{ product.name }}</h2>
+                {% if product.category %}
+                    <div class="mb-2">
+                        <span class="text-[10px] uppercase tracking-wider font-bold bg-blue-100 text-noz-blue px-2 py-0.5 rounded-full">
+                            {{ product.category.name }}
+                        </span>
+                    </div>
+                {% endif %}
                 <p class="text-gray-600 mb-4 flex-grow">{{ product.description }}</p>
                 
                 <div class="mt-auto">
@@ -189,7 +223,7 @@
             <nav class="inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                 <!-- Previous -->
                 {% if currentPage > 1 %}
-                    <a href="{{ path('app_home', {page: currentPage - 1, search: search, min_price: min_price, max_price: max_price, availability: availability, sort: sort}) }}" 
+                    <a href="{{ path('app_home', {page: currentPage - 1, search: search, min_price: min_price, max_price: max_price, availability: availability, sort: sort, category: currentCategory}) }}" 
                        class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                         ‹ Précédent
                     </a>
@@ -206,7 +240,7 @@
                             {{ page }}
                         </span>
                     {% elseif page == 1 or page == totalPages or (page >= currentPage - 2 and page <= currentPage + 2) %}
-                        <a href="{{ path('app_home', {page: page, search: search, min_price: min_price, max_price: max_price, availability: availability, sort: sort}) }}" 
+                        <a href="{{ path('app_home', {page: page, search: search, min_price: min_price, max_price: max_price, availability: availability, sort: sort, category: currentCategory}) }}" 
                            class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
                             {{ page }}
                         </a>
@@ -219,7 +253,7 @@
 
                 <!-- Next -->
                 {% if currentPage < totalPages %}
-                    <a href="{{ path('app_home', {page: currentPage + 1, search: search, min_price: min_price, max_price: max_price, availability: availability, sort: sort}) }}" 
+                    <a href="{{ path('app_home', {page: currentPage + 1, search: search, min_price: min_price, max_price: max_price, availability: availability, sort: sort, category: currentCategory}) }}" 
                        class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                         Suivant ›
                     </a>
@@ -232,4 +266,22 @@
         </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    function toggleFilters() {
+        const container = document.getElementById('filters-container');
+        const textBtn = document.getElementById('filter-btn-text');
+        
+        if (container.classList.contains('hidden')) {
+            container.classList.remove('hidden');
+            textBtn.textContent = 'Masquer Filtres';
+        } else {
+            container.classList.add('hidden');
+            textBtn.textContent = 'Filtres';
+        }
+    }
+</script>
 {% endblock %}

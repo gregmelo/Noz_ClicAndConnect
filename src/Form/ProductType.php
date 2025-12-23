@@ -58,6 +58,13 @@ class ProductType extends AbstractType
                     ])
                 ],
             ])
+            ->add('category', \Symfony\Bridge\Doctrine\Form\Type\EntityType::class, [
+                'class' => \App\Entity\Category::class,
+                'choice_label' => 'name',
+                'label' => 'Catégorie',
+                'placeholder' => '-- Choisir une catégorie --',
+                'required' => false,
+            ])
         ;
     }
 
