@@ -58,7 +58,7 @@
                         <td class="py-3 px-6 text-left">
                             <ul class="list-disc list-inside">
                                 {% for item in reservation.reservationItems %}
-                                    <li>{{ item.quantity }}x {{ item.product.name }}</li>
+                                    <li>{{ item.quantity }}x {{ item.product.name }} <span class="text-xs text-noz-blue">({{ item.price }} €)</span></li>
                                 {% endfor %}
                             </ul>
                         </td>
@@ -124,8 +124,8 @@
                     <p class="text-xs font-bold text-gray-500 mb-1">Articles :</p>
                     <ul class="text-sm space-y-1">
                         {% for item in reservation.reservationItems %}
-                            <li class="flex justify-between">
-                                <span>{{ item.product.name }}</span>
+                            <li class="flex justify-between items-center">
+                                <span>{{ item.product.name }} <span class="text-xs text-noz-blue">({{ item.price }}€)</span></span>
                                 <span class="font-bold">x{{ item.quantity }}</span>
                             </li>
                         {% endfor %}

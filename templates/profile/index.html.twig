@@ -8,6 +8,24 @@
         <h1 class="text-3xl font-bold mb-6 text-noz-blue">Mon Profil</h1>
 
         <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            
+            {# Bravo Message for Top Sellers #}
+            {% if userRank is defined and userRank %}
+                <div class="mb-6 p-4 rounded-lg bg-gradient-to-r from-yellow-100 to-yellow-200 border border-yellow-300 text-center">
+                    <div class="text-4xl mb-2">
+                        {% if userRank == 1 %}🥇{% elseif userRank == 2 %}🥈{% elseif userRank == 3 %}🥉{% endif %}
+                    </div>
+                    <h3 class="text-xl font-bold text-yellow-800">Félicitations !</h3>
+                    <p class="text-yellow-900">
+                        Bravo, vous êtes le 
+                        <strong>
+                            {% if userRank == 1 %}Premier{% elseif userRank == 2 %}Deuxième{% elseif userRank == 3 %}Troisième{% endif %}
+                        </strong> 
+                        meilleur vendeur !
+                    </p>
+                </div>
+            {% endif %}
+
             <div class="mb-4">
                 <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
                 <p class="text-gray-900">{{ app.user.email }}</p>

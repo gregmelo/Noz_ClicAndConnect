@@ -114,6 +114,7 @@ class ReservationController extends AbstractController
             $item->setReservation($reservation);
             $item->setProduct($product);
             $item->setQuantity($quantity);
+            $item->setPrice($product->getPrice());
             $entityManager->persist($item);
             
             // Add to collection so it's available for the email immediately
@@ -145,13 +146,18 @@ class ReservationController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        if ($reservation->getUser() !== $user) {
+        // Allow owner OR employee
+        if ($reservation->getUser() !== $user && !$this->isGranted('ROLE_EMPLOYEE')) {
             throw $this->createAccessDeniedException();
         }
 
         // Allow cancellation for ACTIVE or READY
         if (!in_array($reservation->getStatus(), ['ACTIVE', 'READY'])) {
             $this->addFlash('danger', 'Cette réservation ne peut plus être annulée.');
+            
+            if ($this->isGranted('ROLE_EMPLOYEE')) {
+                return $this->redirectToRoute('app_employee_reservations');
+            }
             return $this->redirectToRoute('app_my_reservations');
         }
 
@@ -162,13 +168,36 @@ class ReservationController extends AbstractController
             $entityManager->persist($product);
         }
 
-        $reservation->setStatus('CANCELLED');
+        // Check if expired to apply Strike logic
+        $now = new \DateTimeImmutable();
+        if ($reservation->getExpiresAt() < $now) {
+            $reservation->setStatus('EXPIRED'); 
+            
+            // Add Strike to User
+            $owner = $reservation->getUser();
+            $owner->setStrikes($owner->getStrikes() + 1);
+            
+            // Ban logic (e.g. >= 3 strikes)
+            if ($owner->getStrikes() >= 3) {
+                 $owner->setBanExpiresAt($now->modify('+30 days'));
+                 $this->addFlash('warning', 'Utilisateur banni pour 30 jours (3 strikes).');
+            }
+            $entityManager->persist($owner);
+            
+            $this->addFlash('success', 'Réservation marquée comme EXPIRÉE. Stock rétabli et Strike ajouté.');
+        } else {
+            $reservation->setStatus('CANCELLED');
+            $this->addFlash('success', 'Réservation annulée et articles remis en stock.');
+        }
+
         $entityManager->flush();
 
         // Log activity
         $this->activityLogger->logReservationCancelled($user, $reservation->getId());
 
-        $this->addFlash('success', 'Réservation annulée. Le magasin a été notifié.');
+        if ($this->isGranted('ROLE_EMPLOYEE')) {
+            return $this->redirectToRoute('app_employee_reservations');
+        }
 
         return $this->redirectToRoute('app_my_reservations');
     }
@@ -183,12 +212,34 @@ class ReservationController extends AbstractController
         }
 
         $reservation->setStatus('READY');
+
+        // Logic d'expiration : 
+        // - Avant midi -> 19h30 le jour même
+        // - Après midi -> 19h30 le lendemain (sauf si dimanche -> lundi)
+        $now = new \DateTimeImmutable();
+        $hour = (int) $now->format('G');
+
+        if ($hour < 12) {
+            // Matin : 19h30 le jour même
+            $expiresAt = $now->setTime(19, 30);
+        } else {
+            // Après-midi : 19h30 le lendemain
+            $expiresAt = $now->modify('+1 day')->setTime(19, 30);
+            
+            // Si le lendemain est Dimanche (7), on reporte à Lundi
+            if ($expiresAt->format('N') == 7) {
+                $expiresAt = $expiresAt->modify('+1 day');
+            }
+        }
+        
+        $reservation->setExpiresAt($expiresAt);
+
         $entityManager->flush();
 
-        // Send email
+        // Send email (will use the new expiresAt date)
         $this->emailService->sendReadyNotification($reservation);
 
-        $this->addFlash('success', 'Réservation marquée comme prête. Le client a été notifié.');
+        $this->addFlash('success', 'Réservation prête. Le client a jusqu\'au ' . $expiresAt->format('d/m H:i') . ' pour la récupérer.');
 
         return $this->redirectToRoute('app_employee_reservations');
     }
@@ -216,17 +267,82 @@ class ReservationController extends AbstractController
 
     #[Route('/employee/reservations', name: 'app_employee_reservations')]
     #[IsGranted('ROLE_EMPLOYEE')]
-    public function employeeReservations(ReservationRepository $reservationRepository): Response
+    public function employeeReservations(ReservationRepository $reservationRepository, \App\Repository\GlobalStatRepository $globalStatRepository): Response
     {
-        $reservations = $reservationRepository->createQueryBuilder('r')
-            ->where('r.status IN (:statuses)')
-            ->setParameter('statuses', ['ACTIVE', 'READY'])
+        $now = new \DateTimeImmutable();
+
+        // 1. Nouvelles (ACTIVE et non expirées)
+        $newReservations = $reservationRepository->createQueryBuilder('r')
+            ->where('r.status = :status')
+            ->andWhere('r.expiresAt > :now')
+            ->setParameter('status', 'ACTIVE')
+            ->setParameter('now', $now)
             ->orderBy('r.reservedAt', 'DESC')
             ->getQuery()
             ->getResult();
 
+        // 2. À récupérer (READY et non expirées)
+        $readyReservations = $reservationRepository->createQueryBuilder('r')
+            ->where('r.status = :status')
+            ->andWhere('r.expiresAt > :now')
+            ->setParameter('status', 'READY')
+            ->setParameter('now', $now)
+            ->orderBy('r.reservedAt', 'ASC') // Les plus anciennes prêtes en premier (urgence)
+            ->getQuery()
+            ->getResult();
+
+        // 3. Expirées (CANCELED, EXPIRED ou date passée et non récupérées)
+        $expiredReservations = $reservationRepository->createQueryBuilder('r')
+            ->where('r.status IN (:done_statuses)')
+            ->orWhere('r.status IN (:active_ready) AND r.expiresAt <= :now')
+            ->setParameter('done_statuses', ['CANCELLED', 'EXPIRED'])
+            ->setParameter('active_ready', ['ACTIVE', 'READY'])
+            ->setParameter('now', $now)
+            ->orderBy('r.expiresAt', 'DESC')
+            ->setMaxResults(20) // Limit display
+            ->getQuery()
+            ->getResult();
+
+        // 4. Traitées (COLLECTED)
+        $collectedReservations = $reservationRepository->createQueryBuilder('r')
+            ->where('r.status = :status')
+            ->setParameter('status', 'COLLECTED')
+            ->orderBy('r.reservedAt', 'DESC')
+            ->setMaxResults(20) // Limit display
+            ->getQuery()
+            ->getResult();
+
         return $this->render('reservation/employee_reservations.html.twig', [
-            'reservations' => $reservations,
+            'newReservations' => $newReservations,
+            'readyReservations' => $readyReservations,
+            'expiredReservations' => $expiredReservations,
+            'collectedReservations' => $collectedReservations,
         ]);
+    }
+
+    #[Route('/employee/cleanup', name: 'app_employee_cleanup')]
+    public function cleanup(\Symfony\Component\HttpKernel\KernelInterface $kernel): Response
+    {
+        // Security Check: Admin, Super Admin, or Dev
+        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_SUPER_ADMIN') && !$this->isGranted('ROLE_DEV')) {
+            throw $this->createAccessDeniedException('Accès réservé aux administrateurs.');
+        }
+
+        $application = new \Symfony\Bundle\FrameworkBundle\Console\Application($kernel);
+        $application->setAutoExit(false);
+
+        $input = new \Symfony\Component\Console\Input\ArrayInput([
+            'command' => 'app:cleanup-reservations',
+        ]);
+
+        $output = new \Symfony\Component\Console\Output\BufferedOutput();
+        $application->run($input, $output);
+
+        $content = $output->fetch();
+
+        // Simple check for success string or just flash the output
+        $this->addFlash('info', 'Nettoyage terminé : ' . $content);
+
+        return $this->redirectToRoute('app_employee_reservations');
     }
 }

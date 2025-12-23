@@ -170,5 +170,44 @@
             <p class="text-gray-500">Aucune réservation à récupérer aujourd'hui.</p>
         {% endif %}
     </div>
+
+    <!-- Best Sellers Leaderboard (Secret Section) -->
+    {% if is_granted('ROLE_SUPER_ADMIN') or is_granted('ROLE_DEV') %}
+        <div class="mt-8 bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-noz-blue">
+                🏆 Top Vendeurs (Classement Posteurs)
+                <span class="text-xs bg-yellow-100 text-yellow-800 border border-yellow-200 px-2 py-1 rounded">Admin Only</span>
+            </h2>
+            
+            {% if bestSellers|length > 0 %}
+                <div class="overflow-hidden rounded-lg border border-gray-200">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-gray-50 text-gray-700 uppercase font-medium">
+                            <tr>
+                                <th class="px-4 py-3 text-left">Rang</th>
+                                <th class="px-4 py-3 text-left">Employé</th>
+                                <th class="px-4 py-3 text-right">CA Généré</th>
+                                <th class="px-4 py-3 text-center">Articles Vendus</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for seller in bestSellers %}
+                                <tr class="hover:bg-gray-50 transition text-gray-700">
+                                    <td class="px-4 py-3 font-bold text-yellow-500">
+                                        {% if loop.index == 1 %}🥇{% elseif loop.index == 2 %}🥈{% elseif loop.index == 3 %}🥉{% else %}#{{ loop.index }}{% endif %}
+                                    </td>
+                                    <td class="px-4 py-3 font-bold">{{ seller.firstName }} {{ seller.lastName }}</td>
+                                    <td class="px-4 py-3 text-right font-mono text-green-600 font-bold">{{ seller.revenue|number_format(2, ',', ' ') }} €</td>
+                                    <td class="px-4 py-3 text-center">{{ seller.itemsSold }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-gray-400 italic">Pas encore assez de données pour établir le classement.</p>
+            {% endif %}
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

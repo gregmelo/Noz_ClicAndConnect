@@ -195,12 +195,13 @@
                     
                     {% if is_granted('ROLE_EMPLOYEE') %}
                         <a href="{{ path('app_employee_reservations') }}" 
-                           class="block py-2 px-4 hover:bg-blue-700 rounded transition relative"
+                           class="block py-2 px-4 hover:bg-blue-700 rounded transition flex items-center justify-between"
                            data-controller="reservation-alert"
                            data-reservation-alert-url-value="{{ path('api_reservations_count_new') }}">
-                            Espace Employé
-                            <span data-reservation-alert-target="badge" class="hidden absolute top-1 right-4 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
-                                <span data-reservation-alert-target="count">0</span>
+                            <span>Gestion Réservations</span>
+                            {% set todoCount = store_todo_count() %}
+                            <span data-reservation-alert-target="badge" class="{% if todoCount == 0 %}hidden{% endif %} bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
+                                <span data-reservation-alert-target="count">{{ todoCount }}</span>
                             </span>
                         </a>
                         <a href="{{ path('app_dashboard') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Dashboard</a>
@@ -212,7 +213,15 @@
                     {% endif %}
 
                     {% if app.user %}
-                        <a href="{{ path('app_cart_index') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Mon Panier</a>
+                        <a href="{{ path('app_cart_index') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition flex items-center justify-between">
+                            <span>Mon Panier</span>
+                            {% set cartCount = cart_count() %}
+                            {% if cartCount > 0 %}
+                                <span class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
+                                    {{ cartCount }}
+                                </span>
+                            {% endif %}
+                        </a>
                         <a href="{{ path('app_my_reservations') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Mes Réservations</a>
                         <a href="{{ path('app_profile') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Mon Profil</a>
                         <div class="border-t border-blue-600 my-2"></div>

@@ -64,6 +64,12 @@
                 {% endfor %}
             </ul>
         </div>
+
+        <p style="background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; border: 1px solid #ffeeba;">
+            <strong>⚠️ Important :</strong><br>
+            Vous avez jusqu'au <strong>{{ reservation.expiresAt|date('d/m/Y à H:i') }}</strong> pour récupérer votre commande.<br>
+            Passé ce délai, les articles seront remis en rayon.
+        </p>
         
         <p><strong>📍 Où récupérer votre commande ?</strong><br>
         Rendez-vous à l'accueil du magasin NOZ Ambérieu.<br>

@@ -16,9 +16,38 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ProfileController extends AbstractController
 {
     #[Route('/', name: 'app_profile')]
-    public function index(): Response
+    public function index(EntityManagerInterface $entityManager): Response
     {
-        return $this->render('profile/index.html.twig');
+        /** @var User $user */
+        $user = $this->getUser();
+        $userRank = null;
+
+        // Check Ranking if Employee/Admin/Dev
+        if ($this->isGranted('ROLE_EMPLOYEE')) {
+            $bestSellers = $entityManager->getRepository(\App\Entity\ReservationItem::class)->createQueryBuilder('ri')
+                ->select('u.id', 'SUM(ri.quantity * p.price) as revenue')
+                ->join('ri.product', 'p')
+                ->join('p.createdBy', 'u')
+                ->join('ri.reservation', 'r')
+                ->where('r.status = :status')
+                ->setParameter('status', 'COLLECTED')
+                ->groupBy('u.id')
+                ->orderBy('revenue', 'DESC')
+                ->setMaxResults(3) // Only care about top 3
+                ->getQuery()
+                ->getResult();
+
+            foreach ($bestSellers as $index => $seller) {
+                if ($seller['id'] === $user->getId()) {
+                    $userRank = $index + 1; // 1, 2, or 3
+                    break;
+                }
+            }
+        }
+
+        return $this->render('profile/index.html.twig', [
+            'userRank' => $userRank,
+        ]);
     }
 
     #[Route('/edit', name: 'app_profile_edit', methods: ['GET', 'POST'])]

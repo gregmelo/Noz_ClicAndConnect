@@ -7,7 +7,8 @@
     <h1 class="text-3xl font-bold mb-8 text-noz-blue">Mon Panier</h1>
 
     {% if cart|length > 0 %}
-        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+        <!-- Desktop View (Table) -->
+        <div class="hidden md:block bg-white rounded-lg shadow-md overflow-hidden mb-8">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
@@ -58,11 +59,61 @@
                 <tfoot class="bg-gray-50">
                     <tr>
                         <td colspan="3" class="px-6 py-4 text-right font-bold text-gray-900">Total</td>
-                        <td class="px-6 py-4 text-right font-bold text-xl text-noz-red">{{ total }} €</td>
+                        <td class="px-6 py-4 text-right font-bold text-xl text-noz-red whitespace-nowrap">{{ total }} €</td>
                         <td></td>
                     </tr>
                 </tfoot>
             </table>
+        </div>
+
+        <!-- Mobile View (Cards) -->
+        <div class="md:hidden space-y-4 mb-8">
+            {% for item in cart %}
+                <div class="bg-white rounded-lg shadow p-4 flex gap-4">
+                    <!-- Image -->
+                    <div class="flex-shrink-0">
+                        {% if item.product.imageFilename %}
+                            <img class="h-20 w-20 rounded object-cover" src="{{ asset('uploads/images/' ~ item.product.imageFilename) }}" alt="{{ item.product.name }}">
+                        {% else %}
+                            <div class="h-20 w-20 rounded bg-gray-200 flex items-center justify-center text-gray-500">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-bold text-gray-900 truncate pr-2">{{ item.product.name }}</h3>
+                            <a href="{{ path('app_cart_remove', {'id': item.product.id}) }}" class="text-red-500 hover:text-red-700">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </a>
+                        </div>
+                        
+                        <p class="text-sm text-gray-500 mb-2">{{ item.product.price }} €</p>
+                        
+                        <div class="flex justify-between items-end mt-2">
+                            <!-- Qty Controls -->
+                            <div class="flex items-center space-x-3 border rounded px-2 py-1 bg-gray-50">
+                                <a href="{{ path('app_cart_decrease', {'id': item.product.id}) }}" class="text-gray-500 hover:text-red-600 font-bold px-2">-</a>
+                                <span class="font-medium">{{ item.quantity }}</span>
+                                <form action="{{ path('app_cart_add', {'id': item.product.id}) }}" method="post" class="inline">
+                                    <input type="hidden" name="returnToCart" value="1">
+                                    <button type="submit" class="text-gray-500 hover:text-green-600 font-bold px-2">+</button>
+                                </form>
+                            </div>
+                            
+                            <span class="font-bold text-lg text-noz-red">{{ item.product.price * item.quantity }} €</span>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <!-- Mobile Total -->
+            <div class="bg-white rounded-lg shadow p-4 flex justify-between items-center">
+                <span class="font-bold text-gray-900">Total Panier</span>
+                <span class="font-bold text-xl text-noz-red whitespace-nowrap">{{ total }} €</span>
+            </div>
         </div>
 
         <div class="bg-white rounded-lg shadow-md p-6">
@@ -74,17 +125,34 @@
                     <textarea name="comment" id="comment" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Précisions sur votre commande (ex: pointure, couleur préférée...)"></textarea>
                 </div>
 
-                <div class="flex justify-end gap-4">
-                    <a href="{{ path('app_cart_clear') }}" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6 rounded" data-confirm="Êtes-vous sûr de vouloir vider votre panier ? Tous les articles seront supprimés.">
-                        Vider le panier
-                    </a>
-                    <a href="{{ path('app_home') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded">
-                        Continuer mes achats
-                    </a>
-                    <button type="submit" class="bg-noz-btn hover:bg-blue-700 text-white font-bold py-2 px-6 rounded">
-                        Valider la réservation
-                    </button>
-                </div>
+    <style>
+        @media (max-width: 780px) {
+            .cart-actions-container {
+                flex-direction: column-reverse;
+                align-items: center;
+            }
+            .cart-actions-btn {
+                width: calc(100% - 20px) !important;
+                margin-top: 0.5rem; /* Space between stacked buttons */
+                margin-bottom: 0.5rem;
+            }
+            /* Remove margins from first/last to fit container nicely if needed, 
+               but gaps are better handled by flex gap usually. 
+               However, with calc width, centering is key. */
+        }
+    </style>
+
+    <div class="cart-actions-container flex justify-end gap-3 lg:gap-4">
+        <a href="{{ path('app_cart_clear') }}" class="cart-actions-btn bg-red-500 hover:bg-red-700 text-white font-bold py-3 sm:py-2 px-6 rounded text-center" data-confirm="Êtes-vous sûr de vouloir vider votre panier ? Tous les articles seront supprimés.">
+            Vider le panier
+        </a>
+        <a href="{{ path('app_home') }}" class="cart-actions-btn bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 sm:py-2 px-6 rounded text-center">
+            Continuer mes achats
+        </a>
+        <button type="submit" class="cart-actions-btn bg-noz-btn hover:bg-blue-700 text-white font-bold py-3 sm:py-2 px-6 rounded">
+            Valider la réservation
+        </button>
+    </div>
             </form>
         </div>
 

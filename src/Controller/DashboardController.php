@@ -18,6 +18,7 @@ class DashboardController extends AbstractController
     public function index(
         ProductRepository $productRepository,
         ReservationRepository $reservationRepository,
+        \App\Repository\GlobalStatRepository $globalStatRepository,
         EntityManagerInterface $entityManager
     ): Response {
         // Statistiques produits
@@ -29,21 +30,33 @@ class DashboardController extends AbstractController
             ->getSingleScalarResult();
         $productsOutOfStock = $totalProducts - $productsInStock;
 
-        // Statistiques réservations
+        // Global Stats (Archives)
+        $globalStat = $globalStatRepository->getOrCreate();
+
+        // Statistiques réservations (Live + Archives)
         $activeReservations = $reservationRepository->count(['status' => 'ACTIVE']);
         $readyReservations = $reservationRepository->count(['status' => 'READY']);
-        $expiredReservations = $reservationRepository->count(['status' => 'EXPIRED']);
-        $collectedReservations = $reservationRepository->count(['status' => 'COLLECTED']);
         
-        // Calcul du CA total des réservations récupérées
-        $totalRevenue = $reservationRepository->createQueryBuilder('r')
-            ->select('SUM(ri.quantity * p.price)')
+        // Expired = Live Expired + Archived Expired
+        $liveExpired = $reservationRepository->count(['status' => 'EXPIRED']); // Only checks EXPIRED status, check if others need inclusion? 
+        // Note: The "Expired" section in employee list includes 'CANCELLED' etc. 
+        // But dashboard usually tracks specific states. Let's keep strict status matching for now unless user asks.
+        $expiredReservations = $liveExpired + $globalStat->getTotalExpiredCount();
+
+        // Collected = Live Collected + Archived Collected
+        $liveCollected = $reservationRepository->count(['status' => 'COLLECTED']);
+        $collectedReservations = $liveCollected + $globalStat->getTotalCollectedCount();
+        
+        // Calcul du CA total (Live + Archives)
+        $liveRevenue = $reservationRepository->createQueryBuilder('r')
+            ->select('SUM(ri.quantity * ri.price)')
             ->join('r.reservationItems', 'ri')
-            ->join('ri.product', 'p')
             ->where('r.status = :status')
             ->setParameter('status', 'COLLECTED')
             ->getQuery()
             ->getSingleScalarResult() ?? 0;
+            
+        $totalRevenue = $liveRevenue + $globalStat->getTotalRevenue();
 
         // Réservations à récupérer aujourd'hui
         $today = new \DateTimeImmutable();
@@ -53,7 +66,7 @@ class DashboardController extends AbstractController
             ->where('r.status = :status')
             ->andWhere('r.expiresAt >= :today')
             ->andWhere('r.expiresAt < :tomorrow')
-            ->setParameter('status', 'ACTIVE')
+            ->setParameter('status', 'READY')
             ->setParameter('today', $today)
             ->setParameter('tomorrow', $tomorrow)
             ->getQuery()
@@ -71,6 +84,23 @@ class DashboardController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        // Best Sellers Leaderboard (Super Admin / Dev only)
+        $bestSellers = [];
+        if ($this->isGranted('ROLE_SUPER_ADMIN') || $this->isGranted('ROLE_DEV')) {
+            $bestSellers = $entityManager->getRepository(\App\Entity\ReservationItem::class)->createQueryBuilder('ri')
+                ->select('u.firstName', 'u.lastName', 'SUM(ri.quantity * ri.price) as revenue', 'SUM(ri.quantity) as itemsSold')
+                ->join('ri.product', 'p')
+                ->join('p.createdBy', 'u')
+                ->join('ri.reservation', 'r')
+                ->where('r.status = :status')
+                ->setParameter('status', 'COLLECTED')
+                ->groupBy('u.id')
+                ->orderBy('revenue', 'DESC')
+                ->setMaxResults(5)
+                ->getQuery()
+                ->getResult();
+        }
+
         return $this->render('dashboard/index.html.twig', [
             'totalProducts' => $totalProducts,
             'productsInStock' => $productsInStock,
@@ -82,6 +112,7 @@ class DashboardController extends AbstractController
             'reservationsToday' => $reservationsToday,
             'urgentReservations' => $urgentReservations,
             'totalRevenue' => $totalRevenue,
+            'bestSellers' => $bestSellers,
         ]);
     }
 }

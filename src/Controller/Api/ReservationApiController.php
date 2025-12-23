@@ -15,11 +15,15 @@ class ReservationApiController extends AbstractController
     #[Route('/count-new', name: 'api_reservations_count_new', methods: ['GET'])]
     public function countNew(ReservationRepository $reservationRepository): JsonResponse
     {
-        // Count reservations with status 'ACTIVE' (which we treat as 'New' for now)
-        // Ideally we would have a 'viewed' flag or a 'created_at' check, 
-        // but for now, let's just count ACTIVE ones as "to be processed".
-        // Or better, count ACTIVE ones.
-        $count = $reservationRepository->count(['status' => 'ACTIVE']);
+        // Count reservations with status 'ACTIVE' (New/To be processed only) AND NOT EXPIRED
+        $count = $reservationRepository->createQueryBuilder('r')
+            ->select('count(r.id)')
+            ->where('r.status = :status')
+            ->andWhere('r.expiresAt > :now')
+            ->setParameter('status', 'ACTIVE')
+            ->setParameter('now', new \DateTimeImmutable())
+            ->getQuery()
+            ->getSingleScalarResult();
 
         return $this->json([
             'count' => $count,

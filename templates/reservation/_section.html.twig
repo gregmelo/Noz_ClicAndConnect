@@ -1,0 +1,178 @@
+<div class="mb-16 border-b border-gray-100 pb-8 last:border-0 last:pb-0">
+    <h2 class="text-xl font-bold mb-4 border-b-2 border-{{ color }}-500 pb-2 text-{{ color }}-700 flex justify-between items-center">
+        {{ title }}
+        <span class="text-sm bg-{{ color }}-100 text-{{ color }}-800 py-1 px-3 rounded-full">
+            {% if custom_count is defined %}{{ custom_count }}{% else %}{{ reservations|length }}{% endif %}
+        </span>
+    </h2>
+
+    {% if reservations|length > 0 %}
+        <!-- Desktop: Table view -->
+        <div class="hidden lg:block bg-white shadow-md rounded overflow-hidden">
+            <table class="min-w-full table-auto">
+                <thead>
+                    <tr class="bg-{{ color }}-50 text-{{ color }}-800 uppercase text-xs leading-normal">
+                        <th class="py-3 px-6 text-left">Client</th>
+                        <th class="py-3 px-6 text-left">Référence / Articles</th>
+                        <th class="py-3 px-6 text-center">Dates</th>
+                        {% if type != 'history' %}
+                            <th class="py-3 px-6 text-center">Actions</th>
+                        {% else %}
+                            <th class="py-3 px-6 text-center">Statut</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody class="text-gray-600 text-sm font-light">
+                    {% for reservation in reservations %}
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <!-- Client -->
+                            <td class="py-3 px-6 text-left whitespace-nowrap">
+                                <div class="font-bold">{{ reservation.user.firstName }} {{ reservation.user.lastName }}</div>
+                                <div class="text-xs text-gray-500">{{ reservation.user.email }}</div>
+                            </td>
+
+                            <!-- Ref / Items -->
+                            <td class="py-3 px-6 text-left">
+                                <div class="font-bold text-noz-blue">{{ reservation.reference }}</div>
+                                <ul class="list-disc list-inside mt-1 text-xs sm:text-sm">
+                                    {% for item in reservation.reservationItems %}
+                                        <li>{{ item.quantity }}x <span class="font-medium text-gray-800">{{ item.product.name }}</span> <span class="text-xs text-gray-500">({{ item.price }} €/u)</span></li>
+                                    {% endfor %}
+                                </ul>
+                                {% if reservation.comment %}
+                                    <div class="text-xs text-gray-500 mt-1 italic bg-yellow-50 p-1 rounded inline-block">
+                                        Note: {{ reservation.comment }}
+                                    </div>
+                                {% endif %}
+                            </td>
+
+                            <!-- Dates -->
+                            <td class="py-3 px-6 text-center whitespace-nowrap">
+                                <div class="text-gray-500 text-xs">Réservé le : {{ reservation.reservedAt|date('d/m/Y H:i') }}</div>
+                                {% if type == 'expired' %}
+                                    <div class="text-red-600 font-bold text-xs mt-1">Expiré le : {{ reservation.expiresAt|date('d/m/Y H:i') }}</div>
+                                {% elseif type != 'history' %}
+                                    <div class="text-{{ color }}-600 font-bold text-xs mt-1">Expire le : {{ reservation.expiresAt|date('d/m/Y H:i') }}</div>
+                                {% endif %}
+                            </td>
+
+                            <!-- Actions -->
+                            {% if type != 'history' %}
+                                <td class="py-3 px-6 text-center">
+                                    <div class="flex item-center justify-center gap-2">
+                                        {# Actions for NEW #}
+                                        {% if type == 'new' %}
+                                            <form action="{{ path('app_reservation_ready', {'id': reservation.id}) }}" method="post">
+                                                <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded text-xs shadow">
+                                                    📦 Prête
+                                                </button>
+                                            </form>
+                                            <form action="{{ path('app_reservation_cancel', {'id': reservation.id}) }}" method="post" onsubmit="return confirm('Annuler cette réservation ?');">
+                                                <button class="bg-gray-400 hover:bg-red-500 text-white font-bold py-1 px-3 rounded text-xs shadow" title="Annuler">
+                                                    ✖
+                                                </button>
+                                            </form>
+                                        
+                                        {# Actions for READY #}
+                                        {% elseif type == 'ready' %}
+                                            <form action="{{ path('app_reservation_collect', {'id': reservation.id}) }}" method="post">
+                                                <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded text-xs shadow transform hover:scale-105 transition">
+                                                    ✅ Récupéré
+                                                </button>
+                                            </form>
+
+                                        {# Actions for EXPIRED #}
+                                        {% elseif type == 'expired' and reservation.status not in ['CANCELLED', 'EXPIRED'] %}
+                                            {# If purely expired but still technically active/ready in DB, offer cancel/restock #}
+                                            <form action="{{ path('app_reservation_cancel', {'id': reservation.id}) }}" method="post" onsubmit="return confirm('Annuler et remettre en stock ?');">
+                                                <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded text-xs shadow">
+                                                    ♻ Remettre en stock
+                                                </button>
+                                            </form>
+                                        {% elseif type == 'expired' and reservation.status in ['CANCELLED', 'EXPIRED'] %}
+                                            <span class="text-xs text-gray-400 font-italic">
+                                                {% if reservation.status == 'EXPIRED' %}Expirée (Strike){% else %}Annulée{% endif %}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            {% else %}
+                                <td class="py-3 px-6 text-center">
+                                    <span class="bg-gray-200 text-gray-600 text-xs py-1 px-3 rounded-full font-bold">Terminée</span>
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile: Card view -->
+        <div class="lg:hidden space-y-4">
+            {% for reservation in reservations %}
+                <div class="bg-white rounded-lg shadow border-l-4 border-{{ color }}-500 p-4 relative overflow-hidden">
+                     <!-- Header -->
+                    <div class="flex justify-between items-start mb-3 border-b border-gray-100 pb-2">
+                        <div>
+                            <div class="font-bold text-gray-800">{{ reservation.user.firstName }} {{ reservation.user.lastName }}</div>
+                            <div class="text-xs text-gray-500">{{ reservation.reference }}</div>
+                        </div>
+                        <div class="text-right">
+                             <div class="text-xs font-bold text-{{ color }}-600 bg-{{ color }}-50 px-2 py-1 rounded">
+                                {% if type == 'new' %}Nouveau
+                                {% elseif type == 'ready' %}Prêt
+                                {% elseif type == 'expired' %}Expiré
+                                {% else %}Terminé{% endif %}
+                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Items -->
+                    <div class="mb-4">
+                        <ul class="text-sm space-y-1 text-gray-700">
+                             {% for item in reservation.reservationItems %}
+                                <li class="flex justify-between">
+                                    <span>{{ item.product.name }} <span class="text-xs text-blue-500">({{ item.price }}€)</span></span>
+                                    <span class="font-mono font-bold">x{{ item.quantity }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <!-- Footer / Actions -->
+                    <div class="flex justify-end gap-2 mt-2 pt-2 border-t border-gray-50">
+                        {% if type == 'new' %}
+                            <form action="{{ path('app_reservation_cancel', {'id': reservation.id}) }}" method="post" onsubmit="return confirm('Annuler ?');" class="flex-1">
+                                <button class="w-full bg-white border border-gray-300 text-gray-600 hover:bg-gray-50 py-2 rounded text-sm font-bold">
+                                    Annuler
+                                </button>
+                            </form>
+                            <form action="{{ path('app_reservation_ready', {'id': reservation.id}) }}" method="post" class="flex-1">
+                                <button class="w-full bg-blue-500 text-white hover:bg-blue-600 py-2 rounded text-sm font-bold shadow">
+                                    Prête
+                                </button>
+                            </form>
+                        {% elseif type == 'ready' %}
+                             <form action="{{ path('app_reservation_collect', {'id': reservation.id}) }}" method="post" class="w-full">
+                                <button class="w-full bg-green-500 text-white hover:bg-green-600 py-2 rounded text-sm font-bold shadow flex items-center justify-center gap-2">
+                                    <span class="text-lg">✓</span> Client a récupéré
+                                </button>
+                            </form>
+                        {% elseif type == 'expired' and reservation.status not in ['CANCELLED', 'EXPIRED'] %}
+                            <form action="{{ path('app_reservation_cancel', {'id': reservation.id}) }}" method="post" onsubmit="return confirm('Remettre en stock ?');" class="w-full">
+                                <button class="w-full bg-red-500 text-white hover:bg-red-600 py-2 rounded text-sm font-bold shadow">
+                                    Remettre en stock
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+        <div class="text-center py-6 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-gray-400 italic">
+            Aucune réservation dans cette section.
+        </div>
+    {% endif %}
+</div>

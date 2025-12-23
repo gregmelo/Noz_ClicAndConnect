@@ -24,6 +24,9 @@ class ReservationItem
     #[ORM\Column]
     private ?int $quantity = null;
 
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    private ?string $price = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -61,6 +64,18 @@ class ReservationItem
     public function setQuantity(int $quantity): static
     {
         $this->quantity = $quantity;
+
+        return $this;
+    }
+
+    public function getPrice(): ?string
+    {
+        return $this->price;
+    }
+
+    public function setPrice(string $price): static
+    {
+        $this->price = $price;
 
         return $this;
     }
