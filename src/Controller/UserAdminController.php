@@ -53,6 +53,11 @@ class UserAdminController extends AbstractController
         $currentUser = $this->getUser();
 
         if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_user_new', $request->request->get('_token'))) {
+                $this->addFlash('danger', 'Jeton de sécurité invalide.');
+                return $this->redirectToRoute('app_admin_users_new');
+            }
+
             $email = $request->request->get('email');
             $firstName = $request->request->get('firstName');
             $lastName = $request->request->get('lastName');
@@ -106,6 +111,11 @@ class UserAdminController extends AbstractController
         }
 
         if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_user_edit', $request->request->get('_token'))) {
+                $this->addFlash('danger', 'Jeton de sécurité invalide.');
+                return $this->redirectToRoute('app_admin_users_edit', ['id' => $user->getId()]);
+            }
+
             $email = $request->request->get('email');
             $firstName = $request->request->get('firstName');
             $lastName = $request->request->get('lastName');
@@ -160,8 +170,13 @@ class UserAdminController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'app_admin_users_delete', methods: ['POST'])]
-    public function delete(User $user, EntityManagerInterface $entityManager, ActivityLogger $logger): Response
+    public function delete(User $user, Request $request, EntityManagerInterface $entityManager, ActivityLogger $logger): Response
     {
+        if (!$this->isCsrfTokenValid('delete_user'.$user->getId(), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Jeton de sécurité invalide.');
+            return $this->redirectToRoute('app_admin_users_index');
+        }
+
         if (!$this->isGranted('USER_DELETE', $user)) {
             $this->addFlash('danger', 'Vous n\'avez pas les permissions pour supprimer cet utilisateur.');
             return $this->redirectToRoute('app_admin_users_index');

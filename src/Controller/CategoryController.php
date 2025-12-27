@@ -28,6 +28,10 @@ class CategoryController extends AbstractController
     {
         $category = new Category();
         if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_category_new', $request->request->get('_token'))) {
+                $this->addFlash('danger', 'Jeton de sécurité invalide.');
+                return $this->redirectToRoute('app_admin_category_index');
+            }
             $name = $request->request->get('name');
             if ($name) {
                 $category->setName($name);
@@ -48,6 +52,10 @@ class CategoryController extends AbstractController
     public function edit(Request $request, Category $category, EntityManagerInterface $entityManager): Response
     {
         if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_category_edit', $request->request->get('_token'))) {
+                $this->addFlash('danger', 'Jeton de sécurité invalide.');
+                return $this->redirectToRoute('app_admin_category_index');
+            }
             $name = $request->request->get('name');
             if ($name) {
                 $category->setName($name);

@@ -17,6 +17,7 @@
                 Imprimer
             </button>
             <form action="{{ path('app_reservation_batch_ready') }}" method="post" onsubmit="return confirm('Confirmer que tous ces produits ont été récupérés et mis de côté ? Les clients recevront un email.');" class="w-full sm:w-auto">
+                <input type="hidden" name="_token" value="{{ csrf_token('batch_ready_reservations') }}">
                 {% for id in reservationIds %}
                     <input type="hidden" name="reservation_ids[]" value="{{ id }}">
                 {% endfor %}

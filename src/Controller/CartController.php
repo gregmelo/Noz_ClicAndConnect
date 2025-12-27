@@ -28,6 +28,13 @@ class CartController extends AbstractController
     #[Route('/add/{id}', name: 'app_cart_add')]
     public function add(int $id, Request $request): Response
     {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('add_to_cart', $request->request->get('_token'))) {
+                $this->addFlash('danger', 'Jeton de sécurité invalide.');
+                return $this->redirectToRoute('app_home');
+            }
+        }
+
         /** @var \App\Entity\User $user */
         $user = $this->getUser();
         if ($user && $user->getBanExpiresAt() && $user->getBanExpiresAt() > new \DateTimeImmutable()) {

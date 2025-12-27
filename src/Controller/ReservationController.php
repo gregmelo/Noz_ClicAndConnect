@@ -155,8 +155,13 @@ class ReservationController extends AbstractController
     }
 
     #[Route('/cancel/{id}', name: 'app_reservation_cancel', methods: ['POST'])]
-    public function cancel(Reservation $reservation, EntityManagerInterface $entityManager): Response
+    public function cancel(Reservation $reservation, Request $request, EntityManagerInterface $entityManager): Response
     {
+        if (!$this->isCsrfTokenValid('cancel_reservation'.$reservation->getId(), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Jeton de sécurité invalide.');
+            return $this->redirectToRoute('app_my_reservations');
+        }
+
         /** @var User $user */
         $user = $this->getUser();
 
@@ -218,8 +223,13 @@ class ReservationController extends AbstractController
 
     #[Route('/ready/{id}', name: 'app_reservation_ready', methods: ['POST'])]
     #[IsGranted('ROLE_EMPLOYEE')]
-    public function markAsReady(Reservation $reservation, EntityManagerInterface $entityManager): Response
+    public function markAsReady(Reservation $reservation, Request $request, EntityManagerInterface $entityManager): Response
     {
+        if (!$this->isCsrfTokenValid('ready_reservation'.$reservation->getId(), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Jeton de sécurité invalide.');
+            return $this->redirectToRoute('app_employee_reservations');
+        }
+
         if ($reservation->getStatus() !== 'ACTIVE') {
             $this->addFlash('danger', 'Cette réservation ne peut pas être marquée comme prête.');
             return $this->redirectToRoute('app_employee_reservations');
@@ -260,8 +270,13 @@ class ReservationController extends AbstractController
 
     #[Route('/collect/{id}', name: 'app_reservation_collect', methods: ['POST'])]
     #[IsGranted('ROLE_EMPLOYEE')]
-    public function markAsCollected(Reservation $reservation, EntityManagerInterface $entityManager): Response
+    public function markAsCollected(Reservation $reservation, Request $request, EntityManagerInterface $entityManager): Response
     {
+        if (!$this->isCsrfTokenValid('collect_reservation'.$reservation->getId(), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Jeton de sécurité invalide.');
+            return $this->redirectToRoute('app_employee_reservations');
+        }
+
         // Allow collection from ACTIVE or READY
         if (!in_array($reservation->getStatus(), ['ACTIVE', 'READY'])) {
             $this->addFlash('danger', 'Cette réservation ne peut pas être marquée comme récupérée.');
@@ -408,6 +423,11 @@ class ReservationController extends AbstractController
     #[IsGranted('ROLE_EMPLOYEE')]
     public function batchReady(Request $request, ReservationRepository $reservationRepository, EntityManagerInterface $entityManager): Response
     {
+        if (!$this->isCsrfTokenValid('batch_ready_reservations', $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Jeton de sécurité invalide.');
+            return $this->redirectToRoute('app_employee_reservations');
+        }
+
         $reservationIds = $request->request->all('reservation_ids');
         
         if (empty($reservationIds)) {

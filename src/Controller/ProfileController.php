@@ -57,6 +57,10 @@ class ProfileController extends AbstractController
         $user = $this->getUser();
 
         if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('profile_edit', $request->request->get('_token'))) {
+                $this->addFlash('danger', 'Jeton de sécurité invalide.');
+                return $this->redirectToRoute('app_profile_edit');
+            }
             $firstName = $request->request->get('firstName');
             $lastName = $request->request->get('lastName');
             $email = $request->request->get('email');
@@ -90,6 +94,10 @@ class ProfileController extends AbstractController
         $user = $this->getUser();
 
         if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('change_password', $request->request->get('_token'))) {
+                $this->addFlash('danger', 'Jeton de sécurité invalide.');
+                return $this->redirectToRoute('app_profile_change_password');
+            }
             $currentPassword = $request->request->get('currentPassword');
             $newPassword = $request->request->get('newPassword');
             $confirmPassword = $request->request->get('confirmPassword');

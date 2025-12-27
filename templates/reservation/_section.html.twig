@@ -73,11 +73,13 @@
                                         {# Actions for NEW #}
                                         {% if type == 'new' %}
                                             <form action="{{ path('app_reservation_ready', {'id': reservation.id}) }}" method="post">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('ready_reservation' ~ reservation.id) }}">
                                                 <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded text-xs shadow">
                                                     📦 Prête
                                                 </button>
                                             </form>
                                             <form action="{{ path('app_reservation_cancel', {'id': reservation.id}) }}" method="post" onsubmit="return confirm('Annuler cette réservation ?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation' ~ reservation.id) }}">
                                                 <button class="bg-gray-400 hover:bg-red-500 text-white font-bold py-1 px-3 rounded text-xs shadow" title="Annuler">
                                                     ✖
                                                 </button>
@@ -86,6 +88,7 @@
                                         {# Actions for READY #}
                                         {% elseif type == 'ready' %}
                                             <form action="{{ path('app_reservation_collect', {'id': reservation.id}) }}" method="post">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('collect_reservation' ~ reservation.id) }}">
                                                 <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded text-xs shadow transform hover:scale-105 transition">
                                                     ✅ Récupéré
                                                 </button>
@@ -95,6 +98,7 @@
                                         {% elseif type == 'expired' and reservation.status not in ['CANCELLED', 'EXPIRED'] %}
                                             {# If purely expired but still technically active/ready in DB, offer cancel/restock #}
                                             <form action="{{ path('app_reservation_cancel', {'id': reservation.id}) }}" method="post" onsubmit="return confirm('Annuler et remettre en stock ?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation' ~ reservation.id) }}">
                                                 <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded text-xs shadow">
                                                     ♻ Remettre en stock
                                                 </button>
@@ -156,23 +160,27 @@
                     <div class="flex justify-end gap-2 mt-2 pt-2 border-t border-gray-50">
                         {% if type == 'new' %}
                             <form action="{{ path('app_reservation_cancel', {'id': reservation.id}) }}" method="post" onsubmit="return confirm('Annuler ?');" class="flex-1">
+                                <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation' ~ reservation.id) }}">
                                 <button class="w-full bg-white border border-gray-300 text-gray-600 hover:bg-gray-50 py-2 rounded text-sm font-bold">
                                     Annuler
                                 </button>
                             </form>
                             <form action="{{ path('app_reservation_ready', {'id': reservation.id}) }}" method="post" class="flex-1">
+                                <input type="hidden" name="_token" value="{{ csrf_token('ready_reservation' ~ reservation.id) }}">
                                 <button class="w-full bg-blue-500 text-white hover:bg-blue-600 py-2 rounded text-sm font-bold shadow">
                                     Prête
                                 </button>
                             </form>
                         {% elseif type == 'ready' %}
                              <form action="{{ path('app_reservation_collect', {'id': reservation.id}) }}" method="post" class="w-full">
+                                <input type="hidden" name="_token" value="{{ csrf_token('collect_reservation' ~ reservation.id) }}">
                                 <button class="w-full bg-green-500 text-white hover:bg-green-600 py-2 rounded text-sm font-bold shadow flex items-center justify-center gap-2">
                                     <span class="text-lg">✓</span> Client a récupéré
                                 </button>
                             </form>
                         {% elseif type == 'expired' and reservation.status not in ['CANCELLED', 'EXPIRED'] %}
                             <form action="{{ path('app_reservation_cancel', {'id': reservation.id}) }}" method="post" onsubmit="return confirm('Remettre en stock ?');" class="w-full">
+                                <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation' ~ reservation.id) }}">
                                 <button class="w-full bg-red-500 text-white hover:bg-red-600 py-2 rounded text-sm font-bold shadow">
                                     Remettre en stock
                                 </button>

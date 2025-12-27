@@ -95,7 +95,7 @@
                                     </a>
                                 {% endif %}
                                 {% if is_granted('USER_DELETE', user) %}
-                                    <button onclick="openDeleteModal({{ user.id }}, '{{ user.email|e('js') }}')" class="text-red-500 hover:text-red-700" title="Supprimer">
+                                    <button onclick="openDeleteModal({{ user.id }}, '{{ user.email|e('js') }}', '{{ csrf_token('delete_user' ~ user.id) }}')" class="text-red-500 hover:text-red-700" title="Supprimer">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                         </svg>
@@ -159,7 +159,7 @@
                         </a>
                     {% endif %}
                     {% if is_granted('USER_DELETE', user) %}
-                        <button onclick="openDeleteModal({{ user.id }}, '{{ user.email|e('js') }}')" 
+                        <button onclick="openDeleteModal({{ user.id }}, '{{ user.email|e('js') }}', '{{ csrf_token('delete_user' ~ user.id) }}')" 
                                 class="flex-1 bg-red-500 hover:bg-red-600 text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded text-xs sm:text-sm font-medium">
                             Supprimer
                         </button>
@@ -235,6 +235,7 @@
             </div>
             <div class="items-center px-4 py-3">
                 <form id="deleteForm" method="post" class="inline">
+                    <input type="hidden" name="_token" id="deleteFormToken">
                     <button type="submit" class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-24 mr-2 hover:bg-red-600">
                         Supprimer
                     </button>
@@ -248,9 +249,10 @@
 </div>
 
 <script>
-    function openDeleteModal(userId, userEmail) {
+    function openDeleteModal(userId, userEmail, csrfToken) {
         document.getElementById('deleteModalText').textContent = `Êtes-vous sûr de vouloir supprimer l'utilisateur "${userEmail}" ?`;
-        document.getElementById('deleteForm').action = `/admin/users/${userId}`;
+        document.getElementById('deleteForm').action = `/admin/users/${userId}/delete`;
+        document.getElementById('deleteFormToken').value = csrfToken;
         document.getElementById('deleteModal').classList.remove('hidden');
     }
 

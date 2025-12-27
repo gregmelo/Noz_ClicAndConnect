@@ -216,6 +216,7 @@
                     {% if app.user %}
                         {% if product.stock > 0 %}
                             <form action="{{ path('app_cart_add', {'id': product.id}) }}" method="post" class="flex gap-2">
+                                <input type="hidden" name="_token" value="{{ csrf_token('add_to_cart') }}">
                                 <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="border rounded px-2 py-1 w-20 text-center">
                                 <button type="submit" class="flex-grow bg-noz-btn text-white py-2 rounded hover:bg-blue-700 font-bold uppercase text-sm flex items-center justify-center gap-2">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

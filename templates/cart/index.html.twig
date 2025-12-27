@@ -42,6 +42,7 @@
                                     <a href="{{ path('app_cart_decrease', {'id': item.product.id}) }}" class="text-gray-500 hover:text-red-600 font-bold px-2 border rounded">-</a>
                                     <span>{{ item.quantity }}</span>
                                     <form action="{{ path('app_cart_add', {'id': item.product.id}) }}" method="post" class="inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('add_to_cart') }}">
                                         <input type="hidden" name="returnToCart" value="1">
                                         <button type="submit" class="text-gray-500 hover:text-green-600 font-bold px-2 border rounded">+</button>
                                     </form>
@@ -98,6 +99,7 @@
                                 <a href="{{ path('app_cart_decrease', {'id': item.product.id}) }}" class="text-gray-500 hover:text-red-600 font-bold px-2">-</a>
                                 <span class="font-medium">{{ item.quantity }}</span>
                                 <form action="{{ path('app_cart_add', {'id': item.product.id}) }}" method="post" class="inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('add_to_cart') }}">
                                     <input type="hidden" name="returnToCart" value="1">
                                     <button type="submit" class="text-gray-500 hover:text-green-600 font-bold px-2">+</button>
                                 </form>
