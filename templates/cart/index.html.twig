@@ -116,48 +116,45 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-bold mb-4 text-noz-blue">Finaliser ma réservation</h2>
-            
-            <form action="{{ path('app_reservation_validate') }}" method="post">
-                <div class="mb-4">
-                    <label for="comment" class="block text-gray-700 text-sm font-bold mb-2">Commentaire (optionnel)</label>
-                    <textarea name="comment" id="comment" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Précisions sur votre commande (ex: pointure, couleur préférée...)"></textarea>
-                    <input type="hidden" name="_token" value="{{ csrf_token('reservation_validate') }}">
-                </div>
-
     <style>
         @media (max-width: 780px) {
             .cart-actions-container {
                 flex-direction: column-reverse;
                 align-items: center;
+                gap: 1rem;
             }
             .cart-actions-btn {
-                width: calc(100% - 20px) !important;
-                margin-top: 0.5rem; /* Space between stacked buttons */
-                margin-bottom: 0.5rem;
+                width: 100% !important;
+                margin: 0 !important;
             }
-            /* Remove margins from first/last to fit container nicely if needed, 
-               but gaps are better handled by flex gap usually. 
-               However, with calc width, centering is key. */
         }
     </style>
 
-    <div class="cart-actions-container flex justify-end gap-3 lg:gap-4">
-        <a href="{{ path('app_cart_clear') }}" class="cart-actions-btn bg-red-500 hover:bg-red-700 text-white font-bold py-3 sm:py-2 px-6 rounded text-center" data-confirm="Êtes-vous sûr de vouloir vider votre panier ? Tous les articles seront supprimés.">
-            Vider le panier
-        </a>
-        <a href="{{ path('app_home') }}" class="cart-actions-btn bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 sm:py-2 px-6 rounded text-center">
-            Continuer mes achats
-        </a>
-        <button type="submit" class="cart-actions-btn bg-noz-btn hover:bg-blue-700 text-white font-bold py-3 sm:py-2 px-6 rounded">
-            Valider la réservation
-        </button>
-    </div>
-            </form>
-        </div>
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold mb-4 text-noz-blue">Finaliser ma réservation</h2>
+        
+        <form action="{{ path('app_reservation_validate') }}" method="post">
+            <input type="hidden" name="_token" value="{{ csrf_token('reservation_validate') }}">
+            
+            <div class="mb-6">
+                <label for="comment" class="block text-gray-700 text-sm font-bold mb-2">Commentaire (optionnel)</label>
+                <textarea name="comment" id="comment" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-noz-blue" placeholder="Précisions sur votre commande (ex: pointure, couleur préférée...)"></textarea>
+            </div>
 
-    {% else %}
+            <div class="cart-actions-container flex flex-wrap justify-end gap-3 lg:gap-4">
+                <a href="{{ path('app_cart_clear') }}" class="cart-actions-btn bg-red-500 hover:bg-red-700 text-white font-bold py-3 sm:py-2 px-6 rounded text-center order-3 sm:order-1" data-confirm="Êtes-vous sûr de vouloir vider votre panier ? Tous les articles seront supprimés.">
+                    Vider le panier
+                </a>
+                <a href="{{ path('app_home') }}" class="cart-actions-btn bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 sm:py-2 px-6 rounded text-center order-2">
+                    Continuer mes achats
+                </a>
+                <button type="submit" class="cart-actions-btn bg-noz-btn hover:bg-blue-700 text-white font-bold py-3 sm:py-2 px-6 rounded order-1 sm:order-3">
+                    Valider la réservation
+                </button>
+            </div>
+        </form>
+    </div>
+{% else %}
         <div class="text-center py-12 bg-white rounded-lg shadow-md">
             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>

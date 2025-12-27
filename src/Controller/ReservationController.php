@@ -104,9 +104,9 @@ class ReservationController extends AbstractController
         // Process Items
         foreach ($cartItems as $cartItem) {
             $productId = $cartItem['product']->getId();
-            // Fetch product with Pessimistic Write Lock to prevent race conditions
+            // Fetch product with Pessimistic Write Lock (LockMode::PESSIMISTIC_WRITE = 4)
             /** @var \App\Entity\Product $product */
-            $product = $entityManager->find(\App\Entity\Product::class, $productId, \Doctrine\DBAL\LockMode::PESSIMISTIC_WRITE);
+            $product = $entityManager->find(\App\Entity\Product::class, $productId, 4);
 
             if (!$product) {
                 continue;
