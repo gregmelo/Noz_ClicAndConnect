@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste de Préparation - {{ "now"|date("d/m/Y") }}{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 no-print">
+        <a href="{{ path('app_employee_reservations') }}" class="text-noz-blue hover:underline flex items-center gap-2 font-medium">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Retour à la gestion
+        </a>
+        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <button onclick="window.print()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-full shadow-sm flex items-center justify-center gap-2 transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+                Imprimer
+            </button>
+            <form action="{{ path('app_reservation_batch_ready') }}" method="post" onsubmit="return confirm('Confirmer que tous ces produits ont été récupérés et mis de côté ? Les clients recevront un email.');" class="w-full sm:w-auto">
+                {% for id in reservationIds %}
+                    <input type="hidden" name="reservation_ids[]" value="{{ id }}">
+                {% endfor %}
+                <button type="submit" class="bg-noz-btn hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full shadow-md flex items-center justify-center gap-2 w-full transition-all">
+                    ✅ Tout marquer "Prête"
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="bg-white p-4 sm:p-8 border rounded-xl shadow-sm print:shadow-none print:border-none">
+        <div class="flex flex-col md:flex-row justify-between items-start gap-6 mb-10 pb-6 border-b">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-noz-blue mb-2">LISTE DE PRÉPARATION</h1>
+                <p class="text-sm text-gray-500">Date : {{ "now"|date("d/m/Y H:i") }}</p>
+            </div>
+            <div class="text-left md:text-right">
+                <p class="font-bold text-gray-800">{{ reservations|length }} Réservation(s)</p>
+                <div class="flex flex-wrap md:justify-end gap-1 mt-2 max-w-xs">
+                    {% for res in reservations %}
+                        <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full border border-gray-200">{{ res.reference }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto -mx-4 sm:mx-0">
+            <table class="w-full text-left border-collapse min-w-[500px]">
+                <thead>
+                    <tr class="bg-noz-blue text-white print:text-black print:bg-gray-100">
+                        <th class="py-3 px-4 border text-center w-12">Fait</th>
+                        <th class="py-3 px-4 border text-center w-16">Qté</th>
+                        <th class="py-3 px-4 border">Produit / Détails</th>
+                        <th class="py-3 px-4 border hidden sm:table-cell">Catégorie</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set current_cat = null %}
+                    {% for item in items %}
+                        {% set cat_name = item.product.category ? item.product.category.name : 'Sans catégorie' %}
+                        
+                        {% if cat_name != current_cat %}
+                            <tr class="bg-gray-50 font-bold text-noz-blue">
+                                <td colspan="4" class="py-2 px-4 border uppercase tracking-wider text-[10px] bg-gray-100">
+                                    📁 {{ cat_name }}
+                                </td>
+                            </tr>
+                            {% set current_cat = cat_name %}
+                        {% endif %}
+
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="py-3 px-4 border text-center">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded mx-auto cursor-pointer hover:border-noz-blue transition-colors"></div>
+                            </td>
+                            <td class="py-3 px-4 border text-center font-black text-xl text-noz-blue">
+                                {{ item.quantity }}
+                            </td>
+                            <td class="py-3 px-4 border">
+                                <div class="font-bold text-gray-900">{{ item.product.name }}</div>
+                                <div class="text-[10px] text-gray-400 mt-1 no-print">
+                                    Ref: {{ item.references|join(', ') }}
+                                </div>
+                                <div class="sm:hidden text-[10px] font-medium text-gray-500 mt-1">
+                                    Cat: {{ cat_name }}
+                                </div>
+                            </td>
+                            <td class="py-3 px-4 border text-sm text-gray-600 hidden sm:table-cell">
+                                {{ cat_name }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-12 pt-8 border-t border-dashed text-center text-gray-400 text-[10px]">
+            <p>Noz Clic & Connect - Document de préparation interne</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        .no-print { display: none !important; }
+        body { background: white !important; }
+        .container { max-width: 100% !important; padding: 0 !important; }
+        .rounded-xl { border-radius: 0 !important; }
+    }
+</style>
+{% endblock %}

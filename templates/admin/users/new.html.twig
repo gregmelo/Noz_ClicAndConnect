@@ -56,7 +56,51 @@
                             </option>
                         {% endfor %}
                     </select>
+                    <div id="role-description-box" class="mt-2 p-3 bg-blue-50 border-l-4 border-blue-400 rounded text-sm text-blue-700 italic">
+                        Chargement de la description...
+                    </div>
                 </div>
+
+                <script>
+                    (function() {
+                        function initRoleDescription() {
+                            const roleSelect = document.getElementById('role');
+                            const descriptionBox = document.getElementById('role-description-box');
+                            if (!roleSelect || !descriptionBox) return;
+                            
+                            const descriptions = {
+                                'ROLE_CLIENT': "Accès standard. Peut parcourir les produits, gérer son panier et ses réservations.",
+                                'ROLE_EMPLOYEE': "Accès magasin. Peut gérer les stocks, préparer les commandes (picking) et valider les retraits clients.",
+                                'ROLE_ADMIN': "Accès gestion. Peut gérer les utilisateurs (Client/Employé), les catégories et consulter les logs d'audit.",
+                                'ROLE_SUPER_ADMIN': "Accès total (sauf technique). Peut gérer tous les niveaux d'utilisateurs et les paramètres critiques.",
+                                'ROLE_DEVELOPER': "Accès technique complet. Accès à tous les outils de maintenance, y compris la base de données."
+                            };
+
+                            function updateDescription() {
+                                const role = roleSelect.value;
+                                const text = descriptions[role] || "Aucune description disponible pour ce rôle.";
+                                descriptionBox.innerHTML = `
+                                    <div class="flex items-start gap-2">
+                                        <svg class="w-5 h-5 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        <span>${text}</span>
+                                    </div>
+                                `;
+                            }
+
+                            // Remove old listener if any and add new one
+                            roleSelect.removeEventListener('change', updateDescription);
+                            roleSelect.addEventListener('change', updateDescription);
+                            updateDescription();
+                        }
+
+                        // Support Turbo and Standard loads
+                        document.addEventListener('turbo:load', initRoleDescription);
+                        // Also run immediately in case turbo:load already fired or is not used
+                        initRoleDescription();
+                    })();
+                </script>
 
                 <div class="flex items-center justify-between pt-4">
                     <button type="submit" class="bg-noz-btn hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline">

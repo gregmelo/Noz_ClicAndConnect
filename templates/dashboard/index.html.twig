@@ -127,6 +127,50 @@
         </div>
     {% endif %}
 
+    <!-- Alertes Stock Bas -->
+    {% if lowStockProducts|length > 0 %}
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8 border-l-4 border-orange-500">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-orange-800">
+                <svg class="h-6 w-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                Produits en Stock Bas ({{ lowStockProducts|length }})
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="bg-orange-50">
+                            <th class="px-4 py-2 text-left text-orange-800">Produit</th>
+                            <th class="px-4 py-2 text-center text-orange-800">Catégorie</th>
+                            <th class="px-4 py-2 text-center text-orange-800">Stock Restant</th>
+                            <th class="px-4 py-2 text-right text-orange-800">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in lowStockProducts %}
+                            <tr class="border-b border-orange-100 hover:bg-orange-50 transition">
+                                <td class="px-4 py-3 font-medium text-gray-800">{{ product.name }}</td>
+                                <td class="px-4 py-3 text-center text-gray-600">
+                                    {{ product.category ? product.category.name : 'N/A' }}
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
+                                        {{ product.stock }} article(s)
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <a href="{{ path('app_product_edit', {'id': product.id}) }}" class="text-noz-blue hover:text-blue-800 font-bold text-sm">
+                                        Modifier
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
     <!-- Réservations du jour -->
     <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-xl font-bold mb-4 text-noz-blue">Réservations à Récupérer Aujourd'hui ({{ reservationsToday|length }})</h2>

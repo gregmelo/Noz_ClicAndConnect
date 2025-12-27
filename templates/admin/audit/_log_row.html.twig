@@ -1,0 +1,123 @@
+{% set actions_fr = {
+    'PRODUCT_CREATED': 'Création Produit',
+    'PRODUCT_UPDATED': 'Modification Produit',
+    'PRODUCT_DELETED': 'Suppression Produit',
+    'RESERVATION_CREATED': 'Nouvelle Réservation',
+    'RESERVATION_CANCELLED': 'Réservation Annulée',
+    'RESERVATION_COLLECTED': 'Retrait Commande',
+    'LOGIN_SUCCESS': 'Connexion',
+    'LOGIN_FAILED': 'Échec Connexion',
+    'USER_ADMIN_UPDATED': 'Modification Utilisateur',
+    'USER_ADMIN_CREATED': 'Création Utilisateur',
+    'USER_ADMIN_DELETED': 'Suppression Utilisateur',
+    'RESERVATIONS_BATCH_READY': 'Traitement par Lot (Prêt)'
+} %}
+
+{% set roles_fr = {
+    'ROLE_USER': 'Client',
+    'ROLE_CLIENT': 'Client',
+    'ROLE_EMPLOYEE': 'Employé',
+    'ROLE_ADMIN': 'Administrateur',
+    'ROLE_SUPER_ADMIN': 'Super Admin',
+    'ROLE_DEVELOPER': 'Développeur'
+} %}
+
+{% set action_label = actions_fr[log.action] ?? log.action|replace({'_': ' '}) %}
+
+{% set action_color = 'gray' %}
+{% if 'DELETED' in log.action or 'FAILED' in log.action or 'CANCELLED' in log.action %}
+    {% set action_color = 'red' %}
+{% elseif 'CREATED' in log.action or 'SUCCESS' in log.action or 'READY' in log.action %}
+    {% set action_color = 'green' %}
+{% elseif 'UPDATED' in log.action %}
+    {% set action_color = 'blue' %}
+{% endif %}
+
+{% macro render_context(log, roles_fr) %}
+    {% if log.action == 'PRODUCT_CREATED' %}
+        Création du produit <span class="font-bold underline text-noz-blue">{{ log.context.product_name }}</span>
+    {% elseif log.action == 'PRODUCT_DELETED' %}
+        Suppression du produit <span class="font-bold text-red-600">{{ log.context.product_name }}</span> (ID: {{ log.context.product_id }})
+    {% elseif log.action == 'PRODUCT_UPDATED' %}
+        <span class="font-bold underline text-noz-blue">{{ log.context.product_name }}</span> :
+        {% set details = [] %}
+        {% if log.context.old_price is defined and log.context.new_price is defined %}
+            {% set details = details|merge(['prix modifié de <span class="font-bold text-red-500">' ~ log.context.old_price|number_format(2, ',', ' ') ~ '€</span> à <span class="font-bold text-green-600">' ~ log.context.new_price|number_format(2, ',', ' ') ~ '€</span>']) %}
+        {% endif %}
+        {% if log.context.old_stock is defined and log.context.new_stock is defined %}
+            {% set details = details|merge(['stock passé de <span class="font-bold text-orange-600">' ~ log.context.old_stock ~ '</span> à <span class="font-bold text-purple-600">' ~ log.context.new_stock ~ '</span>']) %}
+        {% endif %}
+        {% if details|length > 0 %}
+            {{ details|join(' et ')|raw }}
+        {% else %}
+            mise à jour sans changement de prix ou stock
+        {% endif %}
+    {% elseif log.action == 'USER_ADMIN_UPDATED' %}
+        Profil de <strong>{{ log.context.target_user }}</strong> mis à jour : 
+        Rôle: <span class="bg-gray-100 px-1 rounded text-xs font-bold">{{ roles_fr[log.context.role] ?? log.context.role }}</span>, 
+        Avertissements: <strong>{{ log.context.strikes }}</strong>
+    {% elseif log.action == 'USER_ADMIN_CREATED' %}
+        Nouveau compte créé pour <strong>{{ log.context.target_user }}</strong> avec le rôle <span class="bg-gray-100 px-1 rounded text-xs font-bold">{{ roles_fr[log.context.role] ?? log.context.role }}</span>.
+    {% elseif log.action == 'USER_ADMIN_DELETED' %}
+        Compte de <strong>{{ log.context.target_user }}</strong> supprimé définitivement.
+    {% elseif log.action == 'RESERVATION_CREATED' %}
+        Nouvelle réservation <span class="font-bold text-blue-700">{{ log.context.reservation_reference ?? '#' ~ log.context.reservation_id }}</span> (<strong>{{ log.context.quantity }}</strong> articles).
+    {% elseif log.action == 'RESERVATION_CANCELLED' %}
+        Réservation <span class="font-bold text-red-600">{{ log.context.reservation_reference ?? '#' ~ log.context.reservation_id }}</span> annulée.
+    {% elseif log.action == 'RESERVATION_COLLECTED' %}
+        Réservation <span class="font-bold text-green-600">{{ log.context.reservation_reference ?? '#' ~ log.context.reservation_id }}</span> récupérée par le client.
+    {% elseif log.action == 'RESERVATIONS_BATCH_READY' %}
+        <strong>{{ log.context.count }}</strong> réservations marquées comme PRÊTES simultanément.
+    {% elseif log.action == 'LOGIN_SUCCESS' %}
+        Connexion réussie au compte.
+    {% elseif log.action == 'LOGIN_FAILED' %}
+        Échec de la tentative de connexion.
+    {% else %}
+        {% for key, value in log.context %}
+            <span class="font-bold">{{ key }}:</span> {{ value }}{% if not loop.last %}, {% endif %}
+        {% else %}
+            <span class="text-gray-300">Aucun détail</span>
+        {% endfor %}
+    {% endif %}
+{% endmacro %}
+
+{% import _self as helper %}
+
+{% if is_mobile %}
+    <div class="bg-white p-4 rounded-lg shadow border border-gray-100 space-y-3">
+        <div class="flex justify-between items-start">
+            <span class="text-xs text-gray-500 font-medium">{{ log.createdAt|date('d/m/Y H:i') }}</span>
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-{{ action_color }}-100 text-{{ action_color }}-800 uppercase">
+                {{ action_label }}
+            </span>
+        </div>
+        
+        <div class="flex items-center gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-noz-blue"></div>
+            <span class="text-xs font-bold text-noz-blue">{{ log.userEmail ?? 'Système' }}</span>
+        </div>
+
+        <div class="text-sm text-gray-600 bg-gray-50 p-2 rounded italic leading-relaxed">
+            {{ helper.render_context(log, roles_fr) }}
+        </div>
+    </div>
+{% else %}
+    <tr class="hover:bg-gray-50 transition-colors">
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+            {{ log.createdAt|date('d/m/Y H:i:s') }}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+            <span class="text-sm font-medium text-noz-blue">{{ log.userEmail ?? 'Système / Anonyme' }}</span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ action_color }}-100 text-{{ action_color }}-800 uppercase tracking-tighter">
+                {{ action_label }}
+            </span>
+        </td>
+        <td class="px-6 py-4 text-sm text-gray-500">
+            <div class="max-w-xl italic leading-relaxed">
+                {{ helper.render_context(log, roles_fr) }}
+            </div>
+        </td>
+    </tr>
+{% endif %}

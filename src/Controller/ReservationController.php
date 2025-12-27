@@ -55,6 +55,12 @@ class ReservationController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
+        // CSRF Protection
+        if (!$this->isCsrfTokenValid('reservation_validate', $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Jeton de sécurité invalide. Veuillez réessayer.');
+            return $this->redirectToRoute('app_cart_index');
+        }
+
         // Check if user is banned
         if ($user->getBanExpiresAt() && $user->getBanExpiresAt() > new \DateTimeImmutable()) {
             $this->addFlash('danger', 'Vous êtes banni jusqu\'au ' . $user->getBanExpiresAt()->format('d/m/Y H:i'));
@@ -97,7 +103,15 @@ class ReservationController extends AbstractController
 
         // Process Items
         foreach ($cartItems as $cartItem) {
-            $product = $cartItem['product'];
+            $productId = $cartItem['product']->getId();
+            // Fetch product with Pessimistic Write Lock to prevent race conditions
+            /** @var \App\Entity\Product $product */
+            $product = $entityManager->find(\App\Entity\Product::class, $productId, \Doctrine\DBAL\LockMode::PESSIMISTIC_WRITE);
+
+            if (!$product) {
+                continue;
+            }
+
             $quantity = $cartItem['quantity'];
 
             if ($product->getStock() < $quantity) {
@@ -125,7 +139,7 @@ class ReservationController extends AbstractController
 
         // Log activity (using first product ID as reference or 0 for bulk)
         // Ideally update logger to handle bulk or just log "Reservation created"
-        $this->activityLogger->logReservation($user, 0, count($cartItems)); // 0 = Bulk/Cart
+        $this->activityLogger->logReservation($user, $reservation->getReference(), count($cartItems));
 
         // Send confirmation email
         // We need to update email service to handle the new reservation structure
@@ -193,7 +207,7 @@ class ReservationController extends AbstractController
         $entityManager->flush();
 
         // Log activity
-        $this->activityLogger->logReservationCancelled($user, $reservation->getId());
+        $this->activityLogger->logReservationCancelled($user, $reservation->getReference());
 
         if ($this->isGranted('ROLE_EMPLOYEE')) {
             return $this->redirectToRoute('app_employee_reservations');
@@ -258,7 +272,7 @@ class ReservationController extends AbstractController
         $entityManager->flush();
 
         // Log activity
-        $this->activityLogger->logReservationCollected($reservation->getId(), $this->getUser()->getUserIdentifier());
+        $this->activityLogger->logReservationCollected($reservation->getReference(), $this->getUser()->getUserIdentifier());
 
         $this->addFlash('success', 'Réservation marquée comme récupérée.');
 
@@ -343,6 +357,102 @@ class ReservationController extends AbstractController
         // Simple check for success string or just flash the output
         $this->addFlash('info', 'Nettoyage terminé : ' . $content);
 
+        return $this->redirectToRoute('app_employee_reservations');
+    }
+
+    #[Route('/employee/preparation', name: 'app_reservation_preparation', methods: ['POST'])]
+    #[IsGranted('ROLE_EMPLOYEE')]
+    public function preparationList(Request $request, ReservationRepository $reservationRepository): Response
+    {
+        $reservationIds = $request->request->all('reservation_ids');
+        
+        if (empty($reservationIds)) {
+            $this->addFlash('warning', 'Veuillez sélectionner au moins une réservation.');
+            return $this->redirectToRoute('app_employee_reservations');
+        }
+
+        $reservations = $reservationRepository->findBy(['id' => $reservationIds]);
+        
+        // Aggregate items
+        $aggregatedItems = [];
+        foreach ($reservations as $reservation) {
+            foreach ($reservation->getReservationItems() as $item) {
+                $productId = $item->getProduct()->getId();
+                if (!isset($aggregatedItems[$productId])) {
+                    $aggregatedItems[$productId] = [
+                        'product' => $item->getProduct(),
+                        'quantity' => 0,
+                        'references' => []
+                    ];
+                }
+                $aggregatedItems[$productId]['quantity'] += $item->getQuantity();
+                $aggregatedItems[$productId]['references'][] = $reservation->getReference();
+            }
+        }
+
+        // Sort by Category name
+        usort($aggregatedItems, function($a, $b) {
+            $catA = $a['product']->getCategory() ? $a['product']->getCategory()->getName() : 'Z_SANS_CATEGORIE';
+            $catB = $b['product']->getCategory() ? $b['product']->getCategory()->getName() : 'Z_SANS_CATEGORIE';
+            return strcmp($catA, $catB);
+        });
+
+        return $this->render('reservation/preparation_list.html.twig', [
+            'items' => $aggregatedItems,
+            'reservations' => $reservations,
+            'reservationIds' => $reservationIds
+        ]);
+    }
+
+    #[Route('/employee/batch-ready', name: 'app_reservation_batch_ready', methods: ['POST'])]
+    #[IsGranted('ROLE_EMPLOYEE')]
+    public function batchReady(Request $request, ReservationRepository $reservationRepository, EntityManagerInterface $entityManager): Response
+    {
+        $reservationIds = $request->request->all('reservation_ids');
+        
+        if (empty($reservationIds)) {
+            $this->addFlash('warning', 'Aucune réservation à valider.');
+            return $this->redirectToRoute('app_employee_reservations');
+        }
+
+        $reservations = $reservationRepository->findBy(['id' => $reservationIds]);
+        $count = 0;
+
+        foreach ($reservations as $reservation) {
+            if ($reservation->getStatus() === 'ACTIVE') {
+                $reservation->setStatus('READY');
+                
+                // Expiry logic (same as markAsReady)
+                $now = new \DateTimeImmutable();
+                $hour = (int) $now->format('G');
+                if ($hour < 12) {
+                    $expiresAt = $now->setTime(19, 30);
+                } else {
+                    $expiresAt = $now->modify('+1 day')->setTime(19, 30);
+                    if ($expiresAt->format('N') == 7) {
+                        $expiresAt = $expiresAt->modify('+1 day');
+                    }
+                }
+                $reservation->setExpiresAt($expiresAt);
+                
+                // Send email
+                $this->emailService->sendReadyNotification($reservation);
+                $count++;
+            }
+        }
+
+        $entityManager->flush();
+
+        // Audit Log
+        if ($count > 0) {
+            $this->activityLogger->logUserAction($this->getUser(), 'RESERVATIONS_BATCH_READY', [
+                'count' => $count,
+                'reservation_ids' => $reservationIds
+            ]);
+        }
+
+        $this->addFlash('success', sprintf('%d réservations ont été marquées comme PRÊTES.', $count));
+        
         return $this->redirectToRoute('app_employee_reservations');
     }
 }

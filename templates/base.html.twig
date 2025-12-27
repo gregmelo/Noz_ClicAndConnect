@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{% block title %}Welcome!{% endblock %}</title>
+        <meta name="description" content="{% block meta_description %}Plateforme de Clic & Collect pour le magasin NOZ Amberieu. Réservez vos produits en ligne et récupérez-les en magasin.{% endblock %}">
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text></svg>">
         {% block stylesheets %}
         {% endblock %}
@@ -22,8 +23,8 @@
                     </a>
                     
                     <!-- Mobile menu button -->
-                    <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none p-2 hover:bg-blue-700 rounded" style="display: block;" data-action="click->mobile-menu#toggle">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none p-2 hover:bg-blue-700 rounded" style="display: block;" data-action="click->mobile-menu#toggle" aria-label="Ouvrir le menu mobile">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
                     </button>
@@ -95,6 +96,12 @@
                                 </svg>
                                 <span class="text-base">Catégories</span>
                             </a>
+                            <a href="{{ path('app_admin_audit_index') }}" class="hidden xl:flex hover:text-noz-yellow transition items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                                </svg>
+                                <span class="text-base">Logs d'Audit</span>
+                            </a>
                         {% endif %}
 
                         {% if app.user %}
@@ -122,12 +129,12 @@
                             
                             <!-- Dropdown "Plus" menu: Visible only on md-lg (768-1280px) -->
                             <div class="relative xl:hidden" data-controller="dropdown">
-                                <button id="more-menu-button" class="hover:text-noz-yellow transition flex items-center gap-1.5 focus:outline-none" data-action="click->dropdown#toggle">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <button id="more-menu-button" class="hover:text-noz-yellow transition flex items-center gap-1.5 focus:outline-none" data-action="click->dropdown#toggle" aria-label="Plus d'options de navigation">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
                                     </svg>
                                     <span class="text-sm">Plus</span>
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                     </svg>
                                 </button>
@@ -152,6 +159,12 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
                                             </svg>
                                             Catégories
+                                        </a>
+                                        <a href="{{ path('app_admin_audit_index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 border-t border-gray-50">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                                            </svg>
+                                            Logs d'Audit
                                         </a>
                                     {% endif %}
                                     <a href="{{ path('app_profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
@@ -222,6 +235,7 @@
                     {% if is_granted('ROLE_ADMIN') %}
                         <a href="{{ path('app_admin_users_index') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Gestion Utilisateurs</a>
                         <a href="{{ path('app_admin_category_index') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Gestion Catégories</a>
+                        <a href="{{ path('app_admin_audit_index') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Logs d'Audit</a>
                     {% endif %}
 
                     {% if app.user %}
@@ -270,12 +284,12 @@
         <footer class="bg-noz-black text-white py-6 mt-auto">
             <div class="container mx-auto px-4 text-center">
                 <p>&copy; {{ 'now'|date('Y') }} NOZ AMBERIEU ClicAndCollect. Tous droits réservés.</p>
-                <div class="mt-4 space-x-4 text-sm text-gray-400">
+                <div class="mt-4 space-x-4 text-sm text-gray-300">
                     <a href="{{ path('app_mentions') }}" class="hover:text-white transition">Mentions Légales</a>
                     <a href="{{ path('app_privacy') }}" class="hover:text-white transition">Politique de Confidentialité</a>
                     <a href="{{ path('app_cgv') }}" class="hover:text-white transition">CGV</a>
                 </div>
-                <p class="text-sm text-gray-400 mt-2">100% Bonnes Affaires</p>
+                <p class="text-sm text-gray-300 mt-2">100% Bonnes Affaires</p>
             </div>
         </footer>
 

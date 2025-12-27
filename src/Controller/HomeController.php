@@ -99,4 +99,12 @@ class HomeController extends AbstractController
             'totalPages' => $totalPages,
         ]);
     }
+
+    #[Route('/product/{id}', name: 'app_product_show_public', methods: ['GET'])]
+    public function show(\App\Entity\Product $product): Response
+    {
+        return $this->render('home/show.html.twig', [
+            'product' => $product,
+        ]);
+    }
 }

@@ -46,6 +46,11 @@ class ProductType extends AbstractType
                 'label' => 'Image du produit',
                 'mapped' => false,
                 'required' => false,
+                'attr' => [
+                    'data-image-optimizer-target' => 'input',
+                    'data-action' => 'change->image-optimizer#optimize',
+                    'accept' => 'image/*'
+                ],
                 'constraints' => [
                     new File([
                         'maxSize' => '5M',

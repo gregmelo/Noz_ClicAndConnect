@@ -8,7 +8,7 @@ module.exports = {
     extend: {
       colors: {
         'noz-blue': '#292F88',
-        'noz-btn': '#1B82D6',
+        'noz-btn': '#292F88',
         'noz-yellow': '#ffcc00',
         'noz-red': '#e30613',
         'noz-black': '#000000',

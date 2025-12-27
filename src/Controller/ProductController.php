@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Product;
 use App\Form\ProductType;
 use App\Repository\ProductRepository;
+use App\Service\ActivityLogger;
 use App\Service\FileUploader;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,7 +27,7 @@ final class ProductController extends AbstractController
     }
 
     #[Route('/new', name: 'app_product_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, FileUploader $fileUploader): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, FileUploader $fileUploader, ActivityLogger $logger): Response
     {
         $product = new Product();
         $form = $this->createForm(ProductType::class, $product);
@@ -48,6 +49,9 @@ final class ProductController extends AbstractController
             $entityManager->persist($product);
             $entityManager->flush();
 
+            // Audit Log
+            $logger->logProductCreated($this->getUser(), $product->getId(), $product->getName());
+
             $this->addFlash('success', 'Produit créé avec succès !');
             return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
         }
@@ -67,9 +71,10 @@ final class ProductController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_product_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Product $product, EntityManagerInterface $entityManager, FileUploader $fileUploader): Response
+    public function edit(Request $request, Product $product, EntityManagerInterface $entityManager, FileUploader $fileUploader, ActivityLogger $logger): Response
     {
         $oldPrice = $product->getPrice();
+        $oldStock = $product->getStock();
         $form = $this->createForm(ProductType::class, $product);
         $form->handleRequest($request);
 
@@ -87,6 +92,8 @@ final class ProductController extends AbstractController
 
             // Automatic Price Drop Logic
             $newPrice = $product->getPrice();
+            $newStock = $product->getStock();
+
             // If original price is not manually set by the user
             if (!$form->get('originalPrice')->getData()) {
                 if ($newPrice < $oldPrice) {
@@ -100,6 +107,9 @@ final class ProductController extends AbstractController
 
             $entityManager->flush();
 
+            // Audit Log
+            $logger->logProductUpdated($this->getUser(), $product->getId(), $product->getName(), $oldPrice, $newPrice, $oldStock, $newStock);
+
             $this->addFlash('success', 'Produit modifié avec succès !');
             return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
         }
@@ -111,9 +121,10 @@ final class ProductController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_product_delete', methods: ['POST'])]
-    public function delete(Request $request, Product $product, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, Product $product, EntityManagerInterface $entityManager, ActivityLogger $logger): Response
     {
         if ($this->isCsrfTokenValid('delete'.$product->getId(), $request->getPayload()->getString('_token'))) {
+            $logger->logProductDeleted($this->getUser(), $product->getId(), $product->getName());
             $entityManager->remove($product);
             $entityManager->flush();
         }

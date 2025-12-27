@@ -5,9 +5,20 @@
 {% block body %}
 <div class="container mx-auto px-4 py-8">
     <h1 class="text-2xl sm:text-3xl font-bold mb-8 text-noz-blue">Gestion des Réservations</h1>
-
-    {# Section 1: Nouvelles #}
-    {% include 'reservation/_section.html.twig' with {'title': 'Nouvelles demandes', 'reservations': newReservations, 'color': 'blue', 'type': 'new'} %}
+    
+    <div id="preparation-selection-area">
+        {# Section 1: Nouvelles #}
+        {% include 'reservation/_section.html.twig' with {'title': 'Nouvelles demandes', 'reservations': newReservations, 'color': 'blue', 'type': 'new'} %}
+        
+        <div id="preparation-actions" class="sticky bottom-4 left-0 right-0 z-50 flex justify-center no-print pb-4 transition-all duration-300 transform scale-95 opacity-50 pointer-events-none">
+            <button type="button" id="preparation-submit-btn" disabled onclick="submitPreparationForm()" class="bg-gray-400 text-white font-bold py-4 px-24 rounded-full shadow-2xl flex items-center gap-4 transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                Générer Liste de Préparation (<span id="selected-count">0</span>)
+            </button>
+        </div>
+    </div>
 
     {# Section 2: À Récupérer #}
     {% include 'reservation/_section.html.twig' with {'title': 'Commandes à récupérer (Prêtes)', 'reservations': readyReservations, 'color': 'green', 'type': 'ready'} %}
@@ -41,4 +52,81 @@
     {% endif %}
 
 </div>
+
+<script>
+(function() {
+    function initPreparation() {
+        const checkboxes = document.querySelectorAll('.res-checkbox, .res-checkbox-mobile');
+        const selectAll = document.getElementById('select-all-desktop');
+        const actionsDiv = document.getElementById('preparation-actions');
+        const submitBtn = document.getElementById('preparation-submit-btn');
+        const selectedCount = document.getElementById('selected-count');
+
+        if (!submitBtn || !actionsDiv) return;
+
+        function updateVisibility() {
+            const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+            if (selectedCount) selectedCount.textContent = checkedCount;
+            
+            if (checkedCount > 0) {
+                actionsDiv.classList.remove('opacity-50', 'pointer-events-none', 'scale-95');
+                actionsDiv.classList.add('opacity-100', 'scale-105');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('bg-gray-400');
+                submitBtn.classList.add('bg-noz-btn', 'hover:bg-blue-700', 'animate-bounce-slow');
+            } else {
+                actionsDiv.classList.add('opacity-50', 'pointer-events-none', 'scale-95');
+                actionsDiv.classList.remove('opacity-100', 'scale-105');
+                submitBtn.disabled = true;
+                submitBtn.classList.add('bg-gray-400');
+                submitBtn.classList.remove('bg-noz-btn', 'hover:bg-blue-700', 'animate-bounce-slow');
+            }
+        }
+
+        window.submitPreparationForm = function() {
+            const checkedIds = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+            if (checkedIds.length === 0) return;
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ path('app_reservation_preparation') }}";
+            checkedIds.forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'reservation_ids[]';
+                input.value = id;
+                form.appendChild(input);
+            });
+            document.body.appendChild(form);
+            form.submit();
+        };
+
+        if (selectAll) {
+            selectAll.onclick = function() {
+                checkboxes.forEach(cb => cb.checked = selectAll.checked);
+                updateVisibility();
+            };
+        }
+
+        checkboxes.forEach(cb => {
+            cb.onchange = updateVisibility;
+        });
+
+        updateVisibility();
+    }
+
+    document.addEventListener('DOMContentLoaded', initPreparation);
+    document.addEventListener('turbo:load', initPreparation);
+    window.addEventListener('pageshow', initPreparation);
+})();
+</script>
+
+<style>
+    .animate-bounce-slow {
+        animation: bounce-slow 3s infinite;
+    }
+    @keyframes bounce-slow {
+        0%, 100% { transform: translateY(-5%) scale(1.05); }
+        50% { transform: translateY(0) scale(1.05); }
+    }
+</style>
 {% endblock %}

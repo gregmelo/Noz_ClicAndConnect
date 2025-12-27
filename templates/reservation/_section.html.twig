@@ -12,6 +12,11 @@
             <table class="min-w-full table-auto">
                 <thead>
                     <tr class="bg-{{ color }}-50 text-{{ color }}-800 uppercase text-xs leading-normal">
+                        <th class="py-3 px-6 text-center w-8">
+                            {% if type == 'new' %}
+                                <input type="checkbox" id="select-all-desktop" class="rounded border-gray-300 text-noz-blue focus:ring-noz-blue">
+                            {% endif %}
+                        </th>
                         <th class="py-3 px-6 text-left">Client</th>
                         <th class="py-3 px-6 text-left">Référence / Articles</th>
                         <th class="py-3 px-6 text-center">Dates</th>
@@ -25,6 +30,11 @@
                 <tbody class="text-gray-600 text-sm font-light">
                     {% for reservation in reservations %}
                         <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-6 text-center">
+                                {% if type == 'new' %}
+                                    <input type="checkbox" name="reservation_ids[]" value="{{ reservation.id }}" class="res-checkbox rounded border-gray-300 text-noz-blue focus:ring-noz-blue">
+                                {% endif %}
+                            </td>
                             <!-- Client -->
                             <td class="py-3 px-6 text-left whitespace-nowrap">
                                 <div class="font-bold">{{ reservation.user.firstName }} {{ reservation.user.lastName }}</div>
@@ -117,7 +127,10 @@
                             <div class="font-bold text-gray-800">{{ reservation.user.firstName }} {{ reservation.user.lastName }}</div>
                             <div class="text-xs text-gray-500">{{ reservation.reference }}</div>
                         </div>
-                        <div class="text-right">
+                        <div class="text-right flex flex-col items-end gap-2">
+                             {% if type == 'new' %}
+                                <input type="checkbox" name="reservation_ids[]" value="{{ reservation.id }}" class="res-checkbox-mobile rounded border-gray-300 text-noz-blue focus:ring-noz-blue h-5 w-5">
+                             {% endif %}
                              <div class="text-xs font-bold text-{{ color }}-600 bg-{{ color }}-50 px-2 py-1 rounded">
                                 {% if type == 'new' %}Nouveau
                                 {% elseif type == 'ready' %}Prêt

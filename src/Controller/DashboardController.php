@@ -101,6 +101,14 @@ class DashboardController extends AbstractController
                 ->getResult();
         }
 
+        // Produits en stock bas (< 3 articles)
+        $lowStockProducts = $productRepository->createQueryBuilder('p')
+            ->where('p.stock <= 3')
+            ->andWhere('p.stock > 0')
+            ->orderBy('p.stock', 'ASC')
+            ->getQuery()
+            ->getResult();
+
         return $this->render('dashboard/index.html.twig', [
             'totalProducts' => $totalProducts,
             'productsInStock' => $productsInStock,
@@ -113,6 +121,7 @@ class DashboardController extends AbstractController
             'urgentReservations' => $urgentReservations,
             'totalRevenue' => $totalRevenue,
             'bestSellers' => $bestSellers,
+            'lowStockProducts' => $lowStockProducts,
         ]);
     }
 }

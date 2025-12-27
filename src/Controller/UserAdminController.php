@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\ActivityLogger;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -46,7 +47,7 @@ class UserAdminController extends AbstractController
     }
 
     #[Route('/new', name: 'app_admin_users_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager, ActivityLogger $logger): Response
     {
         /** @var User $currentUser */
         $currentUser = $this->getUser();
@@ -76,6 +77,11 @@ class UserAdminController extends AbstractController
                 $entityManager->persist($user);
                 $entityManager->flush();
 
+                $logger->logUserAction($currentUser, 'USER_ADMIN_CREATED', [
+                    'target_user' => $user->getEmail(),
+                    'role' => $role
+                ]);
+
                 $this->addFlash('success', 'Utilisateur créé avec succès !');
                 return $this->redirectToRoute('app_admin_users_index');
             } else {
@@ -89,7 +95,7 @@ class UserAdminController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_admin_users_edit', methods: ['GET', 'POST'])]
-    public function edit(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    public function edit(User $user, Request $request, EntityManagerInterface $entityManager, ActivityLogger $logger): Response
     {
         /** @var User $currentUser */
         $currentUser = $this->getUser();
@@ -134,6 +140,12 @@ class UserAdminController extends AbstractController
 
                 $entityManager->flush();
 
+                $logger->logUserAction($currentUser, 'USER_ADMIN_UPDATED', [
+                    'target_user' => $user->getEmail(),
+                    'role' => $role,
+                    'strikes' => $strikes
+                ]);
+
                 $this->addFlash('success', 'Utilisateur modifié avec succès !');
                 return $this->redirectToRoute('app_admin_users_index');
             } else {
@@ -148,15 +160,20 @@ class UserAdminController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'app_admin_users_delete', methods: ['POST'])]
-    public function delete(User $user, EntityManagerInterface $entityManager): Response
+    public function delete(User $user, EntityManagerInterface $entityManager, ActivityLogger $logger): Response
     {
         if (!$this->isGranted('USER_DELETE', $user)) {
             $this->addFlash('danger', 'Vous n\'avez pas les permissions pour supprimer cet utilisateur.');
             return $this->redirectToRoute('app_admin_users_index');
         }
 
+        $targetEmail = $user->getEmail();
         $entityManager->remove($user);
         $entityManager->flush();
+
+        $logger->logUserAction($this->getUser(), 'USER_ADMIN_DELETED', [
+            'target_user' => $targetEmail
+        ]);
 
         $this->addFlash('success', 'Utilisateur supprimé.');
         return $this->redirectToRoute('app_admin_users_index');

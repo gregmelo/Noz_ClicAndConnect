@@ -22,6 +22,8 @@ security:
                 # where to redirect after logout
                 target: app_home
 
+            # login_throttling: true
+
             remember_me:
                 secret: '%kernel.secret%'
                 lifetime: 604800

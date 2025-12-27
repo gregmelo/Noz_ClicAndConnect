@@ -4,37 +4,40 @@
 
 {% block body %}
 <div class="container mx-auto px-4 py-8">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 class="text-3xl font-bold text-noz-blue">Gestion des Catégories</h1>
-        <a href="{{ path('app_admin_category_new') }}" class="bg-noz-btn text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition">
+        <a href="{{ path('app_admin_category_new') }}" class="bg-noz-btn text-white px-6 py-2 rounded-full shadow hover:bg-blue-700 transition w-full sm:w-auto text-center">
             ➕ Nouvelle Catégorie
         </a>
     </div>
 
-    <div class="bg-white shadow-md rounded overflow-hidden">
+    {# Desktop Table #}
+    <div class="hidden sm:block bg-white shadow-md rounded-lg overflow-hidden border border-gray-100">
         <table class="min-w-full table-auto">
             <thead>
-                <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                    <th class="py-3 px-6 text-left">ID</th>
-                    <th class="py-3 px-6 text-left">Nom</th>
-                    <th class="py-3 px-6 text-center">Produits</th>
-                    <th class="py-3 px-6 text-center">Actions</th>
+                <tr class="bg-gray-50 text-gray-600 uppercase text-xs leading-normal border-b">
+                    <th class="py-4 px-6 text-left font-bold">ID</th>
+                    <th class="py-4 px-6 text-left font-bold">Nom</th>
+                    <th class="py-4 px-6 text-center font-bold">Produits</th>
+                    <th class="py-4 px-6 text-center font-bold">Actions</th>
                 </tr>
             </thead>
-            <tbody class="text-gray-600 text-sm font-light">
+            <tbody class="text-gray-600 text-sm">
                 {% for category in categories %}
-                    <tr class="border-b border-gray-200 hover:bg-gray-100">
-                        <td class="py-3 px-6 text-left whitespace-nowrap">{{ category.id }}</td>
-                        <td class="py-3 px-6 text-left font-bold">{{ category.name }}</td>
-                        <td class="py-3 px-6 text-center">{{ category.products|length }}</td>
-                        <td class="py-3 px-6 text-center">
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td class="py-4 px-6 text-left whitespace-nowrap">{{ category.id }}</td>
+                        <td class="py-4 px-6 text-left font-bold text-noz-blue text-base">{{ category.name }}</td>
+                        <td class="py-4 px-6 text-center">
+                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-bold">{{ category.products|length }}</span>
+                        </td>
+                        <td class="py-4 px-6 text-center">
                             <div class="flex item-center justify-center gap-4">
-                                <a href="{{ path('app_admin_category_edit', {'id': category.id}) }}" class="text-blue-500 hover:text-blue-700" title="Modifier">
+                                <a href="{{ path('app_admin_category_edit', {'id': category.id}) }}" class="text-blue-500 hover:text-blue-700 transition-colors" title="Modifier">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                 </a>
                                 <form method="post" action="{{ path('app_admin_category_delete', {'id': category.id}) }}" onsubmit="return confirm('Supprimer cette catégorie ?');" class="inline">
                                     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ category.id) }}">
-                                    <button class="text-red-500 hover:text-red-700">
+                                    <button class="text-red-500 hover:text-red-700 transition-colors">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                     </button>
                                 </form>
@@ -43,15 +46,43 @@
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="4" class="py-6 text-center text-gray-400 italic">Aucune catégorie trouvée.</td>
+                        <td colspan="4" class="py-10 text-center text-gray-400 italic">Aucune catégorie trouvée.</td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
+    {# Mobile Cards #}
+    <div class="sm:hidden space-y-4">
+        {% for category in categories %}
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
+                <div>
+                    <h3 class="font-bold text-noz-blue text-lg">{{ category.name }}</h3>
+                    <p class="text-xs text-gray-400">ID: {{ category.id }} • {{ category.products|length }} produits</p>
+                </div>
+                <div class="flex gap-3">
+                    <a href="{{ path('app_admin_category_edit', {'id': category.id}) }}" class="bg-blue-50 p-2 rounded-full text-blue-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    </a>
+                    <form method="post" action="{{ path('app_admin_category_delete', {'id': category.id}) }}" onsubmit="return confirm('Supprimer cette catégorie ?');" class="inline">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ category.id) }}">
+                        <button class="bg-red-50 p-2 rounded-full text-red-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        {% else %}
+            <div class="bg-white p-8 text-center text-gray-400 italic rounded-lg border">Aucune catégorie trouvée.</div>
+        {% endfor %}
+    </div>
+
     <div class="mt-8">
-        <a href="{{ path('app_product_index') }}" class="text-noz-blue hover:underline">← Retour à la liste des produits</a>
+        <a href="{{ path('app_product_index') }}" class="text-noz-blue hover:underline flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Retour à la liste des produits
+        </a>
     </div>
 </div>
 {% endblock %}

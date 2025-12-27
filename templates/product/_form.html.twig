@@ -1,4 +1,31 @@
-{{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">{{ button_label|default('Save') }}</button>
-{{ form_end(form) }}
+<div data-controller="image-optimizer">
+    {{ form_start(form) }}
+        <div class="space-y-4">
+            {{ form_row(form.name) }}
+            {{ form_row(form.description) }}
+            <div class="grid grid-cols-2 gap-4">
+                {{ form_row(form.price) }}
+                {{ form_row(form.originalPrice) }}
+            </div>
+            {{ form_row(form.stock) }}
+            {{ form_row(form.category) }}
+            
+            <div class="mt-4 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                {{ form_row(form.imageFile) }}
+                <div id="image-status" data-image-optimizer-target="status" class="hidden text-xs font-bold text-green-600 mt-1 italic"></div>
+                <div class="mt-2 text-center">
+                    <img data-image-optimizer-target="preview" class="hidden max-h-48 mx-auto rounded shadow-sm border border-gray-200" src="" alt="Aperçu">
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 flex gap-2">
+            <button class="flex-1 bg-noz-blue text-white font-bold py-3 rounded-lg shadow hover:bg-blue-800 transition">
+                {{ button_label|default('Enregistrer') }}
+            </button>
+            <a href="{{ path('app_product_index') }}" class="px-6 py-3 bg-gray-100 text-gray-600 font-bold rounded-lg hover:bg-gray-200 transition text-center">
+                Annuler
+            </a>
+        </div>
+    {{ form_end(form) }}
+</div>
