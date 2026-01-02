@@ -68,11 +68,11 @@
                 </div>
             {% endif %}
 
-            <div class="flex space-x-4 mt-6">
-                <a href="{{ path('app_profile_edit') }}" class="bg-noz-btn hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            <div class="flex flex-col sm:flex-row gap-3 mt-6">
+                <a href="{{ path('app_profile_edit') }}" class="bg-noz-btn hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-center text-sm sm:text-base">
                     Modifier mes informations
                 </a>
-                <a href="{{ path('app_profile_change_password') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                <a href="{{ path('app_profile_change_password') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-center text-sm sm:text-base">
                     Changer mon mot de passe
                 </a>
             </div>
@@ -83,7 +83,7 @@
                 
                 <form action="{{ path('app_profile_delete') }}" method="post">
                     <input type="hidden" name="_token" value="{{ csrf_token('delete_account') }}">
-                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" data-confirm="Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et annulera toutes vos réservations.">
+                    <button type="submit" class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm sm:text-base" data-confirm="Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et annulera toutes vos réservations.">
                         Supprimer mon compte
                     </button>
                 </form>

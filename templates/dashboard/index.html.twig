@@ -136,7 +136,8 @@
                 </svg>
                 Produits en Stock Bas ({{ lowStockProducts|length }})
             </h2>
-            <div class="overflow-x-auto">
+            <!-- Desktop View (Table) -->
+            <div class="hidden md:block overflow-x-auto">
                 <table class="min-w-full">
                     <thead>
                         <tr class="bg-orange-50">
@@ -167,6 +168,26 @@
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile View (Cards) -->
+            <div class="md:hidden space-y-4">
+                {% for product in lowStockProducts %}
+                    <div class="border border-orange-100 rounded-lg p-4 bg-orange-50/30">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-gray-800">{{ product.name }}</h3>
+                            <span class="bg-orange-100 text-orange-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-orange-200">
+                                {{ product.stock }} restants
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-gray-500 italic">{{ product.category ? product.category.name : 'Sans catégorie' }}</span>
+                            <a href="{{ path('app_product_edit', {'id': product.id}) }}" class="text-noz-blue font-bold px-3 py-1 bg-white border border-noz-blue rounded shadow-sm">
+                                Modifier
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
     {% endif %}
@@ -224,7 +245,8 @@
             </h2>
             
             {% if bestSellers|length > 0 %}
-                <div class="overflow-hidden rounded-lg border border-gray-200">
+                <!-- Desktop View (Table) -->
+                <div class="hidden md:block overflow-hidden rounded-lg border border-gray-200">
                     <table class="min-w-full text-sm">
                         <thead class="bg-gray-50 text-gray-700 uppercase font-medium">
                             <tr>
@@ -237,16 +259,45 @@
                         <tbody class="divide-y divide-gray-200">
                             {% for seller in bestSellers %}
                                 <tr class="hover:bg-gray-50 transition text-gray-700">
-                                    <td class="px-4 py-3 font-bold text-yellow-500">
+                                    <td class="px-4 py-3 font-bold text-yellow-500 text-lg">
                                         {% if loop.index == 1 %}🥇{% elseif loop.index == 2 %}🥈{% elseif loop.index == 3 %}🥉{% else %}#{{ loop.index }}{% endif %}
                                     </td>
                                     <td class="px-4 py-3 font-bold">{{ seller.firstName }} {{ seller.lastName }}</td>
                                     <td class="px-4 py-3 text-right font-mono text-green-600 font-bold">{{ seller.revenue|number_format(2, ',', ' ') }} €</td>
-                                    <td class="px-4 py-3 text-center">{{ seller.itemsSold }}</td>
+                                    <td class="px-4 py-3 text-center font-medium">{{ seller.itemsSold }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Mobile View (Cards) -->
+                <div class="md:hidden space-y-3">
+                    {% for seller in bestSellers %}
+                        <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 shadow-sm relative overflow-hidden">
+                            {% if loop.index <= 3 %}
+                                <div class="absolute -right-2 -top-2 w-12 h-12 flex items-center justify-center opacity-20">
+                                    <span class="text-4xl">{% if loop.index == 1 %}🥇{% elseif loop.index == 2 %}🥈{% else %}🥉{% endif %}</span>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-full bg-noz-blue text-white flex items-center justify-center font-bold text-xs ring-2 ring-blue-100">
+                                    {{ loop.index }}
+                                </div>
+                                <h3 class="font-bold text-gray-900">{{ seller.firstName }} {{ seller.lastName }}</h3>
+                            </div>
+                            
+                            <div class="flex justify-between items-end">
+                                <div class="text-xs text-gray-500">
+                                    <span class="font-bold text-noz-blue">{{ seller.itemsSold }}</span> articles vendus
+                                </div>
+                                <div class="text-lg font-black text-green-600 font-mono">
+                                    {{ seller.revenue|number_format(2, ',', ' ') }} €
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
             {% else %}
                 <p class="text-gray-400 italic">Pas encore assez de données pour établir le classement.</p>

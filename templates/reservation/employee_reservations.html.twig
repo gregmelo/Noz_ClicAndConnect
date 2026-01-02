@@ -10,12 +10,12 @@
         {# Section 1: Nouvelles #}
         {% include 'reservation/_section.html.twig' with {'title': 'Nouvelles demandes', 'reservations': newReservations, 'color': 'blue', 'type': 'new'} %}
         
-        <div id="preparation-actions" class="sticky bottom-4 left-0 right-0 z-50 flex justify-center no-print pb-4 transition-all duration-300 transform scale-95 opacity-50 pointer-events-none">
-            <button type="button" id="preparation-submit-btn" disabled onclick="submitPreparationForm()" class="bg-gray-400 text-white font-bold py-4 px-24 rounded-full shadow-2xl flex items-center gap-4 transition-all">
+        <div id="preparation-actions" class="sticky bottom-6 left-0 right-0 z-50 flex justify-center no-print pb-4 transition-all duration-300 transform scale-95 opacity-50 pointer-events-none">
+            <button type="button" id="preparation-submit-btn" disabled onclick="submitPreparationForm()" class="bg-gray-400 text-white font-bold py-2 sm:py-3 px-8 sm:px-12 rounded-full shadow-xl flex items-center gap-2 sm:gap-4 transition-all text-sm sm:text-base">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                 </svg>
-                Générer Liste de Préparation (<span id="selected-count">0</span>)
+                <span>Générer Liste de Préparation (<span id="selected-count">0</span>)</span>
             </button>
         </div>
     </div>
