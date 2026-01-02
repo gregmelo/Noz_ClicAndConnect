@@ -1,5 +1,17 @@
 import { Controller } from "@hotwired/stimulus";
 
+/**
+ * Image Optimizer Controller
+ * 
+ * Handles client-side image resizing and compression before upload.
+ * Reduces server load and storage usage by ensuring images stay within specified dimensions.
+ * 
+ * @example
+ * <div data-controller="image-optimizer" data-image-optimizer-max-width-value="800">
+ *   <input type="file" data-image-optimizer-target="input" data-action="change->image-optimizer#optimize">
+ *   <img data-image-optimizer-target="preview" class="hidden">
+ * </div>
+ */
 export default class extends Controller {
     static targets = ["input", "preview", "status"];
     static values = {

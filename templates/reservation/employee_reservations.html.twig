@@ -1,3 +1,13 @@
+{# 
+  Employee Reservation Management Template
+  Main interface for employees to process new, ready, expired, and collected reservations.
+  
+  Variables:
+  - newReservations: (Collection) Reservations in ACTIVE state
+  - readyReservations: (Collection) Reservations in READY state
+  - expiredReservations: (Collection) Last 20 CANCELLED/EXPIRED reservations
+  - collectedReservations: (Collection) Last 20 COLLECTED reservations
+#}
 {% extends 'base.html.twig' %}
 
 {% block title %}Réservations à Récupérer{% endblock %}

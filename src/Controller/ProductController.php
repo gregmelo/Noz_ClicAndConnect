@@ -14,10 +14,22 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/**
+ * ProductController
+ * 
+ * Administrative controller for managing the product catalog.
+ * Accessible to users with ROLE_EMPLOYEE or higher.
+ */
 #[Route('/product')]
 #[IsGranted('ROLE_EMPLOYEE')]
 final class ProductController extends AbstractController
 {
+    /**
+     * List all products (Admin view)
+     *
+     * @param ProductRepository $productRepository
+     * @return Response
+     */
     #[Route(name: 'app_product_index', methods: ['GET'])]
     public function index(ProductRepository $productRepository): Response
     {
@@ -26,6 +38,15 @@ final class ProductController extends AbstractController
         ]);
     }
 
+    /**
+     * Create a new product
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param FileUploader $fileUploader
+     * @param ActivityLogger $logger
+     * @return Response
+     */
     #[Route('/new', name: 'app_product_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager, FileUploader $fileUploader, ActivityLogger $logger): Response
     {
@@ -62,6 +83,12 @@ final class ProductController extends AbstractController
         ]);
     }
 
+    /**
+     * View product details (Admin view)
+     *
+     * @param Product $product
+     * @return Response
+     */
     #[Route('/{id}', name: 'app_product_show', methods: ['GET'])]
     public function show(Product $product): Response
     {
@@ -70,6 +97,16 @@ final class ProductController extends AbstractController
         ]);
     }
 
+    /**
+     * Edit an existing product
+     *
+     * @param Request $request
+     * @param Product $product
+     * @param EntityManagerInterface $entityManager
+     * @param FileUploader $fileUploader
+     * @param ActivityLogger $logger
+     * @return Response
+     */
     #[Route('/{id}/edit', name: 'app_product_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Product $product, EntityManagerInterface $entityManager, FileUploader $fileUploader, ActivityLogger $logger): Response
     {
@@ -120,6 +157,15 @@ final class ProductController extends AbstractController
         ]);
     }
 
+    /**
+     * Delete a product
+     *
+     * @param Request $request
+     * @param Product $product
+     * @param EntityManagerInterface $entityManager
+     * @param ActivityLogger $logger
+     * @return Response
+     */
     #[Route('/{id}', name: 'app_product_delete', methods: ['POST'])]
     public function delete(Request $request, Product $product, EntityManagerInterface $entityManager, ActivityLogger $logger): Response
     {

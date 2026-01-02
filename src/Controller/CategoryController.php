@@ -11,10 +11,22 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/**
+ * CategoryController
+ * 
+ * Administrative controller for managing product categories.
+ * Accessible only to users with ROLE_ADMIN or higher.
+ */
 #[Route('/admin/category')]
 #[IsGranted('ROLE_ADMIN')]
 class CategoryController extends AbstractController
 {
+    /**
+     * List all categories
+     *
+     * @param CategoryRepository $categoryRepository
+     * @return Response
+     */
     #[Route('/', name: 'app_admin_category_index', methods: ['GET'])]
     public function index(CategoryRepository $categoryRepository): Response
     {
@@ -23,6 +35,13 @@ class CategoryController extends AbstractController
         ]);
     }
 
+    /**
+     * Create a new category
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
     #[Route('/new', name: 'app_admin_category_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -48,6 +67,14 @@ class CategoryController extends AbstractController
         ]);
     }
 
+    /**
+     * Edit an existing category
+     *
+     * @param Request $request
+     * @param Category $category
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
     #[Route('/{id}/edit', name: 'app_admin_category_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Category $category, EntityManagerInterface $entityManager): Response
     {
@@ -71,6 +98,15 @@ class CategoryController extends AbstractController
         ]);
     }
 
+    /**
+     * Delete a category
+     * Prevents deletion if the category is not empty.
+     *
+     * @param Request $request
+     * @param Category $category
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
     #[Route('/{id}', name: 'app_admin_category_delete', methods: ['POST'])]
     public function delete(Request $request, Category $category, EntityManagerInterface $entityManager): Response
     {

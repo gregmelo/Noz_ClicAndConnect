@@ -8,17 +8,25 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
+/**
+ * User Entity
+ * 
+ * Represents a user of the system (Client, Employee, Admin, or Developer).
+ * Implements Symfony's security interfaces for authentication and authorization.
+ */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[UniqueEntity(fields: ['email'], message: 'Il existe déjà un compte avec cet email.')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    /** @var int|null The unique identifier of the user */
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    /** @var string|null The email address used for login */
     #[ORM\Column(length: 180)]
     private ?string $email = null;
 
@@ -34,15 +42,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
+    /** @var int Number of "strikes" (missed reservations). Account is banned after 3 strikes. */
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $strikes = 0;
 
+    /** @var \DateTimeImmutable|null Expiration date of the user's ban */
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $banExpiresAt = null;
 
+    /** @var string|null The user's first name */
     #[ORM\Column(length: 255)]
     private ?string $firstName = null;
 
+    /** @var string|null The user's last name */
     #[ORM\Column(length: 255)]
     private ?string $lastName = null;
 
@@ -168,6 +180,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+    /** @var \Doctrine\Common\Collections\Collection<int, Product> Products created by this user (if Employee/Admin) */
     #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: Product::class)]
     private \Doctrine\Common\Collections\Collection $products;
 

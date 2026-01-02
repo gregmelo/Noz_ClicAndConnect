@@ -5,25 +5,36 @@ namespace App\Entity;
 use App\Repository\ReservationItemRepository;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * ReservationItem Entity
+ * 
+ * Represents a single product entry within a reservation, 
+ * capturing the quantity and the price at the time of reservation.
+ */
 #[ORM\Entity(repositoryClass: ReservationItemRepository::class)]
 class ReservationItem
 {
+    /** @var int|null The unique identifier of the reservation item */
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    /** @var Reservation|null The parent reservation */
     #[ORM\ManyToOne(inversedBy: 'reservationItems')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Reservation $reservation = null;
 
+    /** @var Product|null The product being reserved */
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?Product $product = null;
 
+    /** @var int|null The quantity of the product reserved */
     #[ORM\Column]
     private ?int $quantity = null;
 
+    /** @var string|null The unit price of the product at the moment of reservation */
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private ?string $price = null;
 

@@ -7,14 +7,22 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Category Entity
+ * 
+ * Represents a product category (e.g., Alalimentation, Hygiène, etc.).
+ * Groups products and provides a common classification.
+ */
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
 class Category
 {
+    /** @var int|null The unique identifier of the category */
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    /** @var string|null The name of the category */
     #[ORM\Column(length: 100)]
     private ?string $name = null;
 

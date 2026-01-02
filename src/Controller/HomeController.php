@@ -8,8 +8,22 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+/**
+ * HomeController
+ * 
+ * Handles public-facing landing pages, product listings with search/filtering,
+ * and individual product detail views.
+ */
 class HomeController extends AbstractController
 {
+    /**
+     * Public landing page & search
+     *
+     * @param Request $request
+     * @param ProductRepository $productRepository
+     * @param \App\Repository\CategoryRepository $categoryRepository
+     * @return Response
+     */
     #[Route('/', name: 'app_home')]
     public function index(Request $request, ProductRepository $productRepository, \App\Repository\CategoryRepository $categoryRepository): Response
     {
@@ -100,6 +114,12 @@ class HomeController extends AbstractController
         ]);
     }
 
+    /**
+     * Public product details view
+     *
+     * @param \App\Entity\Product $product
+     * @return Response
+     */
     #[Route('/product/{id}', name: 'app_product_show_public', methods: ['GET'])]
     public function show(\App\Entity\Product $product): Response
     {

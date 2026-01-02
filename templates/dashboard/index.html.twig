@@ -1,3 +1,15 @@
+{# 
+  Dashboard Home Template (Employee)
+  Displays stats, low stock alerts, revenue, and urgent reservations.
+  
+  Variables:
+  - totalProducts, productsInStock, productsOutOfStock: Stock stats
+  - activeReservations, readyReservations, expiredReservations, collectedReservations: Reservation stats
+  - totalRevenue: Total company revenue (float)
+  - urgentReservations: List of ACTIVE reservations expiring soon
+  - lowStockProducts: List of products with stock <= 3
+  - bestSellers: Array of user/revenue data (Super Admin only)
+#}
 {% extends 'base.html.twig' %}
 
 {% block title %}Dashboard{% endblock %}

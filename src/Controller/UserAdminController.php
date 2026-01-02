@@ -13,10 +13,24 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/**
+ * UserAdminController
+ * 
+ * Administrative controller for managing users.
+ * Allows creating, editing, and deleting users with role-based restrictions.
+ * Accessible only to users with ROLE_ADMIN or higher.
+ */
 #[Route('/admin/users')]
 #[IsGranted('ROLE_ADMIN')]
 class UserAdminController extends AbstractController
 {
+    /**
+     * List users with search and filtering
+     *
+     * @param Request $request
+     * @param UserRepository $userRepository
+     * @return Response
+     */
     #[Route('/', name: 'app_admin_users_index')]
     public function index(Request $request, UserRepository $userRepository): Response
     {
@@ -46,6 +60,15 @@ class UserAdminController extends AbstractController
         ]);
     }
 
+    /**
+     * Create a new user (Admin only)
+     *
+     * @param Request $request
+     * @param UserPasswordHasherInterface $passwordHasher
+     * @param EntityManagerInterface $entityManager
+     * @param ActivityLogger $logger
+     * @return Response
+     */
     #[Route('/new', name: 'app_admin_users_new', methods: ['GET', 'POST'])]
     public function new(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager, ActivityLogger $logger): Response
     {
@@ -99,6 +122,16 @@ class UserAdminController extends AbstractController
         ]);
     }
 
+    /**
+     * Edit an existing user (Admin only)
+     * Includes strike management and ban logic.
+     *
+     * @param User $user
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param ActivityLogger $logger
+     * @return Response
+     */
     #[Route('/{id}/edit', name: 'app_admin_users_edit', methods: ['GET', 'POST'])]
     public function edit(User $user, Request $request, EntityManagerInterface $entityManager, ActivityLogger $logger): Response
     {
@@ -169,6 +202,15 @@ class UserAdminController extends AbstractController
         ]);
     }
 
+    /**
+     * Delete a user (Admin only)
+     *
+     * @param User $user
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param ActivityLogger $logger
+     * @return Response
+     */
     #[Route('/{id}/delete', name: 'app_admin_users_delete', methods: ['POST'])]
     public function delete(User $user, Request $request, EntityManagerInterface $entityManager, ActivityLogger $logger): Response
     {

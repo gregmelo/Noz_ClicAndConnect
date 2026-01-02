@@ -10,10 +10,25 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/**
+ * DashboardController
+ * 
+ * Provides comprehensive statistics and real-time monitoring for employees/admins.
+ * Displays stock alerts, revenue tracking, and urgent reservations.
+ */
 #[Route('/dashboard')]
 #[IsGranted('ROLE_EMPLOYEE')]
 class DashboardController extends AbstractController
 {
+    /**
+     * Main dashboard view
+     *
+     * @param ProductRepository $productRepository
+     * @param ReservationRepository $reservationRepository
+     * @param \App\Repository\GlobalStatRepository $globalStatRepository
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
     #[Route('/', name: 'app_dashboard')]
     public function index(
         ProductRepository $productRepository,

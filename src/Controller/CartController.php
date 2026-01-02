@@ -8,6 +8,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+/**
+ * CartController
+ * 
+ * Manages the user's shopping cart stored in the session.
+ */
 #[Route('/cart')]
 class CartController extends AbstractController
 {
@@ -25,6 +30,13 @@ class CartController extends AbstractController
         ]);
     }
 
+    /**
+     * Add a product to the cart
+     *
+     * @param int $id Product ID
+     * @param Request $request
+     * @return Response
+     */
     #[Route('/add/{id}', name: 'app_cart_add')]
     public function add(int $id, Request $request): Response
     {
@@ -55,6 +67,12 @@ class CartController extends AbstractController
         return $this->redirectToRoute('app_home');
     }
 
+    /**
+     * Remove a product completely from the cart
+     *
+     * @param int $id Product ID
+     * @return Response
+     */
     #[Route('/remove/{id}', name: 'app_cart_remove')]
     public function remove(int $id): Response
     {
@@ -64,6 +82,12 @@ class CartController extends AbstractController
         return $this->redirectToRoute('app_cart_index');
     }
 
+    /**
+     * Decrease the quantity of a product in the cart
+     *
+     * @param int $id Product ID
+     * @return Response
+     */
     #[Route('/decrease/{id}', name: 'app_cart_decrease')]
     public function decrease(int $id): Response
     {
@@ -72,6 +96,11 @@ class CartController extends AbstractController
         return $this->redirectToRoute('app_cart_index');
     }
 
+    /**
+     * Complete clear the shopping cart
+     *
+     * @return Response
+     */
     #[Route('/clear', name: 'app_cart_clear')]
     public function clear(): Response
     {

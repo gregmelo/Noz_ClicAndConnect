@@ -1,6 +1,15 @@
 import { Controller } from '@hotwired/stimulus';
 import confetti from 'canvas-confetti';
 
+/**
+ * Confetti Controller
+ * 
+ * Triggers a confetti celebration when certain revenue milestones are reached.
+ * Keeps track of the last celebrated milestone in the browser's localStorage.
+ * 
+ * @example
+ * <div data-controller="confetti" data-confetti-amount-value="1050"></div>
+ */
 export default class extends Controller {
     static values = {
         amount: Number

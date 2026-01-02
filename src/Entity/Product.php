@@ -6,38 +6,54 @@ use App\Repository\ProductRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Product Entity
+ * 
+ * Represents a product available for reservation in the Clic & Collect system.
+ * Includes stock management, pricing (current and original), and image handling.
+ */
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 class Product
 {
+    /** @var int|null The unique identifier of the product */
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    /** @var string|null The name of the product */
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
+    /** @var string|null A detailed description of the product */
     #[ORM\Column(type: Types::TEXT)]
     private ?string $description = null;
 
+    /** @var string|null The current price of the product (decimal string) */
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $price = null;
 
+    /** @var int|null The current quantity in stock */
     #[ORM\Column]
     private ?int $stock = null;
 
+    /** @var string|null The filename of the product's image */
     #[ORM\Column(length: 255)]
     private ?string $imageFilename = null;
 
+    /** @var \Symfony\Component\HttpFoundation\File\UploadedFile|null Virtual property for image upload */
     private ?\Symfony\Component\HttpFoundation\File\UploadedFile $imageFile = null;
 
+    /** @var \DateTimeImmutable|null Date and time when the product was added */
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
+    /** @var \DateTimeImmutable|null Date and time of the last update */
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    /** @var string|null The original price before any discount (decimal string) */
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
     private ?string $originalPrice = null;
 
@@ -163,6 +179,7 @@ class Product
 
         return $this;
     }
+    /** @var User|null The user (employee/admin) who created this product */
     #[ORM\ManyToOne(inversedBy: 'products')]
     private ?User $createdBy = null;
 
@@ -177,6 +194,7 @@ class Product
 
         return $this;
     }
+    /** @var Category|null The category this product belongs to */
     #[ORM\ManyToOne(inversedBy: 'products')]
     private ?Category $category = null;
 

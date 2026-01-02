@@ -8,39 +8,55 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Reservation Entity
+ * 
+ * Represents a click & collect reservation made by a user.
+ * Manages the lifecycle of a reservation from ACTIVE to COLLECTED or CANCELLED,
+ * including expiration logic and reference generation.
+ */
 #[ORM\Entity(repositoryClass: ReservationRepository::class)]
 class Reservation
 {
+    /** @var int|null The unique identifier of the reservation */
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    /** @var User|null The user who made the reservation */
     #[ORM\ManyToOne(inversedBy: 'reservations')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
+    /** @var string|null Unique human-readable reference for the reservation */
     #[ORM\Column(length: 255)]
     private ?string $reference = null;
 
+    /** @var string|null Optional comment from the user */
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
 
     /**
      * @var Collection<int, ReservationItem>
      */
+    /** @var Collection<int, ReservationItem> List of items included in this reservation */
     #[ORM\OneToMany(targetEntity: ReservationItem::class, mappedBy: 'reservation', orphanRemoval: true, cascade: ['persist', 'remove'])]
     private Collection $reservationItems;
 
+    /** @var \DateTimeImmutable|null Date and time when the reservation was created */
     #[ORM\Column]
     private ?\DateTimeImmutable $reservedAt = null;
 
+    /** @var \DateTimeImmutable|null Expiration date and time of the reservation */
     #[ORM\Column]
     private ?\DateTimeImmutable $expiresAt = null;
 
+    /** @var int|null Duration in hours before the reservation expires (default 48) */
     #[ORM\Column]
     private ?int $durationHours = 48;
 
+    /** @var string|null Status of the reservation (ACTIVE, READY, COLLECTED, CANCELLED, EXPIRED) */
     #[ORM\Column(length: 20)]
     private ?string $status = 'ACTIVE';
 

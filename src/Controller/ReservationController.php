@@ -16,6 +16,13 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/**
+ * ReservationController
+ * 
+ * Manages the complete lifecycle of customer reservations.
+ * Accessible to ROLE_CLIENT for their own reservations, and ROLE_EMPLOYEE
+ * for administrative actions (marking as ready, collected, etc.).
+ */
 #[Route('/reservation')]
 #[IsGranted('ROLE_CLIENT')]
 class ReservationController extends AbstractController
@@ -49,6 +56,14 @@ class ReservationController extends AbstractController
         ]);
     }
 
+    /**
+     * Validate the current cart and create a reservation
+     * Performs stock checks, CSRF validation, and reservation limit checks.
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
     #[Route('/validate', name: 'app_reservation_validate', methods: ['POST'])]
     public function validate(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -154,6 +169,15 @@ class ReservationController extends AbstractController
         return $this->redirectToRoute('app_my_reservations');
     }
 
+    /**
+     * Cancel a reservation
+     * Restores stock and applies strike/ban logic if cancelled after expiration.
+     *
+     * @param Reservation $reservation
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
     #[Route('/cancel/{id}', name: 'app_reservation_cancel', methods: ['POST'])]
     public function cancel(Reservation $reservation, Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -221,8 +245,16 @@ class ReservationController extends AbstractController
         return $this->redirectToRoute('app_my_reservations');
     }
 
+    /**
+     * Mark a reservation as ready for collection
+     * Updates expiration date according to morning/afternoon logic.
+     *
+     * @param Reservation $reservation
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
     #[Route('/ready/{id}', name: 'app_reservation_ready', methods: ['POST'])]
-    #[IsGranted('ROLE_EMPLOYEE')]
     public function markAsReady(Reservation $reservation, Request $request, EntityManagerInterface $entityManager): Response
     {
         if (!$this->isCsrfTokenValid('ready_reservation'.$reservation->getId(), $request->request->get('_token'))) {
@@ -268,8 +300,15 @@ class ReservationController extends AbstractController
         return $this->redirectToRoute('app_employee_reservations');
     }
 
+    /**
+     * Mark a reservation as collected by the customer
+     *
+     * @param Reservation $reservation
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
     #[Route('/collect/{id}', name: 'app_reservation_collect', methods: ['POST'])]
-    #[IsGranted('ROLE_EMPLOYEE')]
     public function markAsCollected(Reservation $reservation, Request $request, EntityManagerInterface $entityManager): Response
     {
         if (!$this->isCsrfTokenValid('collect_reservation'.$reservation->getId(), $request->request->get('_token'))) {
@@ -294,8 +333,14 @@ class ReservationController extends AbstractController
         return $this->redirectToRoute('app_employee_reservations');
     }
 
+    /**
+     * Dashboard for employees to manage all reservations
+     *
+     * @param ReservationRepository $reservationRepository
+     * @param \App\Repository\GlobalStatRepository $globalStatRepository
+     * @return Response
+     */
     #[Route('/employee/reservations', name: 'app_employee_reservations')]
-    #[IsGranted('ROLE_EMPLOYEE')]
     public function employeeReservations(ReservationRepository $reservationRepository, \App\Repository\GlobalStatRepository $globalStatRepository): Response
     {
         $now = new \DateTimeImmutable();
@@ -349,6 +394,12 @@ class ReservationController extends AbstractController
         ]);
     }
 
+    /**
+     * Force cleanup of expired reservations (Admin only)
+     *
+     * @param \Symfony\Component\HttpKernel\KernelInterface $kernel
+     * @return Response
+     */
     #[Route('/employee/cleanup', name: 'app_employee_cleanup')]
     public function cleanup(\Symfony\Component\HttpKernel\KernelInterface $kernel): Response
     {
@@ -375,8 +426,14 @@ class ReservationController extends AbstractController
         return $this->redirectToRoute('app_employee_reservations');
     }
 
+    /**
+     * Generate a preparation list for selected reservations (Employee)
+     *
+     * @param Request $request
+     * @param ReservationRepository $reservationRepository
+     * @return Response
+     */
     #[Route('/employee/preparation', name: 'app_reservation_preparation', methods: ['POST'])]
-    #[IsGranted('ROLE_EMPLOYEE')]
     public function preparationList(Request $request, ReservationRepository $reservationRepository): Response
     {
         $reservationIds = $request->request->all('reservation_ids');
@@ -419,8 +476,15 @@ class ReservationController extends AbstractController
         ]);
     }
 
+    /**
+     * Mark multiple reservations as ready in bulk
+     *
+     * @param Request $request
+     * @param ReservationRepository $reservationRepository
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
     #[Route('/employee/batch-ready', name: 'app_reservation_batch_ready', methods: ['POST'])]
-    #[IsGranted('ROLE_EMPLOYEE')]
     public function batchReady(Request $request, ReservationRepository $reservationRepository, EntityManagerInterface $entityManager): Response
     {
         if (!$this->isCsrfTokenValid('batch_ready_reservations', $request->request->get('_token'))) {

@@ -5,14 +5,31 @@ namespace App\Service;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
+/**
+ * ActivityLogger Service
+ * 
+ * Centralized service for recording user and system actions.
+ * Logs are written to both the standard logger (files) and the database (ActivityLog entity).
+ */
 class ActivityLogger
 {
+    /**
+     * @param LoggerInterface $logger standard PSR logger
+     * @param \Doctrine\ORM\EntityManagerInterface $entityManager
+     */
     public function __construct(
         private LoggerInterface $logger,
         private \Doctrine\ORM\EntityManagerInterface $entityManager
     ) {
     }
 
+    /**
+     * Log a generic user action to both file and database.
+     *
+     * @param UserInterface $user
+     * @param string $action Action name (e.g., 'RESERVATION_CREATED')
+     * @param array $context Additional data for the log
+     */
     public function logUserAction(UserInterface $user, string $action, array $context = []): void
     {
         $this->logToDatabase($user->getUserIdentifier(), $action, $context);
@@ -37,6 +54,13 @@ class ActivityLogger
         $this->entityManager->flush();
     }
 
+    /**
+     * Log a new reservation event
+     *
+     * @param UserInterface $user
+     * @param string $reference
+     * @param int $quantity Total quantity of items in the reservation
+     */
     public function logReservation(UserInterface $user, string $reference, int $quantity): void
     {
         $this->logUserAction($user, 'RESERVATION_CREATED', [
@@ -59,6 +83,13 @@ class ActivityLogger
         ]);
     }
 
+    /**
+     * Log product creation
+     *
+     * @param UserInterface $user
+     * @param int $productId
+     * @param string $productName
+     */
     public function logProductCreated(UserInterface $user, int $productId, string $productName): void
     {
         $this->logUserAction($user, 'PRODUCT_CREATED', [
@@ -67,6 +98,17 @@ class ActivityLogger
         ]);
     }
 
+    /**
+     * Log product update with automatic diffing of price and stock
+     *
+     * @param UserInterface $user
+     * @param int $productId
+     * @param string $productName
+     * @param float|null $oldPrice
+     * @param float|null $newPrice
+     * @param int|null $oldStock
+     * @param int|null $newStock
+     */
     public function logProductUpdated(UserInterface $user, int $productId, string $productName, ?float $oldPrice = null, ?float $newPrice = null, ?int $oldStock = null, ?int $newStock = null): void
     {
         $context = [
@@ -95,6 +137,11 @@ class ActivityLogger
         ]);
     }
 
+    /**
+     * Log a successful login
+     *
+     * @param string $userEmail
+     */
     public function logLogin(string $userEmail): void
     {
         $this->logToDatabase($userEmail, 'LOGIN_SUCCESS');
