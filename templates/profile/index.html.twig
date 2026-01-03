@@ -11,8 +11,8 @@
             
             {# Bravo Message for Top Sellers #}
             {% if userRank is defined and userRank %}
-                <div class="mb-6 p-4 rounded-lg bg-gradient-to-r from-yellow-100 to-yellow-200 border border-yellow-300 text-center">
-                    <div class="text-4xl mb-2">
+                <div class="mb-6 p-4 rounded-lg bg-gradient-to-r from-yellow-100 to-yellow-200 border border-yellow-300 text-center" role="status" aria-label="Félicitations pour votre classement">
+                    <div class="text-4xl mb-2" aria-hidden="true">
                         {% if userRank == 1 %}🥇{% elseif userRank == 2 %}🥈{% elseif userRank == 3 %}🥉{% endif %}
                     </div>
                     <h3 class="text-xl font-bold text-yellow-800">Félicitations !</h3>
@@ -27,23 +27,24 @@
             {% endif %}
 
             <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
-                <p class="text-gray-900">{{ app.user.email }}</p>
+                <p class="block text-gray-700 text-sm font-bold mb-1" aria-hidden="true">Email</p>
+                <p class="text-gray-900"><span class="sr-only">Email : </span>{{ app.user.email }}</p>
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2">Prénom</label>
-                <p class="text-gray-900">{{ app.user.firstName }}</p>
+                <p class="block text-gray-700 text-sm font-bold mb-1" aria-hidden="true">Prénom</p>
+                <p class="text-gray-900"><span class="sr-only">Prénom : </span>{{ app.user.firstName }}</p>
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2">Nom</label>
-                <p class="text-gray-900">{{ app.user.lastName }}</p>
+                <p class="block text-gray-700 text-sm font-bold mb-1" aria-hidden="true">Nom</p>
+                <p class="text-gray-900"><span class="sr-only">Nom : </span>{{ app.user.lastName }}</p>
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2">Rôle</label>
+                <p class="block text-gray-700 text-sm font-bold mb-1" aria-hidden="true">Rôle</p>
                 <p class="text-gray-900">
+                    <span class="sr-only">Rôle : </span>
                     {% if is_granted('ROLE_DEVELOPER') %}
                         Développeur
                     {% elseif is_granted('ROLE_SUPER_ADMIN') %}
@@ -60,10 +61,10 @@
 
             {% if is_granted('ROLE_CLIENT') and not is_granted('ROLE_EMPLOYEE') %}
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Avertissements</label>
-                    <p class="text-gray-900">{{ app.user.strikes }} / 3</p>
+                    <p class="block text-gray-700 text-sm font-bold mb-1" aria-hidden="true">Avertissements</p>
+                    <p class="text-gray-900"><span class="sr-only">Nombre d'avertissements : </span>{{ app.user.strikes }} / 3</p>
                     {% if app.user.banExpiresAt and app.user.banExpiresAt > date() %}
-                        <p class="text-red-600 font-bold mt-2">Banni jusqu'au {{ app.user.banExpiresAt|date('d/m/Y H:i') }}</p>
+                        <p class="text-red-600 font-bold mt-2" role="alert">Banni jusqu'au {{ app.user.banExpiresAt|date('d/m/Y H:i') }}</p>
                     {% endif %}
                 </div>
             {% endif %}
