@@ -16,7 +16,7 @@
                     <span class="inline-block ml-2 bg-yellow-400 text-noz-blue text-xs px-2 py-1 rounded-full align-middle animate-pulse">NOUVEAU</span>
                 </h1>
                 <p class="text-lg md:text-xl text-white max-w-2xl">
-                    Découvrez nos pépites du moment. Réservez en ligne, récupérez en magasin !
+                    Découvrez nos pépites du moment. Ajoutez à votre panier, récupérez en magasin !
                 </p>
             </div>
             
@@ -39,7 +39,8 @@
             {% if currentCategory %}<input type="hidden" name="category" value="{{ currentCategory }}">{% endif %}
             
             <div class="flex flex-col sm:flex-row gap-2">
-                <input type="text" name="search" value="{{ search }}" placeholder="Rechercher un produit..." 
+                <label for="search-input" class="sr-only">Rechercher un produit</label>
+                <input type="text" id="search-input" name="search" value="{{ search }}" placeholder="Rechercher un produit..." 
                        data-action="input->autosubmit#debouncedSubmit"
                        class="flex-grow shadow appearance-none border rounded py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 <button type="submit" class="bg-noz-btn hover:bg-blue-700 text-white font-bold py-3 px-6 rounded">
@@ -222,7 +223,7 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                     </svg>
-                                    Ajouter
+                                    Ajouter au panier
                                 </button>
                             </form>
                         {% else %}
@@ -232,7 +233,7 @@
                         {% endif %}
                     {% else %}
                         <a href="{{ path('app_login') }}" class="block w-full text-center bg-gray-800 text-white py-2 rounded hover:bg-gray-700 font-bold uppercase text-sm">
-                            Connectez-vous pour réserver
+                            Connectez-vous pour ajouter au panier
                         </a>
                     {% endif %}
                 </div>
