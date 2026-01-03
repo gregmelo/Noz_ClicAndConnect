@@ -38,8 +38,8 @@
             {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
             {% if currentCategory %}<input type="hidden" name="category" value="{{ currentCategory }}">{% endif %}
             
+            <label for="search-input" class="sr-only">Rechercher un produit</label>
             <div class="flex flex-col sm:flex-row gap-2">
-                <label for="search-input" class="sr-only">Mot-clé de recherche</label>
                 <input type="text" id="search-input" name="search" value="{{ search }}" placeholder="Rechercher un produit..." 
                        data-action="input->autosubmit#debouncedSubmit"
                        class="flex-grow shadow appearance-none border rounded py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
