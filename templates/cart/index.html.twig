@@ -12,11 +12,11 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produit</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produit</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix</th>
+                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -39,12 +39,14 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
                                 <div class="flex justify-center items-center space-x-2">
-                                    <a href="{{ path('app_cart_decrease', {'id': item.product.id}) }}" class="text-gray-500 hover:text-red-600 font-bold px-2 border rounded">-</a>
-                                    <span>{{ item.quantity }}</span>
+                                    <a href="{{ path('app_cart_decrease', {'id': item.product.id}) }}" 
+                                       aria-label="Diminuer la quantité de {{ item.product.name }}" 
+                                       class="text-gray-500 hover:text-red-600 font-bold px-2 border rounded">-</a>
+                                    <span aria-label="Quantité actuelle : {{ item.quantity }}">{{ item.quantity }}</span>
                                     <form action="{{ path('app_cart_add', {'id': item.product.id}) }}" method="post" class="inline">
                                         <input type="hidden" name="_token" value="{{ csrf_token('add_to_cart') }}">
                                         <input type="hidden" name="returnToCart" value="1">
-                                        <button type="submit" class="text-gray-500 hover:text-green-600 font-bold px-2 border rounded">+</button>
+                                        <button type="submit" aria-label="Augmenter la quantité de {{ item.product.name }}" class="text-gray-500 hover:text-green-600 font-bold px-2 border rounded">+</button>
                                     </form>
                                 </div>
                             </td>
@@ -96,12 +98,12 @@
                         <div class="flex justify-between items-end mt-2">
                             <!-- Qty Controls -->
                             <div class="flex items-center space-x-3 border rounded px-2 py-1 bg-gray-50">
-                                <a href="{{ path('app_cart_decrease', {'id': item.product.id}) }}" class="text-gray-500 hover:text-red-600 font-bold px-2">-</a>
-                                <span class="font-medium">{{ item.quantity }}</span>
+                                <a href="{{ path('app_cart_decrease', {'id': item.product.id}) }}" aria-label="Diminuer la quantité de {{ item.product.name }}" class="text-gray-500 hover:text-red-600 font-bold px-2">-</a>
+                                <span class="font-medium" aria-label="Quantité: {{ item.quantity }}">{{ item.quantity }}</span>
                                 <form action="{{ path('app_cart_add', {'id': item.product.id}) }}" method="post" class="inline">
                                     <input type="hidden" name="_token" value="{{ csrf_token('add_to_cart') }}">
                                     <input type="hidden" name="returnToCart" value="1">
-                                    <button type="submit" class="text-gray-500 hover:text-green-600 font-bold px-2">+</button>
+                                    <button type="submit" aria-label="Augmenter la quantité de {{ item.product.name }}" class="text-gray-500 hover:text-green-600 font-bold px-2">+</button>
                                 </form>
                             </div>
                             

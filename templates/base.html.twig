@@ -23,9 +23,27 @@
         {% endblock %}
     </head>
     <body class="bg-gray-100 flex flex-col min-h-screen" data-controller="mobile-menu">
-        <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-noz-yellow focus:text-noz-black focus:px-4 focus:py-2 focus:rounded-md focus:font-bold focus:shadow-xl">
+        <a href="#main-content" class="skip-link">
             Aller au contenu principal
         </a>
+        <style>
+            .skip-link {
+                position: absolute;
+                top: -100px;
+                left: 1rem;
+                background: #ffcc00;
+                color: #000;
+                padding: 0.5rem 1rem;
+                z-index: 1000;
+                font-weight: bold;
+                border-radius: 0.5rem;
+                transition: top 0.3s;
+                text-decoration: none;
+            }
+            .skip-link:focus {
+                top: 1rem;
+            }
+        </style>
         <nav class="bg-noz-blue text-white shadow-lg" role="navigation" aria-label="Menu principal">
             <div class="container mx-auto px-4 py-3">
                 <div class="flex justify-between items-center">

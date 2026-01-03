@@ -22,10 +22,12 @@
     <div class="bg-white p-4 rounded shadow-md mb-6">
         <form method="get" class="flex flex-col md:flex-row gap-4">
             <div class="flex-1">
-                <input type="text" name="q" value="{{ currentQuery }}" placeholder="Rechercher par nom, prénom ou email..." class="w-full px-4 py-2 border rounded focus:outline-none focus:border-noz-blue">
+                <label for="admin-q-field" class="sr-only">Rechercher un utilisateur</label>
+                <input type="text" id="admin-q-field" name="q" value="{{ currentQuery }}" placeholder="Rechercher par nom, prénom ou email..." class="w-full px-4 py-2 border rounded focus:outline-none focus:border-noz-blue">
             </div>
             <div class="w-full md:w-48">
-                <select name="role" class="w-full px-4 py-2 border rounded focus:outline-none focus:border-noz-blue">
+                <label for="admin-role-select" class="sr-only">Filtrer par rôle</label>
+                <select id="admin-role-select" name="role" class="w-full px-4 py-2 border rounded focus:outline-none focus:border-noz-blue">
                     <option value="">Tous les rôles</option>
                     <option value="ROLE_DEVELOPER" {% if currentRole == 'ROLE_DEVELOPER' %}selected{% endif %}>Développeur</option>
                     <option value="ROLE_SUPER_ADMIN" {% if currentRole == 'ROLE_SUPER_ADMIN' %}selected{% endif %}>Super Admin</option>
@@ -51,11 +53,11 @@
             <table class="min-w-full table-auto">
             <thead>
                 <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                    <th class="py-3 px-6 text-left">Email</th>
-                    <th class="py-3 px-6 text-left">Nom</th>
-                    <th class="py-3 px-6 text-center">Rôle</th>
-                    <th class="py-3 px-6 text-center">Strikes</th>
-                    <th class="py-3 px-6 text-center">Actions</th>
+                    <th scope="col" class="py-3 px-6 text-left">Email</th>
+                    <th scope="col" class="py-3 px-6 text-left">Nom</th>
+                    <th scope="col" class="py-3 px-6 text-center">Rôle</th>
+                    <th scope="col" class="py-3 px-6 text-center">Strikes</th>
+                    <th scope="col" class="py-3 px-6 text-center">Actions</th>
                 </tr>
             </thead>
             <tbody class="text-gray-600 text-sm font-light">
@@ -86,17 +88,17 @@
                             </span>
                         </td>
                         <td class="py-3 px-6 text-center">
-                            <div class="flex item-center justify-center gap-3">
+                             <div class="flex item-center justify-center gap-3">
                                 {% if is_granted('USER_EDIT', user) %}
-                                    <a href="{{ path('app_admin_users_edit', {'id': user.id}) }}" class="text-green-500 hover:text-green-700" title="Modifier">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <a href="{{ path('app_admin_users_edit', {'id': user.id}) }}" class="text-green-500 hover:text-green-700" aria-label="Modifier l'utilisateur {{ user.email }}">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                         </svg>
                                     </a>
                                 {% endif %}
                                 {% if is_granted('USER_DELETE', user) %}
-                                    <button onclick="openDeleteModal({{ user.id }}, '{{ user.email|e('js') }}', '{{ csrf_token('delete_user' ~ user.id) }}')" class="text-red-500 hover:text-red-700" title="Supprimer">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <button onclick="openDeleteModal({{ user.id }}, '{{ user.email|e('js') }}', '{{ csrf_token('delete_user' ~ user.id) }}')" class="text-red-500 hover:text-red-700" aria-label="Supprimer l'utilisateur {{ user.email }}">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                         </svg>
                                     </button>

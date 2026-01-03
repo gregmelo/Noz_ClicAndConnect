@@ -35,12 +35,12 @@
             <table class="min-w-full table-auto">
             <thead>
                 <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                    <th class="py-3 px-6 text-left">Référence</th>
-                    <th class="py-3 px-6 text-left">Articles</th>
-                    <th class="py-3 px-6 text-center">Date Réservation</th>
-                    <th class="py-3 px-6 text-center">Expire le</th>
-                    <th class="py-3 px-6 text-center">Statut</th>
-                    <th class="py-3 px-6 text-center">Actions</th>
+                    <th scope="col" class="py-3 px-6 text-left">Référence</th>
+                    <th scope="col" class="py-3 px-6 text-left">Articles</th>
+                    <th scope="col" class="py-3 px-6 text-center">Date Réservation</th>
+                    <th scope="col" class="py-3 px-6 text-center">Expire le</th>
+                    <th scope="col" class="py-3 px-6 text-center">Statut</th>
+                    <th scope="col" class="py-3 px-6 text-center">Actions</th>
                 </tr>
             </thead>
             <tbody class="text-gray-600 text-sm font-light">
@@ -187,11 +187,12 @@
 
                 {% for page in 1..totalPages %}
                     {% if page == currentPage %}
-                        <span class="relative inline-flex items-center px-4 py-2 border border-noz-blue bg-noz-blue text-sm font-medium text-white">
+                        <span aria-current="page" class="relative inline-flex items-center px-4 py-2 border border-noz-blue bg-noz-blue text-sm font-medium text-white">
                             {{ page }}
                         </span>
                     {% elseif page == 1 or page == totalPages or (page >= currentPage - 2 and page <= currentPage + 2) %}
                         <a href="{{ path('app_my_reservations', {page: page}) }}" 
+                           aria-label="Aller à la page {{ page }}"
                            class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
                             {{ page }}
                         </a>
