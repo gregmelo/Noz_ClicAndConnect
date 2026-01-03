@@ -5,13 +5,13 @@
 {% block body %}
 <div class="container mx-auto px-4 py-8 max-w-4xl">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 no-print">
-        <a href="{{ path('app_employee_reservations') }}" class="text-noz-blue hover:underline flex items-center gap-2 font-medium">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        <a href="{{ path('app_employee_reservations') }}" class="text-noz-blue hover:underline flex items-center gap-2 font-medium" aria-label="Retour à la gestion des réservations">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             Retour à la gestion
         </a>
         <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <button onclick="window.print()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-full shadow-sm flex items-center justify-center gap-2 transition-all">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button onclick="window.print()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-full shadow-sm flex items-center justify-center gap-2 transition-all" aria-label="Imprimer la liste de préparation">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                 </svg>
                 Imprimer
@@ -48,10 +48,10 @@
             <table class="w-full text-left border-collapse min-w-[500px]">
                 <thead>
                     <tr class="bg-noz-blue text-white print:text-black print:bg-gray-100">
-                        <th class="py-3 px-4 border text-center w-12">Fait</th>
-                        <th class="py-3 px-4 border text-center w-16">Qté</th>
-                        <th class="py-3 px-4 border">Produit / Détails</th>
-                        <th class="py-3 px-4 border hidden sm:table-cell">Catégorie</th>
+                        <th scope="col" class="py-3 px-4 border text-center w-12">Fait</th>
+                        <th scope="col" class="py-3 px-4 border text-center w-16">Qté</th>
+                        <th scope="col" class="py-3 px-4 border">Produit / Détails</th>
+                        <th scope="col" class="py-3 px-4 border hidden sm:table-cell">Catégorie</th>
                     </tr>
                 </thead>
                 <tbody>

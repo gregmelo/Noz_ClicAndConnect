@@ -6,19 +6,19 @@
 <div class="container mx-auto px-4 py-16">
     <div class="max-w-2xl mx-auto text-center">
         <div class="mb-8">
-            <svg class="w-24 h-24 text-red-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-24 h-24 text-red-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
         </div>
         
         <h1 class="text-4xl font-bold text-gray-900 mb-4">Compte Suspendu</h1>
         
-        <div class="bg-red-50 border-l-4 border-red-600 p-6 mb-8 text-left">
+        <div class="bg-red-50 border-l-4 border-red-600 p-6 mb-8 text-left" role="alert">
             <p class="text-lg text-red-800 font-semibold mb-2">Votre accès aux réservations a été temporairement suspendu.</p>
             <p class="text-red-700">
                 Suite à plusieurs non-récupérations de commandes (3 strikes), votre compte est restreint encore pendant :
             </p>
-            <div id="countdown" class="text-3xl font-bold text-red-900 mt-4 font-mono" data-expires="{{ banExpiresAt|date('c') }}">
+            <div id="countdown" class="text-3xl font-bold text-red-900 mt-4 font-mono" data-expires="{{ banExpiresAt|date('c') }}" aria-live="polite">
                 Chargement...
             </div>
         </div>
