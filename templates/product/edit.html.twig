@@ -7,8 +7,8 @@
     <div class="max-w-2xl mx-auto">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-3xl font-bold text-noz-blue">Modifier le produit</h1>
-            <a href="{{ path('app_product_index') }}" class="text-gray-600 hover:text-gray-800">
-                ← Retour à la liste
+            <a href="{{ path('app_product_index') }}" class="text-gray-600 hover:text-gray-800 flex items-center gap-1" aria-label="Retour à la liste des produits">
+                <span aria-hidden="true">←</span> Retour à la liste
             </a>
         </div>
 
@@ -55,9 +55,12 @@
                             <p class="text-sm text-gray-600 mt-1">Image actuelle</p>
                         </div>
                     {% endif %}
-                    {{ form_widget(form.imageFile, {'attr': {'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}}) }}
+                    {{ form_widget(form.imageFile, {'attr': {
+                        'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
+                        'aria-describedby': 'image-help'
+                    }}) }}
                     {{ form_errors(form.imageFile, {'attr': {'class': 'text-red-500 text-xs italic'}}) }}
-                    <p class="text-xs text-gray-500 mt-1">Formats acceptés: JPG, PNG, WEBP (Max 5MB)</p>
+                    <p id="image-help" class="text-xs text-gray-500 mt-1">Formats acceptés: JPG, PNG, WEBP (Max 5MB)</p>
                 </div>
 
                 <div class="bg-blue-50 p-4 rounded border border-blue-100 mb-6">
