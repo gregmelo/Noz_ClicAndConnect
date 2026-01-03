@@ -31,7 +31,7 @@
 
     <div>
     <div class="mb-6">
-        <form action="{{ path('app_home') }}" method="get" class="max-w-2xl mx-auto" data-controller="autosubmit">
+        <form action="{{ path('app_home') }}" method="get" class="max-w-2xl mx-auto" data-controller="autosubmit" role="search" aria-label="Recherche de produits">
             {% if min_price %}<input type="hidden" name="min_price" value="{{ min_price }}">{% endif %}
             {% if max_price %}<input type="hidden" name="max_price" value="{{ max_price }}">{% endif %}
             {% if availability %}<input type="hidden" name="availability" value="{{ availability }}">{% endif %}
@@ -39,7 +39,7 @@
             {% if currentCategory %}<input type="hidden" name="category" value="{{ currentCategory }}">{% endif %}
             
             <div class="flex flex-col sm:flex-row gap-2">
-                <label for="search-input" class="sr-only">Rechercher un produit</label>
+                <label for="search-input" class="sr-only">Mot-clé de recherche</label>
                 <input type="text" id="search-input" name="search" value="{{ search }}" placeholder="Rechercher un produit..." 
                        data-action="input->autosubmit#debouncedSubmit"
                        class="flex-grow shadow appearance-none border rounded py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
@@ -49,8 +49,10 @@
                 <button type="button" 
                         onclick="toggleFilters()"
                         id="filter-toggle-btn"
+                        aria-expanded="{% if (min_price or max_price or availability or currentCategory) %}true{% else %}false{% endif %}"
+                        aria-controls="filters-container"
                         class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded flex items-center justify-center gap-2 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
                     </svg>
                     <span id="filter-btn-text">{% if (min_price or max_price or availability or currentCategory) %}Masquer Filtres{% else %}Filtres{% endif %}</span>
@@ -75,25 +77,25 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <!-- Price Range -->
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Prix minimum</label>
-                    <input type="number" name="min_price" value="{{ min_price }}" step="0.01" min="0" 
+                    <label for="min-price-input" class="block text-sm font-bold text-gray-700 mb-2">Prix minimum</label>
+                    <input type="number" id="min-price-input" name="min_price" value="{{ min_price }}" step="0.01" min="0" 
                            placeholder="0.00 €"
                            data-action="input->autosubmit#debouncedSubmit"
                            class="w-full shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
-
+ 
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Prix maximum</label>
-                    <input type="number" name="max_price" value="{{ max_price }}" step="0.01" min="0" 
+                    <label for="max-price-input" class="block text-sm font-bold text-gray-700 mb-2">Prix maximum</label>
+                    <input type="number" id="max-price-input" name="max_price" value="{{ max_price }}" step="0.01" min="0" 
                            placeholder="999.99 €"
                            data-action="input->autosubmit#debouncedSubmit"
                            class="w-full shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
-
+ 
                 <!-- Availability -->
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Disponibilité</label>
-                    <select name="availability" 
+                    <label for="availability-select" class="block text-sm font-bold text-gray-700 mb-2">Disponibilité</label>
+                    <select id="availability-select" name="availability" 
                             data-action="change->autosubmit#submit"
                             class="w-full shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         <option value="">Tous</option>
@@ -102,11 +104,11 @@
                         <option value="promotion" {% if availability == 'promotion' %}selected{% endif %}>En promotion</option>
                     </select>
                 </div>
-
+ 
                 <!-- Sorting -->
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Trier par</label>
-                    <select name="sort" 
+                    <label for="sort-select" class="block text-sm font-bold text-gray-700 mb-2">Trier par</label>
+                    <select id="sort-select" name="sort" 
                             data-action="change->autosubmit#submit"
                             class="w-full shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Plus récents</option>
@@ -116,11 +118,11 @@
                         <option value="name_asc" {% if sort == 'name_asc' %}selected{% endif %}>Nom A-Z</option>
                     </select>
                 </div>
-
+ 
                 <!-- Category -->
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Catégorie</label>
-                    <select name="category" 
+                    <label for="category-select" class="block text-sm font-bold text-gray-700 mb-2">Catégorie</label>
+                    <select id="category-select" name="category" 
                             data-action="change->autosubmit#submit"
                             class="w-full shadow appearance-none border rounded py-2 px-3 text-noz-blue font-bold leading-tight focus:outline-none focus:shadow-outline bg-blue-50">
                         <option value="">Toutes catégories</option>
@@ -218,9 +220,10 @@
                         {% if product.stock > 0 %}
                             <form action="{{ path('app_cart_add', {'id': product.id}) }}" method="post" class="flex gap-2">
                                 <input type="hidden" name="_token" value="{{ csrf_token('add_to_cart') }}">
-                                <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="border rounded px-2 py-1 w-20 text-center">
-                                <button type="submit" class="flex-grow bg-noz-btn text-white py-2 rounded hover:bg-blue-700 font-bold uppercase text-sm flex items-center justify-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <label for="quantity-{{ product.id }}" class="sr-only">Quantité pour {{ product.name }}</label>
+                                <input type="number" id="quantity-{{ product.id }}" name="quantity" value="1" min="1" max="{{ product.stock }}" class="border rounded px-2 py-1 w-20 text-center">
+                                <button type="submit" aria-label="Ajouter {{ product.name }} au panier" class="flex-grow bg-noz-btn text-white py-2 rounded hover:bg-blue-700 font-bold uppercase text-sm flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                     </svg>
                                     Ajouter au panier

@@ -23,7 +23,10 @@
         {% endblock %}
     </head>
     <body class="bg-gray-100 flex flex-col min-h-screen" data-controller="mobile-menu">
-        <nav class="bg-noz-blue text-white shadow-lg">
+        <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-noz-yellow focus:text-noz-black focus:px-4 focus:py-2 focus:rounded-md focus:font-bold focus:shadow-xl">
+            Aller au contenu principal
+        </a>
+        <nav class="bg-noz-blue text-white shadow-lg" role="navigation" aria-label="Menu principal">
             <div class="container mx-auto px-4 py-3">
                 <div class="flex justify-between items-center">
                     <!-- Logo -->
@@ -33,7 +36,7 @@
                     
                     <!-- Mobile menu button -->
                     <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none p-2 hover:bg-blue-700 rounded" style="display: block;" data-action="click->mobile-menu#toggle" aria-label="Ouvrir le menu mobile">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
                     </button>
@@ -56,7 +59,7 @@
                     <div class="hidden md:flex md:items-center md:space-x-2 xl:space-x-4">
                         <!-- Always visible links -->
                         <a href="{{ path('app_home') }}" class="hover:text-noz-yellow transition flex items-center gap-1.5">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                             </svg>
                             <span class="text-sm xl:text-base">Accueil</span>
@@ -130,7 +133,7 @@
                                         {{ cartCount }}
                                     </span>
                                 {% endif %}
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                                 </svg>
                                 <span class="text-sm xl:text-base">Panier</span>
@@ -270,7 +273,7 @@
             </div>
         </nav>
 
-        <main class="flex-grow container mx-auto px-4 py-8">
+        <main id="main-content" class="flex-grow container mx-auto px-4 py-8">
             {% for label, messages in app.flashes %}
                 {% for message in messages %}
                     <div class="mb-4 p-4 rounded 
@@ -317,7 +320,7 @@
 
 
         <!-- Global Confirmation Modal -->
-        <div id="confirmation-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div id="confirmation-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" aria-describedby="modal-message" role="dialog" aria-modal="true">
             <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                 <!-- Background overlay -->
                 <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
