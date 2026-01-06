@@ -213,20 +213,26 @@ class ReservationController extends AbstractController
 
         // Check if expired to apply Strike logic
         if ($reservation->isExpired()) {
-            $reservation->setStatus('EXPIRED'); 
-            
-            // Add Strike to User
-            $owner = $reservation->getUser();
-            $owner->setStrikes($owner->getStrikes() + 1);
-            
-            // Ban logic (e.g. >= 3 strikes)
-            if ($owner->getStrikes() >= 3) {
-                 $owner->setBanExpiresAt((new \DateTimeImmutable())->modify('+30 days'));
-                 $this->addFlash('warning', 'Utilisateur banni pour 30 jours (3 strikes).');
+            if ($reservation->getStatus() === 'READY') {
+                $reservation->setStatus('EXPIRED'); 
+                
+                // Add Strike to User
+                $owner = $reservation->getUser();
+                $owner->setStrikes($owner->getStrikes() + 1);
+                
+                // Ban logic (e.g. >= 3 strikes)
+                if ($owner->getStrikes() >= 3) {
+                     $owner->setBanExpiresAt((new \DateTimeImmutable())->modify('+30 days'));
+                     $this->addFlash('warning', 'Utilisateur banni pour 30 jours (3 strikes).');
+                }
+                $entityManager->persist($owner);
+                
+                $this->addFlash('success', 'Réservation marquée comme EXPIRÉE. Stock rétabli et Strike ajouté.');
+            } else {
+                // Expired but was never READY (store didn't prepare it in time)
+                $reservation->setStatus('CANCELLED');
+                $this->addFlash('info', 'Réservation expirée sans avoir été préparée par le magasin. Stock rétabli sans pénalité pour le client.');
             }
-            $entityManager->persist($owner);
-            
-            $this->addFlash('success', 'Réservation marquée comme EXPIRÉE. Stock rétabli et Strike ajouté.');
         } else {
             $reservation->setStatus('CANCELLED');
             $this->addFlash('success', 'Réservation annulée et articles remis en stock.');
