@@ -184,4 +184,28 @@ class Reservation
 
         return $this;
     }
+
+    /**
+     * Checks if the reservation has passed its expiration date.
+     * 
+     * @return bool True if expired, false otherwise.
+     */
+    public function isExpired(): bool
+    {
+        return $this->expiresAt !== null && $this->expiresAt < new \DateTimeImmutable();
+    }
+
+    /**
+     * Returns the current effective status, taking into account time-based expiration.
+     * If the status is ACTIVE or READY but the expiration date has passed, returns 'EXPIRED'.
+     * 
+     * @return string The effective status of the reservation.
+     */
+    public function getEffectiveStatus(): string
+    {
+        if (in_array($this->status, ['ACTIVE', 'READY']) && $this->isExpired()) {
+            return 'EXPIRED';
+        }
+        return $this->status ?? 'ACTIVE';
+    }
 }

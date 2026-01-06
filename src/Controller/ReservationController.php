@@ -212,8 +212,7 @@ class ReservationController extends AbstractController
         }
 
         // Check if expired to apply Strike logic
-        $now = new \DateTimeImmutable();
-        if ($reservation->getExpiresAt() < $now) {
+        if ($reservation->isExpired()) {
             $reservation->setStatus('EXPIRED'); 
             
             // Add Strike to User
@@ -222,7 +221,7 @@ class ReservationController extends AbstractController
             
             // Ban logic (e.g. >= 3 strikes)
             if ($owner->getStrikes() >= 3) {
-                 $owner->setBanExpiresAt($now->modify('+30 days'));
+                 $owner->setBanExpiresAt((new \DateTimeImmutable())->modify('+30 days'));
                  $this->addFlash('warning', 'Utilisateur banni pour 30 jours (3 strikes).');
             }
             $entityManager->persist($owner);
