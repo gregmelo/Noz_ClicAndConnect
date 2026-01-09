@@ -45,15 +45,15 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
         if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
-            return new RedirectResponse($targetPath);
+            return new RedirectResponse($targetPath, Response::HTTP_SEE_OTHER);
         }
 
         $user = $token->getUser();
         if ($user instanceof \App\Entity\User && $user->getBanExpiresAt() && $user->getBanExpiresAt() > new \DateTimeImmutable()) {
-            return new RedirectResponse($this->urlGenerator->generate('app_banned'));
+            return new RedirectResponse($this->urlGenerator->generate('app_banned'), Response::HTTP_SEE_OTHER);
         }
 
-        return new RedirectResponse($this->urlGenerator->generate('app_home'));
+        return new RedirectResponse($this->urlGenerator->generate('app_home'), Response::HTTP_SEE_OTHER);
     }
 
     protected function getLoginUrl(Request $request): string
