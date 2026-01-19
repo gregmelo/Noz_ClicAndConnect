@@ -23,9 +23,6 @@
         {% endblock %}
     </head>
     <body class="bg-gray-100 flex flex-col min-h-screen" data-controller="mobile-menu">
-        <a href="#main-content" class="skip-link">
-            Aller au contenu principal
-        </a>
         <style>
             .skip-link {
                 position: absolute;
@@ -62,6 +59,10 @@
                     <!-- Logo -->
                     <a href="{{ path('app_home') }}" class="text-2xl font-bold italic tracking-wider">
                         <span class="text-white">NOZ AMBERIEU</span> <span class="text-noz-yellow text-sm">ClicAndCollect</span>
+                    </a>
+
+                    <a href="#main-content" class="skip-link">
+                        Aller au contenu principal
                     </a>
                     
                     <!-- Mobile menu button -->
