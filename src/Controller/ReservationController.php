@@ -342,6 +342,23 @@ class ReservationController extends AbstractController
             }
         }
 
+        // --- STRIKE REHABILITATION LOGIC ---
+        /** @var User $client */
+        $client = $reservation->getUser();
+        $client->setSuccessfulCollectionsCount($client->getSuccessfulCollectionsCount() + 1);
+
+        if ($client->getSuccessfulCollectionsCount() >= 3) {
+            // Remove 1 strike if the user has any
+            if ($client->getStrikes() > 0) {
+                $client->setStrikes($client->getStrikes() - 1);
+                $this->addFlash('info', 'Réhabilitation : Un "Strike" a été retiré de votre compte pour votre bonne conduite !');
+            }
+            // Reset the counter
+            $client->setSuccessfulCollectionsCount(0);
+        }
+        $entityManager->persist($client);
+        // ------------------------------------
+
         $entityManager->flush();
 
         // Log activity

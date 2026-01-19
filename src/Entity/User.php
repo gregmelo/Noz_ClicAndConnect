@@ -66,6 +66,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $cumulativeSoldItems = 0;
 
+    /** @var int Number of successful collections since last strike removal */
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $successfulCollectionsCount = 0;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -223,6 +227,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function addCumulativeSoldItems(int $count): static
     {
         $this->cumulativeSoldItems += $count;
+
+        return $this;
+    }
+
+    public function getSuccessfulCollectionsCount(): int
+    {
+        return $this->successfulCollectionsCount;
+    }
+
+    public function setSuccessfulCollectionsCount(int $successfulCollectionsCount): static
+    {
+        $this->successfulCollectionsCount = $successfulCollectionsCount;
 
         return $this;
     }
