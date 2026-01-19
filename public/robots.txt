@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and sensitive paths
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+Disallow: /reset-password/
+
+# Sitemap location
+Sitemap: {{ absolute_url('/sitemap.xml') }}

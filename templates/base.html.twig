@@ -12,8 +12,26 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% block title %}Welcome!{% endblock %}</title>
+        <title>{% block title %}Noz ClicAndConnect - Amberieu-en-Bugey{% endblock %}</title>
         <meta name="description" content="{% block meta_description %}Plateforme de Clic & Collect pour le magasin NOZ Amberieu. Réservez vos produits en ligne et récupérez-les en magasin.{% endblock %}">
+        
+        {# Canonical URL #}
+        <link rel="canonical" href="{{ app.request.uri }}">
+
+        {# Open Graph / Facebook #}
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="{{ app.request.uri }}">
+        <meta property="og:title" content="{{ block('title') }}">
+        <meta property="og:description" content="{{ block('meta_description') }}">
+        <meta property="og:image" content="{{ absolute_url(asset('uploads/images/noz-logo-og.png')) }}"> {# NOTE: Assumes a logo image exists #}
+
+        {# Twitter #}
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:url" content="{{ app.request.uri }}">
+        <meta name="twitter:title" content="{{ block('title') }}">
+        <meta name="twitter:description" content="{{ block('meta_description') }}">
+        <meta name="twitter:image" content="{{ absolute_url(asset('uploads/images/noz-logo-og.png')) }}">
+
         <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><path d='M40 40V30C40 16.7 50.7 6 64 6s24 10.7 24 24v10h17c5.5 0 10 4.5 10 10v55c0 8.3-6.7 15-15 15H28c-8.3 0-15-6.7-15-15V50c0-5.5 4.5-10 10-10h17zm8 0h32V30c0-8.8-7.2-16-16-16s-16 7.2-16 16v10z' fill='%23ffcc00'/><g stroke='%230078d7' stroke-width='6' stroke-linecap='round'><line x1='85' x2='90' y1='55' y2='50'/><line x1='95' x2='102' y1='65' y2='62'/><line x1='82' x2='77' y1='68' y2='72'/></g><path d='M95 65l25 35h-12l7 15-10 5-7-15-12 5V65z' fill='%230078d7'/></svg>">
         {% block stylesheets %}
         {% endblock %}

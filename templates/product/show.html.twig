@@ -1,6 +1,35 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Détails du Produit{% endblock %}
+{% block title %}{{ product.name }} - Noz ClicAndConnect{% endblock %}
+{% block meta_description %}{{ product.description|slice(0, 160) }}... Achetez {{ product.name }} au prix de {{ product.price }} € chez NOZ Amberieu.{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": "{{ product.name }}",
+      "image": [
+        "{{ absolute_url(asset(product.imageFilename ? 'uploads/images/' ~ product.imageFilename : 'uploads/images/noz-logo-og.png')) }}"
+      ],
+      "description": "{{ product.description|escape('js') }}",
+      "sku": "{{ product.id }}",
+      "brand": {
+        "@type": "Brand",
+        "name": "NOZ"
+      },
+      "offers": {
+        "@type": "Offer",
+        "url": "{{ app.request.uri }}",
+        "priceCurrency": "EUR",
+        "price": "{{ product.price }}",
+        "availability": "https://schema.org/{{ product.stock > 0 ? 'InStock' : 'OutOfStock' }}",
+        "itemCondition": "https://schema.org/NewCondition"
+      }
+    }
+    </script>
+{% endblock %}
 
 {% block body %}
 <div class="container mx-auto px-4 py-8">
