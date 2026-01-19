@@ -15,6 +15,14 @@
         <title>{% block title %}Noz ClicAndConnect - Amberieu-en-Bugey{% endblock %}</title>
         <meta name="description" content="{% block meta_description %}Plateforme de Clic & Collect pour le magasin NOZ Amberieu. Réservez vos produits en ligne et récupérez-les en magasin.{% endblock %}">
         
+        {# PWA Manifest #}
+        <link rel="manifest" href="/manifest.json">
+        <meta name="theme-color" content="#003399">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="apple-mobile-web-app-title" content="Noz Clic">
+        <link rel="apple-touch-icon" href="{{ asset('uploads/images/pwa_logo.png') }}">
+        
         {# Canonical URL #}
         <link rel="canonical" href="{{ app.request.uri }}">
 
@@ -458,6 +466,15 @@
                 // 3. Attach new listener (Capture Phase)
                 document.addEventListener('click', window.NozConfirmHandler, true);
             })();
+        {# PWA Service Worker Registration #}
+        <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js')
+                        .then(reg => console.log('SW: Registered', reg))
+                        .catch(err => console.log('SW: Registration failed', err));
+                });
+            }
         </script>
     </body>
 </html>

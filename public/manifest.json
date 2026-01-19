@@ -1,0 +1,21 @@
+{
+    "name": "NOZ Amberieu ClicAndConnect",
+    "short_name": "Noz Clic",
+    "description": "Plateforme de Clic & Collect pour le magasin NOZ Amberieu. Réservez vos produits en ligne et récupérez-les en magasin.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#003399",
+    "theme_color": "#003399",
+    "icons": [
+        {
+            "src": "/uploads/images/pwa_logo.png",
+            "sizes": "1024x1024",
+            "type": "image/png"
+        }
+    ],
+    "orientation": "portrait-primary",
+    "categories": [
+        "shopping",
+        "business"
+    ]
+}
