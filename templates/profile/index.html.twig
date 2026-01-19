@@ -26,6 +26,20 @@
                 </div>
             {% endif %}
 
+            {# Push Notifications Section #}
+            <div class="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-100" data-controller="push-notification">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide">Notifications Mobiles</h3>
+                        <p class="text-xs text-gray-500" data-push-notification-target="status">Vérification du statut...</p>
+                    </div>
+                    <button data-action="click->push-notification#toggleSubscription" data-push-notification-target="button" class="text-xs font-bold text-white py-1.5 px-3 rounded shadow-sm transition-colors duration-200 bg-gray-400">
+                        ...
+                    </button>
+                </div>
+                <p class="text-[10px] text-gray-400 mt-2">Recevez une alerte sur votre téléphone dès que votre commande est prête.</p>
+            </div>
+
             <div class="mb-4">
                 <p class="block text-gray-700 text-sm font-bold mb-1" aria-hidden="true">Email</p>
                 <p class="text-gray-900"><span class="sr-only">Email : </span>{{ app.user.email }}</p>

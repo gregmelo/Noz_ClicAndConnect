@@ -23,6 +23,9 @@
         <meta name="apple-mobile-web-app-title" content="Noz Clic">
         <link rel="apple-touch-icon" href="{{ asset('uploads/images/pwa_logo.png') }}">
         
+        {# VAPID Public Key for Push Notifications #}
+        <meta name="vapid-public-key" content="{{ vapid_public_key }}">
+        
         {# Canonical URL #}
         <link rel="canonical" href="{{ app.request.uri }}">
 

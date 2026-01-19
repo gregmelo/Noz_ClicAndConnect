@@ -70,3 +70,36 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+// Push Event
+self.addEventListener('push', (event) => {
+    let data = { title: 'NOZ Amberieu', body: 'Nouvelle notification' };
+    
+    if (event.data) {
+        try {
+            data = event.data.json();
+        } catch (e) {
+            data.body = event.data.text();
+        }
+    }
+
+    const options = {
+        body: data.body,
+        icon: '/uploads/images/pwa_logo.png',
+        badge: '/uploads/images/pwa_logo.png',
+        data: data.url || '/',
+        vibrate: [100, 50, 100]
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(data.title, options)
+    );
+});
+
+// Notification Click Event
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    event.waitUntil(
+        clients.openWindow(event.notification.data)
+    );
+});

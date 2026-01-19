@@ -9,6 +9,8 @@ parameters:
     # Email Notification Service
     mailer.from_email: 'gregoryvericel6@gmail.com'
     mailer.from_name: 'Noz ClicAndConnect'
+    vapid_public_key: '%env(VAPID_PUBLIC_KEY)%'
+    vapid_private_key: '%env(VAPID_PRIVATE_KEY)%'
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -34,3 +36,9 @@ services:
         arguments:
             $fromEmail: '%mailer.from_email%'
             $fromName: '%mailer.from_name%'
+
+    # Push Notification Service
+    App\Service\PushNotificationService:
+        arguments:
+            $vapidPublicKey: '%vapid_public_key%'
+            $vapidPrivateKey: '%vapid_private_key%'

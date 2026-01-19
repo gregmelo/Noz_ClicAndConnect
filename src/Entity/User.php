@@ -246,9 +246,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: Product::class)]
     private \Doctrine\Common\Collections\Collection $products;
 
+    /** @var \Doctrine\Common\Collections\Collection<int, PushSubscription> Push subscriptions for this user */
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: PushSubscription::class, cascade: ['remove'])]
+    private \Doctrine\Common\Collections\Collection $pushSubscriptions;
+
     public function __construct()
     {
         $this->products = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->pushSubscriptions = new \Doctrine\Common\Collections\ArrayCollection();
     }
 
     /**
@@ -275,6 +280,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($product->getCreatedBy() === $this) {
                 $product->setCreatedBy(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return \Doctrine\Common\Collections\Collection<int, PushSubscription>
+     */
+    public function getPushSubscriptions(): \Doctrine\Common\Collections\Collection
+    {
+        return $this->pushSubscriptions;
+    }
+
+    public function addPushSubscription(PushSubscription $pushSubscription): static
+    {
+        if (!$this->pushSubscriptions->contains($pushSubscription)) {
+            $this->pushSubscriptions->add($pushSubscription);
+            $pushSubscription->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removePushSubscription(PushSubscription $pushSubscription): static
+    {
+        if ($this->pushSubscriptions->removeElement($pushSubscription)) {
+            // set the owning side to null (unless already changed)
+            if ($pushSubscription->getUser() === $this) {
+                $pushSubscription->setUser(null);
             }
         }
 

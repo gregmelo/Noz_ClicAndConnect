@@ -6,9 +6,11 @@ use App\Entity\Reservation;
 use App\Entity\ReservationItem;
 use App\Entity\User;
 use App\Repository\ReservationRepository;
+use App\Repository\UserRepository;
 use App\Service\ActivityLogger;
 use App\Service\CartService;
 use App\Service\EmailNotificationService;
+use App\Service\PushNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,7 +32,9 @@ class ReservationController extends AbstractController
     public function __construct(
         private ActivityLogger $activityLogger,
         private EmailNotificationService $emailService,
-        private CartService $cartService
+        private CartService $cartService,
+        private PushNotificationService $pushService,
+        private UserRepository $userRepository
     ) {
     }
 
@@ -160,6 +164,18 @@ class ReservationController extends AbstractController
         // We need to update email service to handle the new reservation structure
         // For now, passing the reservation object is enough if we update the template
         $this->emailService->sendReservationConfirmation($reservation);
+
+        // Notify Employees
+        $employees = $this->userRepository->findEmployees();
+        foreach ($employees as $employee) {
+            $this->pushService->sendToUser(
+                $employee,
+                '🔔 Nouvelle Réservation !',
+                'Une nouvelle réservation (' . $reservation->getReference() . ') vient d\'être effectuée.',
+                $this->generateUrl('app_employee_reservations')
+            );
+        }
+        $this->pushService->flush();
 
         // Clear cart
         $this->cartService->clear();
@@ -299,6 +315,15 @@ class ReservationController extends AbstractController
 
         // Send email (will use the new expiresAt date)
         $this->emailService->sendReadyNotification($reservation);
+
+        // Send Push Notification
+        $this->pushService->sendToUser(
+            $reservation->getUser(),
+            '📦 Votre commande est prête !',
+            'Bonne nouvelle ! Votre réservation ' . $reservation->getReference() . ' est prête pour le retrait.',
+            $this->generateUrl('app_my_reservations')
+        );
+        $this->pushService->flush();
 
         $this->addFlash('success', 'Réservation prête. Le client a jusqu\'au ' . $expiresAt->format('d/m H:i') . ' pour la récupérer.');
 
