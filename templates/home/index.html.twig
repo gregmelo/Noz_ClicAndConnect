@@ -3,42 +3,6 @@
 {% block title %}Noz ClicAndConnect - Amberieu-en-Bugey{% endblock %}
 {% block meta_description %}Découvrez les derniers arrivages NOZ à Amberieu-en-Bugey. Réservez vos articles en ligne via notre Clic & Collect et profitez des meilleures affaires.{% endblock %}
 
-{% block javascripts %}
-    {{ parent() }}
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "name": "NOZ Amberieu-en-Bugey",
-      "image": "{{ absolute_url(asset('uploads/images/noz-logo-og.png')) }}",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "19 rue Vermorel",
-        "addressLocality": "Ambérieu-en-Bugey",
-        "postalCode": "01500",
-        "addressCountry": "FR"
-      },
-      "url": "{{ absolute_url(path('app_home')) }}",
-      "telephone": "+33486800039", {# NOTE: Placeholder phone #}
-      "priceRange": "€",
-      "openingHoursSpecification": [
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday"
-          ],
-          "opens": "09:30",
-          "closes": "19:30"
-        }
-      ]
-    }
-    </script>
-{% endblock %}
 
 {% block body %}
 <div class="container mx-auto px-4 py-8">
@@ -338,6 +302,39 @@
 
 {% block javascripts %}
 {{ parent() }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "NOZ Amberieu-en-Bugey",
+  "image": "{{ absolute_url(asset('uploads/images/noz-logo-og.png')) }}",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "19 rue Vermorel",
+    "addressLocality": "Ambérieu-en-Bugey",
+    "postalCode": "01500",
+    "addressCountry": "FR"
+  },
+  "url": "{{ absolute_url(path('app_home')) }}",
+  "telephone": "+33486800039",
+  "priceRange": "€",
+  "openingHoursSpecification": [
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+      ],
+      "opens": "09:30",
+      "closes": "19:30"
+    }
+  ]
+}
+</script>
 <script>
     function toggleFilters() {
         const container = document.getElementById('filters-container');
