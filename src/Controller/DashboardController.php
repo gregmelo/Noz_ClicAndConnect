@@ -102,15 +102,10 @@ class DashboardController extends AbstractController
         // Best Sellers Leaderboard (Super Admin / Dev only)
         $bestSellers = [];
         if ($this->isGranted('ROLE_SUPER_ADMIN') || $this->isGranted('ROLE_DEV')) {
-            $bestSellers = $entityManager->getRepository(\App\Entity\ReservationItem::class)->createQueryBuilder('ri')
-                ->select('u.firstName', 'u.lastName', 'SUM(ri.quantity * ri.price) as revenue', 'SUM(ri.quantity) as itemsSold')
-                ->join('ri.product', 'p')
-                ->join('p.createdBy', 'u')
-                ->join('ri.reservation', 'r')
-                ->where('r.status = :status')
-                ->setParameter('status', 'COLLECTED')
-                ->groupBy('u.id')
-                ->orderBy('revenue', 'DESC')
+            $bestSellers = $entityManager->getRepository(\App\Entity\User::class)->createQueryBuilder('u')
+                ->select('u.firstName', 'u.lastName', 'u.cumulativeRevenue as revenue', 'u.cumulativeSoldItems as itemsSold')
+                ->where('u.cumulativeRevenue > 0')
+                ->orderBy('u.cumulativeRevenue', 'DESC')
                 ->setMaxResults(5)
                 ->getQuery()
                 ->getResult();

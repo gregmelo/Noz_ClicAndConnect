@@ -328,6 +328,20 @@ class ReservationController extends AbstractController
         }
 
         $reservation->setStatus('COLLECTED');
+
+        // Update persistent stats for each products creator
+        foreach ($reservation->getReservationItems() as $item) {
+            $product = $item->getProduct();
+            /** @var User|null $creator */
+            $creator = $product->getCreatedBy();
+
+            if ($creator) {
+                $creator->addCumulativeRevenue((float) ($item->getQuantity() * $item->getPrice()));
+                $creator->addCumulativeSoldItems($item->getQuantity());
+                $entityManager->persist($creator);
+            }
+        }
+
         $entityManager->flush();
 
         // Log activity
