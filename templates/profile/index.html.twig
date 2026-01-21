@@ -27,17 +27,22 @@
             {% endif %}
 
             {# Push Notifications Section #}
-            <div class="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-100" data-controller="push-notification">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide">Notifications Mobiles</h3>
-                        <p class="text-xs text-gray-500" data-push-notification-target="status">Vérification du statut...</p>
+            <div class="mb-8 p-4 bg-white rounded-xl border-2 border-noz-blue/10 shadow-sm" data-controller="notification">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex-grow">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                            <h3 class="text-sm font-bold text-noz-blue uppercase tracking-wide">Notifications Mobiles</h3>
+                        </div>
+                        <p class="text-sm font-medium text-gray-700" data-notification-target="status text-blue-600">Initialisation...</p>
+                        <p class="text-[10px] text-gray-500 mt-1 lines-clamp-2">Alertes en temps réel sur l'état de vos réservations.</p>
                     </div>
-                    <button data-action="click->push-notification#toggleSubscription" data-push-notification-target="button" class="text-xs font-bold text-white py-1.5 px-3 rounded shadow-sm transition-colors duration-200 bg-gray-400">
-                        ...
+                    <button data-action="click->notification#toggleSubscription" 
+                            data-notification-target="button" 
+                            class="whitespace-nowrap text-xs font-bold text-white py-2 px-4 rounded-lg shadow-md transition-all duration-300 transform active:scale-95 bg-gray-400 disabled:opacity-50">
+                        Chargement...
                     </button>
                 </div>
-                <p class="text-[10px] text-gray-400 mt-2">Recevez une alerte sur votre téléphone dès que votre commande est prête.</p>
             </div>
 
             <div class="mb-4">

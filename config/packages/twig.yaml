@@ -1,6 +1,8 @@
 twig:
     file_name_pattern: '*.twig'
     form_themes: ['form/tailwind_theme.html.twig']
+    globals:
+        vapid_public_key: '%env(VAPID_PUBLIC_KEY)%'
 
 when@test:
     twig:

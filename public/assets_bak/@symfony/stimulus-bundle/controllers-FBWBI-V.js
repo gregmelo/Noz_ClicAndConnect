@@ -1,0 +1,11 @@
+import controller_0 from "../ux-turbo/turbo_controller.js";
+import controller_1 from "../../controllers/autosubmit_controller.js";
+import controller_2 from "../../controllers/confetti_controller.js";
+import controller_3 from "../../controllers/cookie_consent_controller.js";
+import controller_4 from "../../controllers/dropdown_controller.js";
+import controller_5 from "../../controllers/hello_controller.js";
+import controller_6 from "../../controllers/mobile_menu_controller.js";
+import controller_7 from "../../controllers/reservation_alert_controller.js";
+export const eagerControllers = {"symfony--ux-turbo--turbo-core": controller_0, "autosubmit": controller_1, "confetti": controller_2, "cookie-consent": controller_3, "dropdown": controller_4, "hello": controller_5, "mobile-menu": controller_6, "reservation-alert": controller_7};
+export const lazyControllers = {};
+export const isApplicationDebug = true;

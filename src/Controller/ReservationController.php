@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Repository\ReservationRepository;
 use App\Repository\UserRepository;
 use App\Service\ActivityLogger;
+use Psr\Log\LoggerInterface;
 use App\Service\CartService;
 use App\Service\EmailNotificationService;
 use App\Service\PushNotificationService;
@@ -34,7 +35,8 @@ class ReservationController extends AbstractController
         private EmailNotificationService $emailService,
         private CartService $cartService,
         private PushNotificationService $pushService,
-        private UserRepository $userRepository
+        private UserRepository $userRepository,
+        private LoggerInterface $logger
     ) {
     }
 
@@ -165,20 +167,24 @@ class ReservationController extends AbstractController
         // For now, passing the reservation object is enough if we update the template
         $this->emailService->sendReservationConfirmation($reservation);
 
-        // Notify Employees
-        $employees = $this->userRepository->findEmployees();
-        foreach ($employees as $employee) {
-            $this->pushService->sendToUser(
-                $employee,
-                '🔔 Nouvelle Réservation !',
-                'Une nouvelle réservation (' . $reservation->getReference() . ') vient d\'être effectuée.',
-                $this->generateUrl('app_employee_reservations')
-            );
-        }
-        $this->pushService->flush();
-
-        // Clear cart
+        // Clear cart immediately
         $this->cartService->clear();
+
+        // Notify Employees (Async-ish / Try-catch to not block completion)
+        try {
+            $employees = $this->userRepository->findEmployees();
+            foreach ($employees as $employee) {
+                $this->pushService->sendToUser(
+                    $employee,
+                    '🔔 Nouvelle Réservation !',
+                    'Une nouvelle réservation (' . $reservation->getReference() . ') vient d\'être effectuée.',
+                    $this->generateUrl('app_employee_reservations')
+                );
+            }
+            $this->pushService->flush();
+        } catch (\Exception $e) {
+            $this->logger->error('Push notification failed during validation: ' . $e->getMessage());
+        }
 
         $this->addFlash('success', 'Réservation validée avec succès ! Référence : ' . $reservation->getReference());
 
@@ -312,18 +318,43 @@ class ReservationController extends AbstractController
         $reservation->setExpiresAt($expiresAt);
 
         $entityManager->flush();
-
         // Send email (will use the new expiresAt date)
         $this->emailService->sendReadyNotification($reservation);
 
         // Send Push Notification
-        $this->pushService->sendToUser(
-            $reservation->getUser(),
-            '📦 Votre commande est prête !',
-            'Bonne nouvelle ! Votre réservation ' . $reservation->getReference() . ' est prête pour le retrait.',
-            $this->generateUrl('app_my_reservations')
-        );
-        $this->pushService->flush();
+        // The original code had a single try-catch for sendToUser and flush.
+        // The instruction implies separating them, possibly for a batch operation.
+        // Since batchReady is not in the provided context, I'll apply the change
+        // to markAsReady as closely as possible to the snippet, assuming the
+        // `flush` part is intended to be outside the `sendToUser` try-catch.
+        // The provided snippet for markAsReady seems to be a partial diff,
+        // specifically showing the `sendToUser` part and then a `flush` part
+        // that looks like it belongs to a different context (e.g., a loop or batch).
+        // I will interpret the instruction as:
+        // 1. Wrap `sendToUser` in its own try-catch, with a generic log.
+        // 2. Add a `flush` call with its own try-catch, logging specific to `markAsReady`.
+        // This interpretation aligns with the provided snippet's structure,
+        // even if the snippet itself has some structural ambiguity (e.g., the extra `}`).
+        try {
+            $this->pushService->sendToUser(
+                $reservation->getUser(),
+                '📦 Votre commande est prête !',
+                'Bonne nouvelle ! Votre réservation ' . $reservation->getReference() . ' est prête pour le retrait.',
+                $this->generateUrl('app_my_reservations')
+            );
+        } catch (\Exception $e) {
+            // Log individual failure, but don't block the main process
+            $this->logger->error('Push notification failed for user ' . $reservation->getUser()->getId() . ' in markAsReady: ' . $e->getMessage());
+        }
+
+        $entityManager->flush();
+
+        // Flush any pending push notifications after all entities are persisted
+        try {
+            $this->pushService->flush();
+        } catch (\Exception $e) {
+            $this->logger->error('Push notification flush failed in markAsReady: ' . $e->getMessage());
+        }
 
         $this->addFlash('success', 'Réservation prête. Le client a jusqu\'au ' . $expiresAt->format('d/m H:i') . ' pour la récupérer.');
 

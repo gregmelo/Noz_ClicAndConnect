@@ -446,7 +446,11 @@
                         // Setup Actions
                         confirmBtn.onclick = function() {
                             if (trigger.tagName === 'A') {
-                                window.location.href = trigger.href;
+                                if (typeof Turbo !== 'undefined') {
+                                    Turbo.visit(trigger.href);
+                                } else {
+                                    window.location.href = trigger.href;
+                                }
                             } else if (trigger.tagName === 'BUTTON' && trigger.type === 'submit') {
                                 const form = trigger.closest('form');
                                 if (form) form.submit();
@@ -469,14 +473,21 @@
                 // 3. Attach new listener (Capture Phase)
                 document.addEventListener('click', window.NozConfirmHandler, true);
             })();
+        </script>
         {# PWA Service Worker Registration #}
         <script>
             if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
+                const registerSW = () => {
                     navigator.serviceWorker.register('/sw.js')
                         .then(reg => console.log('SW: Registered', reg))
-                        .catch(err => console.log('SW: Registration failed', err));
-                });
+                        .catch(err => console.error('SW: Registration failed', err));
+                };
+
+                if (document.readyState === 'complete') {
+                    registerSW();
+                } else {
+                    window.addEventListener('load', registerSW);
+                }
             }
         </script>
     </body>
