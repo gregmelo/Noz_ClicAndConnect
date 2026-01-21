@@ -613,11 +613,31 @@ class ReservationController extends AbstractController
                 
                 // Send email
                 $this->emailService->sendReadyNotification($reservation);
+
+                // Send Push Notification
+                try {
+                    $this->pushService->sendToUser(
+                        $reservation->getUser(),
+                        '📦 Votre commande est prête !',
+                        'Bonne nouvelle ! Votre réservation ' . $reservation->getReference() . ' est prête pour le retrait.',
+                        $this->generateUrl('app_my_reservations')
+                    );
+                } catch (\Exception $e) {
+                    $this->logger->error('Push notification failed for user ' . $reservation->getUser()->getId() . ' in batchReady: ' . $e->getMessage());
+                }
+
                 $count++;
             }
         }
 
         $entityManager->flush();
+
+        // Flush all push notifications at once
+        try {
+            $this->pushService->flush();
+        } catch (\Exception $e) {
+            $this->logger->error('Push notification flush failed in batchReady: ' . $e->getMessage());
+        }
 
         // Audit Log
         if ($count > 0) {

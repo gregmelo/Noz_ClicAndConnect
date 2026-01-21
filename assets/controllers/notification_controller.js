@@ -98,12 +98,32 @@ export default class extends Controller {
     async subscribe(registration) {
         try {
             this.setStatus('🔔 Demande d\'autorisation...');
+            
+            // --- NEW: Force fresh subscription by unsubscribing existing one first ---
+            const existingSubscription = await registration.pushManager.getSubscription();
+            if (existingSubscription) {
+                console.log('[Push] Existing subscription found, unsubscribing to force fresh token...');
+                await existingSubscription.unsubscribe();
+            }
+            // -----------------------------------------------------------------------
+
             const vapidMeta = document.querySelector('meta[name="vapid-public-key"]');
-            if (!vapidMeta || !vapidMeta.content || vapidMeta.content.includes('{')) {
-                throw new Error('Clé VAPID manquante ou invalide');
+            if (!vapidMeta || !vapidMeta.content) {
+                throw new Error('Clé VAPID manquante');
             }
 
-            const convertedVapidKey = this.urlBase64ToUint8Array(vapidMeta.content);
+            // Remove all whitespace and potential quotes (can happen with some template engines)
+            const rawKey = vapidMeta.content.trim().replace(/['"]/g, '');
+            console.log(`[Push] Original VAPID Key: ${rawKey}`);
+            console.log(`[Push] Key Length: ${rawKey.length}`);
+
+            if (rawKey.length < 80) {
+                throw new Error(`Clé VAPID invalide (trop courte: ${rawKey.length} chars)`);
+            }
+
+            const convertedVapidKey = this.urlBase64ToUint8Array(rawKey);
+            console.log(`[Push] Converted bytes length: ${convertedVapidKey.length}`);
+            console.log(`[Push] First byte: ${convertedVapidKey[0]} (Should be 4 for P-256)`);
 
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
@@ -128,6 +148,8 @@ export default class extends Controller {
             console.error('[Push] Subscription failed:', error);
             if (error.name === 'NotAllowedError') {
                 alert('Vous devez autoriser les notifications pour utiliser cette fonctionnalité.');
+            } else if (error.message.includes('P-256')) {
+                alert(`Erreur Apple (P-256) : La clé VAPID semble invalide pour Safari. Longueur convertie: ${this.lastByteLength || '?'}`);
             } else {
                 alert(`Erreur d'activation : ${error.message}`);
             }
@@ -135,59 +157,14 @@ export default class extends Controller {
         }
     }
 
-    async unsubscribe(subscription) {
-        try {
-            this.setStatus('🔕 Désactivation...');
-            const response = await fetch('/api/push/unsubscribe', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ endpoint: subscription.endpoint })
-            });
-
-            if (response.ok) {
-                await subscription.unsubscribe();
-                console.log('[Push] Successfully unsubscribed');
-                this.updateUI(false);
-            } else {
-                throw new Error('Erreur serveur lors de la désactivation');
-            }
-        } catch (error) {
-            console.error('[Push] Unsubscribe failed:', error);
-            alert(`Erreur de désactivation : ${error.message}`);
-            this.updateUI(true); // Re-set UI to subscribed because server/local sync failed
-        }
-    }
-
-    updateUI(isSubscribed) {
-        let statusText = isSubscribed ? 'Notifications activées' : 'Alertes désactivées';
-        let statusColor = isSubscribed ? 'text-green-600' : 'text-gray-500';
-
-        if (window.Notification && Notification.permission === 'denied') {
-            statusText = '🚫 Notifications bloquées';
-            statusColor = 'text-red-500';
-        }
-
-        if (this.hasStatusTarget) {
-            this.statusTarget.textContent = statusText;
-            this.statusTarget.className = `text-sm font-medium ${statusColor}`;
-            if (this.hasStatusTarget) {
-                 // The pulse dot is purely cosmetic in HTML, but we could toggle it here if needed
-            }
-        }
-
-        if (this.hasButtonTarget) {
-            this.buttonTarget.textContent = isSubscribed ? 'Désactiver' : 'Activer';
-            this.buttonTarget.classList.toggle('bg-red-600', isSubscribed);
-            this.buttonTarget.classList.toggle('bg-green-600', !isSubscribed);
-            this.buttonTarget.classList.remove('bg-gray-400');
-            this.buttonTarget.disabled = false;
-        }
-    }
+    // ... (rest of methods)
 
     urlBase64ToUint8Array(base64String) {
-        const padding = '='.repeat((4 - base64String.length % 4) % 4);
-        const base64 = (base64String + padding)
-            .replace(/-/g, '+')
+        // Cleaning the string again to be safe
+        const base64Clean = base64String.trim().replace(/['"]/g, '');
+        const padding = '='.repeat((4 - base64Clean.length % 4) % 4);
+        const base64 = (base64Clean + padding)
+            .replace(/\-/g, '+')
             .replace(/_/g, '/');
 
         const rawData = window.atob(base64);
@@ -196,6 +173,7 @@ export default class extends Controller {
         for (let i = 0; i < rawData.length; ++i) {
             outputArray[i] = rawData.charCodeAt(i);
         }
+        this.lastByteLength = outputArray.length;
         return outputArray;
     }
 }

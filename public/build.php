@@ -11,7 +11,6 @@ $rootDir = dirname(__DIR__);
 echo "1. Génération de .env.local.php...\n";
 $envFile = $rootDir . '/.env';
 if (file_exists($envFile)) {
-    $content = file_get_contents($envFile);
     // On extrait les variables ou on en crée une propre
     $user = '443264';
     $pass = '#Sf!6$AG$eo%$U34N8Tp';
@@ -19,7 +18,20 @@ if (file_exists($envFile)) {
     $db = 'nozclicandcollect_db';
     $dsn = "mysql://" . urlencode($user) . ":" . urlencode($pass) . "@" . $host . ":3306/" . $db;
 
-    $phpData = "<?php\n\nreturn array (\n  'APP_ENV' => 'prod',\n  'APP_DEBUG' => '0',\n  'APP_SECRET' => 'abcf30ee722faee8ebc8f494223a00b5',\n  'DEFAULT_URI' => 'https://nozclicandcollect.alwaysdata.net',\n  'DATABASE_URL' => '" . $dsn . "',\n  'MESSENGER_TRANSPORT_DSN' => 'doctrine://default?auto_setup=0',\n  'MAILER_DSN' => 'gmail://nozclicandcollect@gmail.com:gounsyvpgkkzwryl@default',\n);\n";
+    $vapidPublic = 'BHGXf-mgfudlN_YH88NP2JaUI7xnw_sCR4OcgeoJwzuNFOX241LPNsOgBtk-PMh8XUkG0sEs1idBEM8o-pICmJg';
+    $vapidPrivate = 'pEo5bHVSBfBPA8eXPQgifaAUtO1na_fokoD078qWCHA';
+
+    $phpData = "<?php\n\nreturn array (\n" .
+        "  'APP_ENV' => 'prod',\n" .
+        "  'APP_DEBUG' => '0',\n" .
+        "  'APP_SECRET' => 'abcf30ee722faee8ebc8f494223a00b5',\n" .
+        "  'DEFAULT_URI' => 'https://nozclicandcollect.alwaysdata.net',\n" .
+        "  'DATABASE_URL' => '" . $dsn . "',\n" .
+        "  'MESSENGER_TRANSPORT_DSN' => 'doctrine://default?auto_setup=0',\n" .
+        "  'MAILER_DSN' => 'gmail://nozclicandcollect@gmail.com:gounsyvpgkkzwryl@default',\n" .
+        "  'VAPID_PUBLIC_KEY' => '" . $vapidPublic . "',\n" .
+        "  'VAPID_PRIVATE_KEY' => '" . $vapidPrivate . "',\n" .
+        ");\n";
     
     file_put_contents($rootDir . '/.env.local.php', $phpData);
     echo "✅ .env.local.php créé avec les accès SQL Alwaysdata.\n";
