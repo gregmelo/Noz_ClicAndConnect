@@ -33,6 +33,12 @@ class EmailNotificationService
 
     public function sendReservationConfirmation(Reservation $reservation): void
     {
+        // Si l'utilisateur a activé les notifications push (PWA), on évite de doubler avec un email
+        $user = $reservation->getUser();
+        if (method_exists($user, 'getPushSubscriptions') && $user->getPushSubscriptions()->count() > 0) {
+            return;
+        }
+
         $email = (new TemplatedEmail())
             ->from(new Address($this->fromEmail, $this->fromName))
             ->to($reservation->getUser()->getEmail())
@@ -48,6 +54,11 @@ class EmailNotificationService
 
     public function sendExpirationReminder(Reservation $reservation): void
     {
+        $user = $reservation->getUser();
+        if (method_exists($user, 'getPushSubscriptions') && $user->getPushSubscriptions()->count() > 0) {
+            return;
+        }
+
         $email = (new TemplatedEmail())
             ->from(new Address($this->fromEmail, $this->fromName))
             ->to($reservation->getUser()->getEmail())
@@ -63,6 +74,11 @@ class EmailNotificationService
 
     public function sendExpirationWarning(Reservation $reservation): void
     {
+        $user = $reservation->getUser();
+        if (method_exists($user, 'getPushSubscriptions') && $user->getPushSubscriptions()->count() > 0) {
+            return;
+        }
+
         $email = (new TemplatedEmail())
             ->from(new Address($this->fromEmail, $this->fromName))
             ->to($reservation->getUser()->getEmail())
@@ -78,6 +94,11 @@ class EmailNotificationService
     }
     public function sendReadyNotification(Reservation $reservation): void
     {
+        $user = $reservation->getUser();
+        if (method_exists($user, 'getPushSubscriptions') && $user->getPushSubscriptions()->count() > 0) {
+            return;
+        }
+
         $email = (new TemplatedEmail())
             ->from(new Address($this->fromEmail, $this->fromName))
             ->to($reservation->getUser()->getEmail())

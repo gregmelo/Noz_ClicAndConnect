@@ -6,7 +6,6 @@ export default class extends Controller {
 
     connect() {
         console.log('Notification controller connected');
-        alert('DEBUG: Contrôleur Notification Détecté !');
         this.initializePush();
     }
 
@@ -157,7 +156,65 @@ export default class extends Controller {
         }
     }
 
-    // ... (rest of methods)
+    async unsubscribe(subscription) {
+        try {
+            this.setStatus('🔕 Désactivation en cours...');
+
+            // Informer le serveur pour supprimer l'abonnement
+            const response = await fetch('/api/push/unsubscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ endpoint: subscription.endpoint }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Erreur serveur lors de la désinscription');
+            }
+
+            // Se désabonner côté navigateur
+            const success = await subscription.unsubscribe();
+            if (!success) {
+                console.warn('[Push] Unsubscribe returned false (subscription may already be inactive).');
+            }
+
+            this.setStatus('🔕 Notifications désactivées');
+            this.updateUI(false);
+        } catch (error) {
+            console.error('[Push] Unsubscribe failed:', error);
+            alert(`Erreur lors de la désactivation : ${error.message}`);
+            this.updateUI(true);
+        }
+    }
+
+    updateUI(isSubscribed) {
+        // Met à jour l'état visuel du bouton et du texte
+        if (this.hasButtonTarget) {
+            this.buttonTarget.disabled = false;
+
+            if (isSubscribed) {
+                this.buttonTarget.textContent = 'Désactiver';
+                this.buttonTarget.classList.remove('bg-gray-400');
+                this.buttonTarget.classList.add('bg-noz-btn');
+            } else {
+                this.buttonTarget.textContent = 'Activer';
+                this.buttonTarget.classList.remove('bg-noz-btn');
+                this.buttonTarget.classList.add('bg-gray-400');
+            }
+        }
+
+        if (this.hasStatusTarget) {
+            this.statusTarget.classList.remove('text-red-500');
+            if (isSubscribed) {
+                this.statusTarget.textContent = '✅ Notifications activées';
+                this.statusTarget.classList.add('text-green-600');
+            } else {
+                this.statusTarget.textContent = '🔕 Notifications désactivées';
+                this.statusTarget.classList.remove('text-green-600');
+                this.statusTarget.classList.add('text-blue-600');
+            }
+        }
+    }
 
     urlBase64ToUint8Array(base64String) {
         // Cleaning the string again to be safe

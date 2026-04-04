@@ -175,10 +175,20 @@ class ReservationController extends AbstractController
         // Ideally update logger to handle bulk or just log "Reservation created"
         $this->activityLogger->logReservation($user, $reservation->getReference(), count($cartItems));
 
-        // Send confirmation email
-        // We need to update email service to handle the new reservation structure
-        // For now, passing the reservation object is enough if we update the template
+        // Send confirmation email (if user n'a pas la PWA, voir EmailNotificationService)
         $this->emailService->sendReservationConfirmation($reservation);
+
+        // Notification push au client (PWA activée)
+        try {
+            $this->pushService->sendToUser(
+                $user,
+                '✅ Réservation confirmée',
+                'Votre réservation ' . $reservation->getReference() . ' a bien été enregistrée.',
+                $this->generateUrl('app_my_reservations')
+            );
+        } catch (\Exception $e) {
+            $this->logger->error('Push notification failed for client ' . $user->getId() . ' in validate: ' . $e->getMessage());
+        }
 
         // Clear cart immediately
         $this->cartService->clear();
@@ -194,6 +204,7 @@ class ReservationController extends AbstractController
                     $this->generateUrl('app_employee_reservations')
                 );
             }
+            // Flush toutes les notifications (client + employés)
             $this->pushService->flush();
         } catch (\Exception $e) {
             $this->logger->error('Push notification failed during validation: ' . $e->getMessage());
