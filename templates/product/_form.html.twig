@@ -10,8 +10,9 @@
             {{ form_row(form.stock) }}
             {{ form_row(form.category) }}
             
-            <div class="mt-4 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+            <div class="mt-4 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 space-y-3">
                 {{ form_row(form.imageFile) }}
+                {{ form_row(form.extraImages) }}
                 <div id="image-status" data-image-optimizer-target="status" class="hidden text-xs font-bold text-green-600 mt-1 italic"></div>
                 <div class="mt-2 text-center">
                     <img data-image-optimizer-target="preview" class="hidden max-h-48 mx-auto rounded shadow-sm border border-gray-200" src="" alt="Aperçu">

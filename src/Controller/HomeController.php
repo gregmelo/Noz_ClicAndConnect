@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\ProductRepository;
+use App\Repository\GlobalStatRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,7 +26,7 @@ class HomeController extends AbstractController
      * @return Response
      */
     #[Route('/', name: 'app_home')]
-    public function index(Request $request, ProductRepository $productRepository, \App\Repository\CategoryRepository $categoryRepository): Response
+    public function index(Request $request, ProductRepository $productRepository, \App\Repository\CategoryRepository $categoryRepository, GlobalStatRepository $globalStatRepository): Response
     {
         $search = $request->query->get('search', '');
         $minPrice = $request->query->get('min_price', '');
@@ -35,6 +36,9 @@ class HomeController extends AbstractController
         $categoryId = $request->query->get('category', '');
         
         $qb = $productRepository->createQueryBuilder('p');
+
+        // Live only filter
+        $qb->andWhere('p.isLive = true');
 
         // Category filter
         if ($categoryId) {
@@ -97,8 +101,20 @@ class HomeController extends AbstractController
         $offset = ($page - 1) * $limit;
 
         $totalProducts = count($products);
-        $totalPages = ceil($totalProducts / $limit);
+        $totalPages = (int) ceil($totalProducts / $limit);
         $paginatedProducts = array_slice($products, $offset, $limit);
+
+        // Indicate if a live is currently running (at least one product en ligne)
+        $liveInProgress = $totalProducts > 0;
+
+        // Next live scheduling (if configured)
+        $globalStat = $globalStatRepository->getOrCreate();
+        $nextLiveAt = $globalStat->getNextLiveAt();
+        $now = new \DateTimeImmutable('now');
+        if ($nextLiveAt && $nextLiveAt <= $now) {
+            // Si la date est passée, on ne l'affiche plus comme "prochain live"
+            $nextLiveAt = null;
+        }
 
         return $this->render('home/index.html.twig', [
             'products' => $paginatedProducts,
@@ -111,18 +127,25 @@ class HomeController extends AbstractController
             'sort' => $sort,
             'currentPage' => $page,
             'totalPages' => $totalPages,
+            'liveInProgress' => $liveInProgress,
+            'nextLiveAt' => $nextLiveAt,
         ]);
     }
 
     /**
-     * Public product details view
+     * Public product details view (front)
      *
      * @param \App\Entity\Product $product
      * @return Response
      */
-    #[Route('/product/{id}', name: 'app_product_show_public', methods: ['GET'])]
+    #[Route('/produit/{id}', name: 'app_product_show_public', methods: ['GET'])]
     public function show(\App\Entity\Product $product): Response
     {
+        if (!$product->isLive()) {
+            $this->addFlash('danger', 'Ce produit n\'est plus disponible car le live est terminé ou n\'a pas encore commencé.');
+            return $this->redirectToRoute('app_home');
+        }
+
         return $this->render('home/show.html.twig', [
             'product' => $product,
         ]);

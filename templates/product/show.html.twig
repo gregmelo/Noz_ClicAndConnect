@@ -42,15 +42,30 @@
 
     <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
         <div class="md:flex">
-            <!-- Product Image -->
-            <div class="md:w-1/2">
-                {% if product.imageFilename %}
-                    <img class="w-full h-96 object-cover object-center" src="{{ asset('uploads/images/' ~ product.imageFilename) }}" alt="{{ product.name }}">
-                {% else %}
-                    <div class="w-full h-96 bg-gray-200 flex items-center justify-center text-gray-400">
-                        <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
+            <!-- Product Images (galerie) -->
+            <div class="md:w-1/2 p-4 flex flex-col gap-4">
+                <div>
+                    {% if product.imageFilename %}
+                        <img class="w-full h-96 object-cover object-center rounded-lg shadow-sm" src="{{ asset('uploads/images/' ~ product.imageFilename) }}" alt="{{ product.name }}">
+                    {% else %}
+                        <div class="w-full h-96 bg-gray-200 flex items-center justify-center text-gray-400">
+                            <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% set extraImages = product.extraImages ?? [] %}
+                {% if extraImages is not empty %}
+                    <div class="grid grid-cols-3 gap-2">
+                        {% for filename in extraImages %}
+                            <div class="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                                <img src="{{ asset('uploads/images/' ~ filename) }}" 
+                                     alt="{{ product.name }} - photo {{ loop.index }}" 
+                                     class="w-full h-20 object-cover">
+                            </div>
+                        {% endfor %}
                     </div>
                 {% endif %}
             </div>

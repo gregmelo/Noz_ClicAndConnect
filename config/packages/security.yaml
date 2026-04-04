@@ -38,7 +38,7 @@ security:
 
     role_hierarchy:
         ROLE_CLIENT:      []
-        ROLE_EMPLOYEE:    []
+        ROLE_EMPLOYEE:    [ROLE_CLIENT]
         ROLE_ADMIN:       [ROLE_EMPLOYEE]
         ROLE_SUPER_ADMIN: [ROLE_ADMIN]
         ROLE_DEVELOPER:   [ROLE_SUPER_ADMIN, ROLE_ALLOWED_TO_SWITCH]

@@ -25,7 +25,7 @@ class Reservation
     private ?int $id = null;
 
     /** @var User|null The user who made the reservation */
-    #[ORM\ManyToOne(inversedBy: 'reservations')]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 

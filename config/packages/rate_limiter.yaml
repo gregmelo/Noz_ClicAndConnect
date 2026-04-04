@@ -1,0 +1,7 @@
+framework:
+    rate_limiter:
+        reservation:
+            # allow 2 requests per minute per user/IP
+            policy: 'fixed_window'
+            limit: 2
+            interval: '1 minute'

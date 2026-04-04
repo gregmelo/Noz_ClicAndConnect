@@ -59,8 +59,8 @@ class CartController extends AbstractController
 
         $this->addFlash('success', 'Produit ajouté au panier.');
 
-        // Redirect to cart if requested, otherwise back to product list
-        if ($request->query->get('returnToCart')) {
+        // Redirect to cart if requested (support both query string and POST body), otherwise back to product list
+        if ($request->query->get('returnToCart') || $request->request->get('returnToCart')) {
             return $this->redirectToRoute('app_cart_index');
         }
 

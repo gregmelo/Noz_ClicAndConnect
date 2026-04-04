@@ -13,15 +13,40 @@
 
     <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-0">
-            {# Image Section #}
-            <div class="lg:col-span-3 bg-gray-50 flex items-center justify-center p-4">
+            {# Image Section (carrousel) #}
+            <div class="lg:col-span-3 bg-gray-50 p-4 flex flex-col gap-4">
+                {% set images = [] %}
                 {% if product.imageFilename %}
-                    <img src="{{ asset('uploads/images/' ~ product.imageFilename) }}" 
-                         alt="{{ product.name }}" 
-                         class="max-w-full max-h-[500px] object-contain rounded-lg shadow-sm">
-                {% else %}
-                    <div class="w-full h-96 bg-gray-200 flex items-center justify-center text-gray-400">
-                        <svg class="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    {% set images = images|merge([product.imageFilename]) %}
+                {% endif %}
+                {% for filename in product.extraImages ?? [] %}
+                    {% set images = images|merge([filename]) %}
+                {% endfor %}
+
+                <div id="product-carousel" class="relative flex items-center justify-center">
+                    {% if images is not empty %}
+                        {% for filename in images %}
+                            <img src="{{ asset('uploads/images/' ~ filename) }}" 
+                                 alt="{{ product.name }} - photo {{ loop.index }}" 
+                                 class="product-slide max-w-full max-h-[500px] object-contain rounded-lg shadow-sm {% if not loop.first %}hidden{% endif %}"
+                                 data-index="{{ loop.index0 }}">
+                        {% endfor %}
+                    {% else %}
+                        <div class="w-full h-96 bg-gray-200 flex items-center justify-center text-gray-400">
+                            <svg class="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if images|length > 1 %}
+                    <div class="mt-3 flex flex-wrap gap-2 justify-center">
+                        {% for filename in images %}
+                            <button type="button" class="product-thumb border-2 border-transparent rounded-md overflow-hidden focus:outline-none focus:ring-2 focus:ring-noz-blue {% if loop.first %}border-noz-blue{% endif %}" data-index="{{ loop.index0 }}">
+                                <img src="{{ asset('uploads/images/' ~ filename) }}" 
+                                     alt="{{ product.name }} - vignette {{ loop.index }}" 
+                                     class="w-16 h-16 object-cover">
+                            </button>
+                        {% endfor %}
                     </div>
                 {% endif %}
             </div>
@@ -71,6 +96,7 @@
                         {% if app.user %}
                             <form action="{{ path('app_cart_add', {'id': product.id}) }}" method="POST" class="flex gap-2">
                                 <input type="hidden" name="_token" value="{{ csrf_token('add_to_cart') }}">
+                                <input type="hidden" name="returnToCart" value="1">
                                 <label for="quantity" class="sr-only">Quantité</label>
                                 <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{ product.stock }}" 
                                        class="border rounded px-2 py-1 w-20 text-center text-noz-blue font-bold">
@@ -95,4 +121,42 @@
         </div>
     </div>
 </div>
+<script>
+// Carrousel simple pour les images produit
+(function() {
+    const container = document.getElementById('product-carousel');
+    if (!container) return;
+
+    const slides = Array.from(container.querySelectorAll('.product-slide'));
+    const thumbs = Array.from(document.querySelectorAll('.product-thumb'));
+    if (!slides.length) return;
+
+    let current = 0;
+
+    function showSlide(index) {
+        if (index < 0 || index >= slides.length) return;
+        slides.forEach((img, i) => {
+            img.classList.toggle('hidden', i !== index);
+        });
+        thumbs.forEach((btn, i) => {
+            if (i === index) {
+                btn.classList.add('border-noz-blue');
+            } else {
+                btn.classList.remove('border-noz-blue');
+            }
+        });
+        current = index;
+    }
+
+    thumbs.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const index = parseInt(btn.dataset.index || '0', 10);
+            showSlide(index);
+        });
+    });
+
+    // S'assure que l'état initial est cohérent (utile si le HTML change)
+    showSlide(current);
+})();
+</script>
 {% endblock %}

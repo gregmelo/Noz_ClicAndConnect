@@ -146,16 +146,26 @@
                                 {% endif %}
                             </a>
                             
-                            <!-- Dashboard: Hidden on md, visible on xl+ -->
-                            <a href="{{ path('app_dashboard') }}" class="hidden xl:flex hover:text-noz-yellow transition items-center gap-1.5">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            <!-- Live Dashboard: visible for employee -->
+                            <a href="{{ path('app_live_dashboard') }}" class="flex hover:text-white hover:bg-red-600 transition items-center gap-1.5 text-red-500 font-bold border border-red-500 px-2 py-0.5 rounded shadow-sm bg-red-50">
+                                <span class="relative flex h-3 w-3">
+                                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                  <span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+                                </span>
+                                <svg class="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                 </svg>
-                                <span class="text-base">Dashboard</span>
+                                <span class="text-sm xl:text-base">LIVE</span>
                             </a>
                         {% endif %}
 
                         {% if is_granted('ROLE_ADMIN') %}
+                            <a href="{{ path('app_dashboard') }}" class="hidden xl:flex hover:text-noz-yellow transition items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                                <span class="text-base">Statistiques</span>
+                            </a>
                             <a href="{{ path('app_admin_users_index') }}" class="hidden xl:flex hover:text-noz-yellow transition items-center gap-1.5">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
@@ -212,14 +222,24 @@
                                 </button>
                                 <div id="more-menu-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50" data-dropdown-target="menu">
                                     {% if is_granted('ROLE_EMPLOYEE') %}
-                                        <a href="{{ path('app_dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                        <a href="{{ path('app_live_dashboard') }}" class="block px-4 py-2 text-sm text-red-600 font-bold hover:bg-gray-100 flex items-center gap-2">
+                                            <span class="relative flex h-2 w-2">
+                                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                              <span class="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+                                            </span>
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                             </svg>
-                                            Dashboard
+                                            LIVE Dashboard
                                         </a>
                                     {% endif %}
                                     {% if is_granted('ROLE_ADMIN') %}
+                                        <a href="{{ path('app_dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 border-b border-gray-100 mb-1 pb-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                            </svg>
+                                            Statistiques (Admin)
+                                        </a>
                                         <a href="{{ path('app_admin_users_index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
@@ -299,6 +319,14 @@
                             <span data-reservation-alert-target="badge" class="{% if todoCount == 0 %}hidden{% endif %} bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
                                 <span data-reservation-alert-target="count">{{ todoCount }}</span>
                             </span>
+                        </a>
+                        <a href="{{ path('app_live_dashboard') }}" class="block py-2 px-4 bg-red-50 text-red-600 font-bold border border-red-500 rounded transition flex items-center gap-2 shadow-sm">
+                            <span class="relative flex h-3 w-3">
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+                            </span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            Tableau de Bord LIVE
                         </a>
                         <a href="{{ path('app_dashboard') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Dashboard</a>
                         <a href="{{ path('app_product_index') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Gestion Produits</a>

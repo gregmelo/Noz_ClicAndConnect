@@ -36,7 +36,8 @@ class ReservationController extends AbstractController
         private CartService $cartService,
         private PushNotificationService $pushService,
         private UserRepository $userRepository,
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
+        private \Symfony\Component\RateLimiter\RateLimiterFactory $reservationLimiter
     ) {
     }
 
@@ -75,6 +76,13 @@ class ReservationController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
+
+        // Rate limiting
+        $limiter = $this->reservationLimiter->create($request->getClientIp());
+        if (false === $limiter->consume(1)->isAccepted()) {
+            $this->addFlash('danger', 'Trop de tentatives de réservation. Veuillez patienter une minute.');
+            return $this->redirectToRoute('app_cart_index');
+        }
 
         // CSRF Protection
         if (!$this->isCsrfTokenValid('reservation_validate', $request->request->get('_token'))) {
@@ -134,6 +142,11 @@ class ReservationController extends AbstractController
             }
 
             $quantity = $cartItem['quantity'];
+
+            if (!$product->isLive()) {
+                $this->addFlash('danger', 'Le produit ' . $product->getName() . ' n\'est plus disponible pour le live.');
+                return $this->redirectToRoute('app_cart_index');
+            }
 
             if ($product->getStock() < $quantity) {
                 $this->addFlash('danger', 'Stock insuffisant pour le produit : ' . $product->getName());

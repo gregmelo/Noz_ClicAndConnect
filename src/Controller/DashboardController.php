@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  * Displays stock alerts, revenue tracking, and urgent reservations.
  */
 #[Route('/dashboard')]
-#[IsGranted('ROLE_EMPLOYEE')]
+#[IsGranted('ROLE_ADMIN')]
 class DashboardController extends AbstractController
 {
     /**

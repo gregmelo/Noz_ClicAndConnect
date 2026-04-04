@@ -9,6 +9,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\All;
 
 class ProductType extends AbstractType
 {
@@ -43,7 +44,7 @@ class ProductType extends AbstractType
                 'attr' => ['placeholder' => '0']
             ])
             ->add('imageFile', FileType::class, [
-                'label' => 'Image du produit',
+                'label' => 'Image principale du produit',
                 'mapped' => false,
                 'required' => false,
                 'attr' => [
@@ -60,6 +61,28 @@ class ProductType extends AbstractType
                             'image/webp',
                         ],
                         'mimeTypesMessage' => 'Veuillez uploader une image valide (JPG, PNG, WEBP)',
+                    ])
+                ],
+            ])
+            ->add('extraImages', FileType::class, [
+                'label' => 'Autres images (optionnel)',
+                'mapped' => false,
+                'required' => false,
+                'multiple' => true,
+                'attr' => [
+                    'accept' => 'image/*',
+                ],
+                'constraints' => [
+                    new All([
+                        new File([
+                            'maxSize' => '5M',
+                            'mimeTypes' => [
+                                'image/jpeg',
+                                'image/png',
+                                'image/webp',
+                            ],
+                            'mimeTypesMessage' => 'Veuillez uploader des images valides (JPG, PNG, WEBP)',
+                        ])
                     ])
                 ],
             ])

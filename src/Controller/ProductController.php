@@ -55,14 +55,28 @@ final class ProductController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Handle image upload
+            // Handle main image upload
             $imageFile = $form->get('imageFile')->getData();
             if ($imageFile) {
                 try {
                     $newFilename = $fileUploader->upload($imageFile);
                     $product->setImageFilename($newFilename);
                 } catch (\Exception $e) {
-                    $this->addFlash('danger', 'Erreur lors de l\'upload de l\'image : ' . $e->getMessage());
+                    $this->addFlash('danger', 'Erreur lors de l\'upload de l\'image principale : ' . $e->getMessage());
+                }
+            }
+
+            // Handle extra images upload
+            $extraImages = $form->get('extraImages')->getData() ?? [];
+            foreach ($extraImages as $uploadedFile) {
+                if (!$uploadedFile) {
+                    continue;
+                }
+                try {
+                    $filename = $fileUploader->upload($uploadedFile);
+                    $product->addExtraImage($filename);
+                } catch (\Exception $e) {
+                    $this->addFlash('danger', 'Erreur lors de l\'upload d\'une image supplémentaire : ' . $e->getMessage());
                 }
             }
 
@@ -116,14 +130,28 @@ final class ProductController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Handle image upload
+            // Handle main image upload
             $imageFile = $form->get('imageFile')->getData();
             if ($imageFile) {
                 try {
                     $newFilename = $fileUploader->upload($imageFile);
                     $product->setImageFilename($newFilename);
                 } catch (\Exception $e) {
-                    $this->addFlash('danger', 'Erreur lors de l\'upload de l\'image : ' . $e->getMessage());
+                    $this->addFlash('danger', 'Erreur lors de l\'upload de l\'image principale : ' . $e->getMessage());
+                }
+            }
+
+            // Handle extra images upload (append to existing ones)
+            $extraImages = $form->get('extraImages')->getData() ?? [];
+            foreach ($extraImages as $uploadedFile) {
+                if (!$uploadedFile) {
+                    continue;
+                }
+                try {
+                    $filename = $fileUploader->upload($uploadedFile);
+                    $product->addExtraImage($filename);
+                } catch (\Exception $e) {
+                    $this->addFlash('danger', 'Erreur lors de l\'upload d\'une image supplémentaire : ' . $e->getMessage());
                 }
             }
 

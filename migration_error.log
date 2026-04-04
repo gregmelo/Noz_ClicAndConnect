@@ -1,0 +1,144 @@
+PHP Warning:  Module "openssl" is already loaded in Unknown on line 0
+
+Warning: Module "openssl" is already loaded in Unknown on line 0
+[notice] Migrating up to DoctrineMigrations\Version20260403110252
+13:07:35 INFO      [deprecation] User Deprecated: The "Doctrine\Migrations\Provider\LazySchema" class uses "Symfony\Component\VarExporter\LazyProxyTrait" that is deprecated since Symfony 7.3, use native lazy objects instead.
+[
+  "exception" => ErrorException {
+    #message: "User Deprecated: The "Doctrine\Migrations\Provider\LazySchema" class uses "Symfony\Component\VarExporter\LazyProxyTrait" that is deprecated since Symfony 7.3, use native lazy objects instead."
+    #code: 0
+    #file: "C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\error-handler\DebugClassLoader.php"
+    #line: 347
+    #severity: E_USER_DEPRECATED
+    trace: {
+      C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\error-handler\DebugClassLoader.php:347 { ÔÇª}
+      C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\Version\DbalExecutor.php:312 { ÔÇª}
+      C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\Version\DbalExecutor.php:126 { ÔÇª}
+      C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\Version\DbalExecutor.php:72 { ÔÇª}
+      C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\DbalMigrator.php:87 { ÔÇª}
+      C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\DbalMigrator.php:54 { ÔÇª}
+      C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\DbalMigrator.php:134 { ÔÇª}
+      C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\Tools\Console\Command\MigrateCommand.php:225 { ÔÇª}
+      C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\console\Command\Command.php:318 { ÔÇª}
+      C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\console\Application.php:1073 { ÔÇª}
+      C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\framework-bundle\Console\Application.php:123 { ÔÇª}
+      C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\console\Application.php:356 { ÔÇª}
+      C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\framework-bundle\Console\Application.php:77 { ÔÇª}
+[info] ++ migrating DoctrineMigrations\Version20251124132213
+      C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\console\Application.php:195 { ÔÇª}
+      C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\runtime\Runner\Symfony\ConsoleApplicationRunner.php:49 { ÔÇª}
+      C:\xampp\htdocs\Noz_ClicAndConnect\vendor\autoload_runtime.php:29 { ÔÇª}
+      C:\xampp\htdocs\Noz_ClicAndConnect\bin\console:15 {
+        ÔÇ║ 
+        ÔÇ║ require_once dirname(__DIR__).'/vendor/autoload_runtime.php';
+        ÔÇ║ 
+      }
+    }
+  }
+]
+[debug] CREATE TABLE product (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, description LONGTEXT NOT NULL, price NUMERIC(10, 2) NOT NULL, stock INT NOT NULL, image_filename VARCHAR(255) NOT NULL, created_at DATETIME NOT NULL, updated_at DATETIME DEFAULT NULL, PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4 
+[error] Migration DoctrineMigrations\Version20251124132213 failed during Execution. Error: "An exception occurred while executing a query: SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'product' already exists"
+
+In ExceptionConverter.php line 49:
+                                                         
+  [Doctrine\DBAL\Exception\TableExistsException (1050)]  
+  An exception occurred w                                
+  hile executing a query:                                
+   SQLSTATE[42S01]: Base                                 
+  table or view already e                                
+  xists: 1050 Table 'prod                                
+  uct' already exists                                    
+                                                         
+
+Exception trace:
+  at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\dbal\src\Driver\API\MySQL\ExceptionConverter.php:49
+ Doctrine\DBAL\Driver\API\MySQL\ExceptionConverter->convert() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\dbal\src\Connection.php:1456
+ Doctrine\DBAL\Connection->handleDriverException() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\dbal\src\Connection.php:1392
+ Doctrine\DBAL\Connection->convertExceptionDuringQuery() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\dbal\src\Connection.php:809
+ Doctrine\DBAL\Connection->executeQuery() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\Version\DbalExecutor.php:275
+ Doctrine\Migrations\Version\DbalExecutor->executeResult() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\Version\DbalExecutor.php:152
+ Doctrine\Migrations\Version\DbalExecutor->executeMigration() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\Version\DbalExecutor.php:72
+ Doctrine\Migrations\Version\DbalExecutor->execute() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\DbalMigrator.php:87
+ Doctrine\Migrations\DbalMigrator->executePlan() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\DbalMigrator.php:54
+ Doctrine\Migrations\DbalMigrator->executeMigrations() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\DbalMigrator.php:134
+ Doctrine\Migrations\DbalMigrator->migrate() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\Tools\Console\Command\MigrateCommand.php:225
+ Doctrine\Migrations\Tools\Console\Command\MigrateCommand->execute() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\console\Command\Command.php:318
+ Symfony\Component\Console\Command\Command->run() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\console\Application.php:1073
+ Symfony\Component\Console\Application->doRunCommand() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\framework-bundle\Console\Application.php:123
+ Symfony\Bundle\FrameworkBundle\Console\Application->doRunCommand() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\console\Application.php:356
+ Symfony\Component\Console\Application->doRun() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\framework-bundle\Console\Application.php:77
+ Symfony\Bundle\FrameworkBundle\Console\Application->doRun() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\console\Application.php:195
+ Symfony\Component\Console\Application->run() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\runtime\Runner\Symfony\ConsoleApplicationRunner.php:49
+ Symfony\Component\Runtime\Runner\Symfony\ConsoleApplicationRunner->run() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\autoload_runtime.php:29
+ require_once() at C:\xampp\htdocs\Noz_ClicAndConnect\bin\console:15
+
+In Exception.php line 24:
+                                               
+  [Doctrine\DBAL\Driver\PDO\Exception (1050)]  
+  SQLSTATE[42S01]: Base t                      
+  able or view already ex                      
+  ists: 1050 Table 'produ                      
+  ct' already exists                           
+                                               
+
+Exception trace:
+  at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\dbal\src\Driver\PDO\Exception.php:24
+ Doctrine\DBAL\Driver\PDO\Exception::new() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\dbal\src\Driver\PDO\Connection.php:62
+ Doctrine\DBAL\Driver\PDO\Connection->query() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\dbal\src\Driver\Middleware\AbstractConnectionMiddleware.php:24
+ Doctrine\DBAL\Driver\Middleware\AbstractConnectionMiddleware->query() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\dbal\src\Logging\Connection.php:39
+ Doctrine\DBAL\Logging\Connection->query() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\dbal\src\Driver\Middleware\AbstractConnectionMiddleware.php:24
+ Doctrine\DBAL\Driver\Middleware\AbstractConnectionMiddleware->query() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\doctrine-bridge\Middleware\Debug\Connection.php:55
+ Symfony\Bridge\Doctrine\Middleware\Debug\Connection->query() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\dbal\src\Connection.php:804
+ Doctrine\DBAL\Connection->executeQuery() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\Version\DbalExecutor.php:275
+ Doctrine\Migrations\Version\DbalExecutor->executeResult() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\Version\DbalExecutor.php:152
+ Doctrine\Migrations\Version\DbalExecutor->executeMigration() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\Version\DbalExecutor.php:72
+ Doctrine\Migrations\Version\DbalExecutor->execute() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\DbalMigrator.php:87
+ Doctrine\Migrations\DbalMigrator->executePlan() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\DbalMigrator.php:54
+ Doctrine\Migrations\DbalMigrator->executeMigrations() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\DbalMigrator.php:134
+ Doctrine\Migrations\DbalMigrator->migrate() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\Tools\Console\Command\MigrateCommand.php:225
+ Doctrine\Migrations\Tools\Console\Command\MigrateCommand->execute() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\console\Command\Command.php:318
+ Symfony\Component\Console\Command\Command->run() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\console\Application.php:1073
+ Symfony\Component\Console\Application->doRunCommand() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\framework-bundle\Console\Application.php:123
+ Symfony\Bundle\FrameworkBundle\Console\Application->doRunCommand() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\console\Application.php:356
+ Symfony\Component\Console\Application->doRun() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\framework-bundle\Console\Application.php:77
+ Symfony\Bundle\FrameworkBundle\Console\Application->doRun() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\console\Application.php:195
+ Symfony\Component\Console\Application->run() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\runtime\Runner\Symfony\ConsoleApplicationRunner.php:49
+ Symfony\Component\Runtime\Runner\Symfony\ConsoleApplicationRunner->run() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\autoload_runtime.php:29
+ require_once() at C:\xampp\htdocs\Noz_ClicAndConnect\bin\console:15
+
+In Connection.php line 57:
+                           
+  [PDOException (42S01)]   
+  SQLSTATE[42S01]: Base t  
+  able or view already ex  
+  ists: 1050 Table 'produ  
+  ct' already exists       
+                           
+
+Exception trace:
+  at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\dbal\src\Driver\PDO\Connection.php:57
+ PDO->query() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\dbal\src\Driver\PDO\Connection.php:57
+ Doctrine\DBAL\Driver\PDO\Connection->query() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\dbal\src\Driver\Middleware\AbstractConnectionMiddleware.php:24
+ Doctrine\DBAL\Driver\Middleware\AbstractConnectionMiddleware->query() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\dbal\src\Logging\Connection.php:39
+ Doctrine\DBAL\Logging\Connection->query() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\dbal\src\Driver\Middleware\AbstractConnectionMiddleware.php:24
+ Doctrine\DBAL\Driver\Middleware\AbstractConnectionMiddleware->query() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\doctrine-bridge\Middleware\Debug\Connection.php:55
+ Symfony\Bridge\Doctrine\Middleware\Debug\Connection->query() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\dbal\src\Connection.php:804
+ Doctrine\DBAL\Connection->executeQuery() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\Version\DbalExecutor.php:275
+ Doctrine\Migrations\Version\DbalExecutor->executeResult() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\Version\DbalExecutor.php:152
+ Doctrine\Migrations\Version\DbalExecutor->executeMigration() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\Version\DbalExecutor.php:72
+ Doctrine\Migrations\Version\DbalExecutor->execute() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\DbalMigrator.php:87
+ Doctrine\Migrations\DbalMigrator->executePlan() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\DbalMigrator.php:54
+ Doctrine\Migrations\DbalMigrator->executeMigrations() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\DbalMigrator.php:134
+ Doctrine\Migrations\DbalMigrator->migrate() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\doctrine\migrations\src\Tools\Console\Command\MigrateCommand.php:225
+ Doctrine\Migrations\Tools\Console\Command\MigrateCommand->execute() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\console\Command\Command.php:318
+ Symfony\Component\Console\Command\Command->run() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\console\Application.php:1073
+ Symfony\Component\Console\Application->doRunCommand() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\framework-bundle\Console\Application.php:123
+ Symfony\Bundle\FrameworkBundle\Console\Application->doRunCommand() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\console\Application.php:356
+ Symfony\Component\Console\Application->doRun() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\framework-bundle\Console\Application.php:77
+ Symfony\Bundle\FrameworkBundle\Console\Application->doRun() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\console\Application.php:195
+ Symfony\Component\Console\Application->run() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\symfony\runtime\Runner\Symfony\ConsoleApplicationRunner.php:49
+ Symfony\Component\Runtime\Runner\Symfony\ConsoleApplicationRunner->run() at C:\xampp\htdocs\Noz_ClicAndConnect\vendor\autoload_runtime.php:29
+ require_once() at C:\xampp\htdocs\Noz_ClicAndConnect\bin\console:15
+
+doctrine:migrations:migrate [--write-sql [WRITE-SQL]] [--dry-run] [--query-time] [--allow-no-migration] [--all-or-nothing [ALL-OR-NOTHING]] [--no-all-or-nothing] [--configuration CONFIGURATION] [--em EM] [--conn CONN] [--] [<version>]
+

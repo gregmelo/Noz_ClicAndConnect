@@ -63,6 +63,16 @@
                     <p id="image-help" class="text-xs text-gray-500 mt-1">Formats acceptés: JPG, PNG, WEBP (Max 5MB)</p>
                 </div>
 
+                <div>
+                    {{ form_label(form.extraImages, null, {'label_attr': {'class': 'block text-gray-700 text-sm font-bold mb-2'}}) }}
+                    {{ form_widget(form.extraImages, {'attr': {
+                        'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
+                        'aria-describedby': 'extra-images-help'
+                    }}) }}
+                    {{ form_errors(form.extraImages, {'attr': {'class': 'text-red-500 text-xs italic'}}) }}
+                    <p id="extra-images-help" class="text-xs text-gray-500 mt-1">Vous pouvez ajouter plusieurs images supplémentaires (JPG, PNG, WEBP · Max 5MB chacune).</p>
+                </div>
+
                 <div class="bg-blue-50 p-4 rounded border border-blue-100 mb-6">
                     {{ form_label(form.category, null, {'label_attr': {'class': 'block text-noz-blue text-sm font-bold mb-2'}}) }}
                     {{ form_widget(form.category, {'attr': {'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-noz-blue font-bold leading-tight focus:outline-none focus:shadow-outline bg-white'}}) }}

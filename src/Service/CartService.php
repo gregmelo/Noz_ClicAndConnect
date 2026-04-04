@@ -15,6 +15,11 @@ class CartService
 
     public function add(int $id, int $quantity = 1): void
     {
+        $product = $this->productRepository->find($id);
+        if (!$product || !$product->isLive()) {
+            return; // Don't add if not live or doesn't exist
+        }
+
         $cart = $this->getSession()->get('cart', []);
 
         if (!empty($cart[$id])) {
@@ -59,13 +64,13 @@ class CartService
 
         foreach ($cart as $id => $quantity) {
             $product = $this->productRepository->find($id);
-            if ($product) {
+            if ($product && $product->isLive()) {
                 $cartData[] = [
                     'product' => $product,
                     'quantity' => $quantity
                 ];
             } else {
-                // Product no longer exists, remove from cart
+                // Product no longer exists or is no longer live, remove from cart
                 $this->remove($id);
             }
         }

@@ -22,6 +22,9 @@ class GlobalStat
     #[ORM\Column]
     private ?int $totalExpiredCount = 0;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $nextLiveAt = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -59,6 +62,18 @@ class GlobalStat
     public function setTotalExpiredCount(int $totalExpiredCount): static
     {
         $this->totalExpiredCount = $totalExpiredCount;
+
+        return $this;
+    }
+
+    public function getNextLiveAt(): ?\DateTimeImmutable
+    {
+        return $this->nextLiveAt;
+    }
+
+    public function setNextLiveAt(?\DateTimeImmutable $nextLiveAt): static
+    {
+        $this->nextLiveAt = $nextLiveAt;
 
         return $this;
     }

@@ -13,6 +13,10 @@ use Doctrine\ORM\Mapping as ORM;
  * Includes stock management, pricing (current and original), and image handling.
  */
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
+#[ORM\Table(name: 'product', indexes: [
+    new ORM\Index(name: 'idx_product_is_live', columns: ['is_live']),
+    new ORM\Index(name: 'idx_product_activated_at', columns: ['activated_at'])
+])]
 #[ORM\HasLifecycleCallbacks]
 class Product
 {
@@ -42,6 +46,10 @@ class Product
     #[ORM\Column(length: 255)]
     private ?string $imageFilename = null;
 
+    /** @var array|null Additional image filenames for this product */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $extraImages = [];
+
     /** @var \Symfony\Component\HttpFoundation\File\UploadedFile|null Virtual property for image upload */
     private ?\Symfony\Component\HttpFoundation\File\UploadedFile $imageFile = null;
 
@@ -56,6 +64,17 @@ class Product
     /** @var string|null The original price before any discount (decimal string) */
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
     private ?string $originalPrice = null;
+
+    /**
+     * @var bool Whether the product is currently live (visible & reservable by clients).
+     * Set to true by an employee during a Facebook/TikTok live session.
+     */
+    #[ORM\Column]
+    private bool $isLive = false;
+
+    /** @var \DateTimeImmutable|null Timestamp when the product was last activated by an employee */
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $activatedAt = null;
 
     public function __construct()
     {
@@ -133,6 +152,27 @@ class Product
         return $this;
     }
 
+    public function getExtraImages(): array
+    {
+        return $this->extraImages ?? [];
+    }
+
+    public function setExtraImages(?array $extraImages): static
+    {
+        $this->extraImages = $extraImages ?? [];
+
+        return $this;
+    }
+
+    public function addExtraImage(string $filename): static
+    {
+        $images = $this->extraImages ?? [];
+        $images[] = $filename;
+        $this->extraImages = $images;
+
+        return $this;
+    }
+
     public function getImageFile(): ?\Symfony\Component\HttpFoundation\File\UploadedFile
     {
         return $this->imageFile;
@@ -176,6 +216,30 @@ class Product
     public function setOriginalPrice(?string $originalPrice): static
     {
         $this->originalPrice = $originalPrice;
+
+        return $this;
+    }
+
+    public function isLive(): bool
+    {
+        return $this->isLive;
+    }
+
+    public function setIsLive(bool $isLive): static
+    {
+        $this->isLive = $isLive;
+
+        return $this;
+    }
+
+    public function getActivatedAt(): ?\DateTimeImmutable
+    {
+        return $this->activatedAt;
+    }
+
+    public function setActivatedAt(?\DateTimeImmutable $activatedAt): static
+    {
+        $this->activatedAt = $activatedAt;
 
         return $this;
     }
