@@ -20,3 +20,15 @@
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+
+
+debug_*.php
+debug_*.txt
+debug_*.html
+curl_out.txt
+curl2_out.txt
+dev.log
+*.log
+migration_error.log
+doctrine_validate.txt
+mercure.exe

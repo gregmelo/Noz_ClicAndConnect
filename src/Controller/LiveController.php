@@ -10,49 +10,45 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\Mercure\HubInterface;
+use Symfony\Component\Mercure\Update;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-/**
- * LiveController
- * 
- * Manages the "Live Shopping" features.
- * Accessible to ROLE_EMPLOYEE for the dashboard and activation/deactivation.
- * Accessible to all for the SSE stream.
- */
 class LiveController extends AbstractController
 {
-    /**
-     * Dashboard for employees to manage products during a live session.
-     */
+    // Topic Mercure partagé entre le serveur et les clients JS
+    private const LIVE_TOPIC = 'https://noz.fr/live/products';
+
     #[Route('/live', name: 'app_live_dashboard')]
     #[IsGranted('ROLE_EMPLOYEE')]
-    public function index(ProductRepository $productRepository, GlobalStatRepository $globalStatRepository): Response
-    {
+    public function index(
+        ProductRepository $productRepository,
+        GlobalStatRepository $globalStatRepository
+    ): Response {
         $globalStat = $globalStatRepository->getOrCreate();
 
         return $this->render('live/dashboard.html.twig', [
-            'products' => $productRepository->findBy([], ['isLive' => 'DESC', 'name' => 'ASC']),
+            'products'   => $productRepository->findBy([], ['isLive' => 'DESC', 'name' => 'ASC']),
             'nextLiveAt' => $globalStat->getNextLiveAt(),
         ]);
     }
 
-    /**
-     * Schedule or clear the next live date/time.
-     */
     #[Route('/live/schedule', name: 'app_live_schedule', methods: ['POST'])]
     #[IsGranted('ROLE_EMPLOYEE')]
-    public function schedule(Request $request, GlobalStatRepository $globalStatRepository, EntityManagerInterface $entityManager): Response
-    {
+    public function schedule(
+        Request $request,
+        GlobalStatRepository $globalStatRepository,
+        EntityManagerInterface $entityManager
+    ): Response {
         if (!$this->isCsrfTokenValid('schedule_next_live', $request->request->get('_token'))) {
             $this->addFlash('danger', 'Jeton de sécurité invalide.');
             return $this->redirectToRoute('app_live_dashboard');
         }
 
         $action = $request->request->get('action', 'set');
-        $date = $request->request->get('next_live_date');
-        $time = $request->request->get('next_live_time');
+        $date   = $request->request->get('next_live_date');
+        $time   = $request->request->get('next_live_time');
 
         $globalStat = $globalStatRepository->getOrCreate();
 
@@ -60,7 +56,6 @@ class LiveController extends AbstractController
             $globalStat->setNextLiveAt(null);
             $entityManager->flush();
             $this->addFlash('success', 'Aucun live n\'est désormais programmé.');
-
             return $this->redirectToRoute('app_live_dashboard');
         }
 
@@ -79,18 +74,23 @@ class LiveController extends AbstractController
         $globalStat->setNextLiveAt($nextLiveAt);
         $entityManager->flush();
 
-        $this->addFlash('success', sprintf('Prochain live programmé le %s à %s.', $nextLiveAt->format('d/m/Y'), $nextLiveAt->format('H:i')));
+        $this->addFlash('success', sprintf(
+            'Prochain live programmé le %s à %s.',
+            $nextLiveAt->format('d/m/Y'),
+            $nextLiveAt->format('H:i')
+        ));
 
         return $this->redirectToRoute('app_live_dashboard');
     }
 
-    /**
-     * Activate a product for the live session.
-     */
     #[Route('/live/activate/{id}', name: 'app_live_product_activate', methods: ['POST'])]
     #[IsGranted('ROLE_EMPLOYEE')]
-    public function activate(Product $product, Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
+    public function activate(
+        Product $product,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        HubInterface $hub
+    ): JsonResponse {
         if (!$this->isCsrfTokenValid('live_activate_' . $product->getId(), $request->request->get('_token'))) {
             return $this->json(['error' => 'Jeton CSRF invalide.'], Response::HTTP_FORBIDDEN);
         }
@@ -99,24 +99,35 @@ class LiveController extends AbstractController
         $product->setActivatedAt(new \DateTimeImmutable());
         $entityManager->flush();
 
+        // Publier l'événement vers tous les clients abonnés
+        $hub->publish(new Update(
+            self::LIVE_TOPIC,
+            json_encode([
+                'event'         => 'product_activated',
+                'id'            => $product->getId(),
+                'name'          => $product->getName(),
+                'description'   => $product->getDescription(),
+                'price'         => $product->getPrice(),
+                'originalPrice' => $product->getOriginalPrice(),
+                'stock'         => $product->getStock(),
+                'image'         => $product->getImageFilename(),
+            ])
+        ));
+
         return $this->json([
             'success' => true,
             'message' => 'Produit "' . $product->getName() . '" est maintenant en ligne !',
-            'product' => [
-                'id' => $product->getId(),
-                'name' => $product->getName(),
-                'stock' => $product->getStock()
-            ]
         ]);
     }
 
-    /**
-     * Deactivate a product.
-     */
     #[Route('/live/deactivate/{id}', name: 'app_live_product_deactivate', methods: ['POST'])]
     #[IsGranted('ROLE_EMPLOYEE')]
-    public function deactivate(Product $product, Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
+    public function deactivate(
+        Product $product,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        HubInterface $hub
+    ): JsonResponse {
         if (!$this->isCsrfTokenValid('live_deactivate_' . $product->getId(), $request->request->get('_token'))) {
             return $this->json(['error' => 'Jeton CSRF invalide.'], Response::HTTP_FORBIDDEN);
         }
@@ -124,68 +135,40 @@ class LiveController extends AbstractController
         $product->setIsLive(false);
         $entityManager->flush();
 
+        // Notifier tous les clients que ce produit est retiré
+        $hub->publish(new Update(
+            self::LIVE_TOPIC,
+            json_encode([
+                'event' => 'product_deactivated',
+                'id'    => $product->getId(),
+            ])
+        ));
+
         return $this->json([
             'success' => true,
             'message' => 'Produit "' . $product->getName() . '" a été retiré.',
-            'product' => [
-                'id' => $product->getId()
-            ]
         ]);
     }
 
     /**
-     * SSE Stream for real-time updates.
-     * Clients (Home page) will listen to this to know when products are added/removed
-     * or when stocks change.
+     * Endpoint initial : renvoie les produits déjà en live au chargement de la page.
+     * Appelé une seule fois par le JS au démarrage, avant de s'abonner à Mercure.
      */
-    #[Route('/api/live/stream', name: 'api_live_stream')]
-    public function sseStream(ProductRepository $productRepository): StreamedResponse
+    #[Route('/api/live/products', name: 'api_live_products', methods: ['GET'])]
+    public function getLiveProducts(ProductRepository $productRepository): JsonResponse
     {
-        $response = new StreamedResponse(function () use ($productRepository) {
-            $lastData = '';
+        $products = $productRepository->findBy(['isLive' => true]);
 
-            while (true) {
-                // Fetch all live products and their stocks
-                $liveProducts = $productRepository->findBy(['isLive' => true]);
-                
-                $data = [];
-                foreach ($liveProducts as $p) {
-                    $data[] = [
-                        'id' => $p->getId(),
-                        'name' => $p->getName(),
-                        'description' => $p->getDescription(),
-                        'price' => $p->getPrice(),
-                        'originalPrice' => $p->getOriginalPrice(),
-                        'stock' => $p->getStock(),
-                        'image' => $p->getImageFilename()
-                    ];
-                }
+        $data = array_map(fn(Product $p) => [
+            'id'            => $p->getId(),
+            'name'          => $p->getName(),
+            'description'   => $p->getDescription(),
+            'price'         => $p->getPrice(),
+            'originalPrice' => $p->getOriginalPrice(),
+            'stock'         => $p->getStock(),
+            'image'         => $p->getImageFilename(),
+        ], $products);
 
-                $jsonContent = json_encode($data);
-
-                // Only send update if data has changed
-                if ($jsonContent !== $lastData) {
-                    echo "data: " . $jsonContent . "\n\n";
-                    $lastData = $jsonContent;
-                    ob_flush();
-                    flush();
-                }
-
-                // Break loop if connection is closed
-                if (connection_aborted()) {
-                    break;
-                }
-
-                // Wait 2 seconds before next check to preserve server resources
-                sleep(2);
-            }
-        });
-
-        $response->headers->set('Content-Type', 'text/event-stream');
-        $response->headers->set('Cache-Control', 'no-cache');
-        $response->headers->set('Connection', 'keep-alive');
-        $response->headers->set('X-Accel-Buffering', 'no'); // Important for Nginx/Proxy buffer
-
-        return $response;
+        return $this->json($data);
     }
 }
