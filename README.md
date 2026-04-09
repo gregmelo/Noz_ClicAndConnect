@@ -1,6 +1,6 @@
 # Noz Clic & Connect
 
-Noz Clic & Connect est une plateforme de réservation en ligne pour les magasins NOZ. Elle permet aux clients de parcourir le catalogue de produits, d'ajouter des articles à leur panier et de valider des réservations à récupérer ultérieurement en magasin. La plateforme offre également une gestion administrative complète pour les employés et administrateurs.
+Noz Clic & Connect est une plateforme de réservation en ligne pour les magasins NOZ, pensée autour des **ventes en live**. Elle permet aux clients de parcourir le catalogue de produits, de préparer leur panier et de valider leurs réservations en temps réel pendant les sessions live, pour une récupération ultérieure en magasin. La plateforme offre également une gestion administrative complète pour les employés et administrateurs.
 
 ## 📚 Sommaire
 
@@ -25,6 +25,8 @@ Noz Clic & Connect est une plateforme de réservation en ligne pour les magasins
 - **Expérience Live** :
    - Mise en avant des **arrivages du jour** avec badge EN LIVE.
    - Affichage d'un prochain live avec compte à rebours dynamique lorsqu'une date de live est planifiée.
+   - Parcours de **réservation dédié aux lives** : les clients réservent en direct les produits présentés pendant le live, avec validation des réservations limitée à la durée de l'événement.
+   - Mise à jour **temps réel** de l'interface pendant les lives (produits, disponibilités, paniers) via le hub **Mercure**, conçu pour gérer plusieurs dizaines de milliers de connexions simultanées.
 - **Fiches produits enrichies** : Support de plusieurs images par produit avec galerie/carrousel sur la page de détail.
 
 ### 💼 Employé (ROLE_EMPLOYEE)
@@ -47,6 +49,7 @@ Noz Clic & Connect est une plateforme de réservation en ligne pour les magasins
 - **Base de données** : MySQL / PostgreSQL (via Doctrine ORM)
 - **Uploads** : Intervention Image (optimisation et redimensionnement)
 - **Interactions JS** : Stimulus Controllers (Live, Confetti, Optimisation Image, Alertes temps réel, bandeau PWA, notifications mobiles)
+ - **Temps réel** : Symfony Mercure Hub pour la diffusion d'événements serveur → clients, dimensionné pour supporter des pics de trafic importants (jusqu'à ~20k connexions simultanées pendant les lives).
 - **PWA** : Service Worker, manifest et application installable (Add to Home Screen / Install app).
 - **Notifications Web Push** : Minishlink/WebPush avec clés VAPID, côté client via l'API Push et côté serveur avec Symfony.
 - **E-mails** : Symfony Mailer configuré via `MAILER_DSN` (voir `docs/EMAIL_CONFIGURATION.md`).
