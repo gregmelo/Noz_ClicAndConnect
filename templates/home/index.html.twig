@@ -192,10 +192,10 @@
     <!-- Résumé live / compte à rebours -->
     <div class="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div class="text-gray-600">
-            <strong>{{ products|length }}</strong> produit(s) actuellement en ligne
+            <strong data-live-display-target="count">{{ products|length }}</strong> produit(s) actuellement en ligne
         </div>
 
-        {% if liveInProgress %}
+        <div data-live-display-target="badge" class="{{ not liveInProgress ? 'hidden' : '' }}">
             <div class="flex items-center gap-2">
                 <span class="flex h-3 w-3">
                     <span class="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-red-400 opacity-75"></span>
@@ -203,7 +203,9 @@
                 </span>
                 <span class="text-sm font-bold text-red-600 uppercase tracking-wider">Live en cours</span>
             </div>
-        {% else %}
+        </div>
+
+        <div data-live-display-target="countdownContainer" class="{{ liveInProgress ? 'hidden' : '' }}">
             {% if nextLiveAt %}
                 <div id="next-live-countdown" data-next-live="{{ nextLiveAt|date('c') }}" class="flex items-center gap-3 text-base md:text-lg bg-blue-50 border border-noz-blue text-noz-blue px-4 py-3 rounded-xl shadow-sm" aria-live="polite">
                     <span class="font-semibold">Prochain live&nbsp;: </span>
@@ -212,7 +214,7 @@
             {% else %}
                 <div class="text-sm md:text-base text-gray-500 italic">Pas de live prévu pour le moment.</div>
             {% endif %}
-        {% endif %}
+        </div>
     </div>
     
     <div data-controller="live-display"

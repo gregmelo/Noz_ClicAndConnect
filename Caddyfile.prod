@@ -1,0 +1,13 @@
+{
+    email nozclicandcollect@gmail.com
+}
+
+https://nozamberieu.fr {
+    mercure {
+        publisher_jwt {env.MERCURE_JWT_SECRET}
+        subscriber_jwt {env.MERCURE_JWT_SECRET}
+        cors_origins https://nozamberieu.fr
+    }
+
+    respond /healthz 200
+}

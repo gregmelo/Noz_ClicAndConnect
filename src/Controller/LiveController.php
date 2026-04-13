@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class LiveController extends AbstractController
 {
     // Topic Mercure partagé entre le serveur et les clients JS
-    private const LIVE_TOPIC = 'https://noz.fr/live/products';
+    private const LIVE_TOPIC = 'https://nozamberieu.fr/live/products';
 
     #[Route('/live', name: 'app_live_dashboard')]
     #[IsGranted('ROLE_EMPLOYEE')]
@@ -39,7 +39,8 @@ class LiveController extends AbstractController
     public function schedule(
         Request $request,
         GlobalStatRepository $globalStatRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        HubInterface $hub
     ): Response {
         if (!$this->isCsrfTokenValid('schedule_next_live', $request->request->get('_token'))) {
             $this->addFlash('danger', 'Jeton de sécurité invalide.');
@@ -55,6 +56,13 @@ class LiveController extends AbstractController
         if ($action === 'clear') {
             $globalStat->setNextLiveAt(null);
             $entityManager->flush();
+
+            // Notifier les clients
+            $hub->publish(new Update(
+                self::LIVE_TOPIC,
+                json_encode(['event' => 'live_schedule_updated', 'nextLiveAt' => null])
+            ));
+
             $this->addFlash('success', 'Aucun live n\'est désormais programmé.');
             return $this->redirectToRoute('app_live_dashboard');
         }
@@ -73,6 +81,12 @@ class LiveController extends AbstractController
 
         $globalStat->setNextLiveAt($nextLiveAt);
         $entityManager->flush();
+
+        // Notifier les clients
+        $hub->publish(new Update(
+            self::LIVE_TOPIC,
+            json_encode(['event' => 'live_schedule_updated', 'nextLiveAt' => $nextLiveAt->format('c')])
+        ));
 
         $this->addFlash('success', sprintf(
             'Prochain live programmé le %s à %s.',

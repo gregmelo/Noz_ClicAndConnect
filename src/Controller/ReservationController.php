@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Reservation;
 use App\Entity\ReservationItem;
 use App\Entity\User;
+use App\Message\ReservationNotificationMessage;
 use App\Repository\ReservationRepository;
 use App\Repository\UserRepository;
 use App\Service\ActivityLogger;
@@ -16,6 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -37,6 +39,7 @@ class ReservationController extends AbstractController
         private PushNotificationService $pushService,
         private UserRepository $userRepository,
         private LoggerInterface $logger,
+        private MessageBusInterface $messageBus,
         private \Symfony\Component\RateLimiter\RateLimiterFactory $reservationLimiter
     ) {
     }
@@ -103,32 +106,53 @@ class ReservationController extends AbstractController
             return $this->redirectToRoute('app_cart_index');
         }
 
-        // Check reservation limit (max 5 active reservations)
-        // Note: Logic might need adjustment. Is it 5 active ORDERS or 5 active ITEMS?
-        // Assuming 5 active ORDERS for now as per previous logic structure, but maybe we should limit items?
-        // Let's stick to 5 active orders to prevent spamming.
-        $activeReservationsCount = $entityManager->getRepository(Reservation::class)->count([
+        // Check for an existing ACTIVE and non-expired reservation to group items
+        /** @var Reservation|null $existingReservation */
+        $existingReservation = $entityManager->getRepository(Reservation::class)->findOneBy([
             'user' => $user,
             'status' => 'ACTIVE'
-        ]);
+        ], ['reservedAt' => 'DESC']);
 
-        if ($activeReservationsCount >= 5) {
-            $this->addFlash('danger', 'Vous avez atteint la limite de 5 réservations actives. Veuillez récupérer vos articles avant de réserver à nouveau.');
-            return $this->redirectToRoute('app_cart_index');
+        if ($existingReservation && $existingReservation->isExpired()) {
+            $existingReservation = null;
         }
 
-        // Create Reservation Header
-        $reservation = new Reservation();
-        $reservation->setUser($user);
-        $reservation->setExpiresAt((new \DateTimeImmutable())->modify('+48 hours'));
-        $reservation->setComment($request->request->get('comment'));
-        
-        // Generate Reference
-        $date = (new \DateTime())->format('Ymd');
-        $uniqId = strtoupper(substr(uniqid(), -4));
-        $reservation->setReference(sprintf('RES-%s-%s', $date, $uniqId));
+        if ($existingReservation) {
+            $reservation = $existingReservation;
+            // Update expiration to 48h from now
+            $reservation->setExpiresAt((new \DateTimeImmutable())->modify('+48 hours'));
+            
+            // Append comment if provided
+            $newComment = $request->request->get('comment');
+            if ($newComment) {
+                $currentComment = $reservation->getComment();
+                $reservation->setComment($currentComment ? $currentComment . " | " . $newComment : $newComment);
+            }
+        } else {
+            // Check reservation limit only if creating a NEW one
+            $activeReservationsCount = $entityManager->getRepository(Reservation::class)->count([
+                'user' => $user,
+                'status' => 'ACTIVE'
+            ]);
 
-        $entityManager->persist($reservation);
+            if ($activeReservationsCount >= 5) {
+                $this->addFlash('danger', 'Vous avez atteint la limite de 5 réservations actives. Veuillez récupérer vos articles avant de réserver à nouveau.');
+                return $this->redirectToRoute('app_cart_index');
+            }
+
+            // Create New Reservation Header
+            $reservation = new Reservation();
+            $reservation->setUser($user);
+            $reservation->setExpiresAt((new \DateTimeImmutable())->modify('+48 hours'));
+            $reservation->setComment($request->request->get('comment'));
+            
+            // Generate Reference
+            $date = (new \DateTime())->format('Ymd');
+            $uniqId = strtoupper(substr(uniqid(), -4));
+            $reservation->setReference(sprintf('RES-%s-%s', $date, $uniqId));
+            
+            $entityManager->persist($reservation);
+        }
 
         // Process Items
         foreach ($cartItems as $cartItem) {
@@ -157,60 +181,48 @@ class ReservationController extends AbstractController
             $product->setStock($product->getStock() - $quantity);
             $entityManager->persist($product);
 
-            // Create Reservation Item
-            $item = new ReservationItem();
-            $item->setReservation($reservation);
-            $item->setProduct($product);
-            $item->setQuantity($quantity);
-            $item->setPrice($product->getPrice());
-            $entityManager->persist($item);
-            
-            // Add to collection so it's available for the email immediately
-            $reservation->addReservationItem($item);
+            // Check if product is already in this reservation
+            $existingItem = null;
+            foreach ($reservation->getReservationItems() as $resItem) {
+                if ($resItem->getProduct()->getId() === $product->getId()) {
+                    $existingItem = $resItem;
+                    break;
+                }
+            }
+
+            if ($existingItem) {
+                // Update existing item quantity
+                $existingItem->setQuantity($existingItem->getQuantity() + $quantity);
+                $entityManager->persist($existingItem);
+            } else {
+                // Create New Reservation Item
+                $item = new ReservationItem();
+                $item->setReservation($reservation);
+                $item->setProduct($product);
+                $item->setQuantity($quantity);
+                $item->setPrice($product->getPrice());
+                $entityManager->persist($item);
+                
+                // Add to collection
+                $reservation->addReservationItem($item);
+            }
         }
 
         $entityManager->flush();
 
-        // Log activity (using first product ID as reference or 0 for bulk)
-        // Ideally update logger to handle bulk or just log "Reservation created"
+        // Log activity
         $this->activityLogger->logReservation($user, $reservation->getReference(), count($cartItems));
 
-        // Send confirmation email (if user n'a pas la PWA, voir EmailNotificationService)
-        $this->emailService->sendReservationConfirmation($reservation);
-
-        // Notification push au client (PWA activée)
-        try {
-            $this->pushService->sendToUser(
-                $user,
-                '✅ Réservation confirmée',
-                'Votre réservation ' . $reservation->getReference() . ' a bien été enregistrée.',
-                $this->generateUrl('app_my_reservations')
-            );
-        } catch (\Exception $e) {
-            $this->logger->error('Push notification failed for client ' . $user->getId() . ' in validate: ' . $e->getMessage());
-        }
+        // Dispatch notification message (Async)
+        $this->messageBus->dispatch(new ReservationNotificationMessage($reservation->getId()));
 
         // Clear cart immediately
         $this->cartService->clear();
 
-        // Notify Employees (Async-ish / Try-catch to not block completion)
-        try {
-            $employees = $this->userRepository->findEmployees();
-            foreach ($employees as $employee) {
-                $this->pushService->sendToUser(
-                    $employee,
-                    '🔔 Nouvelle Réservation !',
-                    'Une nouvelle réservation (' . $reservation->getReference() . ') vient d\'être effectuée.',
-                    $this->generateUrl('app_employee_reservations')
-                );
-            }
-            // Flush toutes les notifications (client + employés)
-            $this->pushService->flush();
-        } catch (\Exception $e) {
-            $this->logger->error('Push notification failed during validation: ' . $e->getMessage());
-        }
-
-        $this->addFlash('success', 'Réservation validée avec succès ! Référence : ' . $reservation->getReference());
+        $this->addFlash('success', sprintf('Réservation %s effectuée avec succès ! Référence : %s', 
+            $existingReservation ? 'mise à jour' : 'validée', 
+            $reservation->getReference()
+        ));
 
         return $this->redirectToRoute('app_my_reservations');
     }
