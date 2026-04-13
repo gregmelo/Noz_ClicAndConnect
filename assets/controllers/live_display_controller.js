@@ -10,10 +10,13 @@ export default class extends Controller {
 
     connect() {
         console.log("Live Display Controller Connected (Mercure)");
+        console.log("DEBUG: Container target found?", this.hasContainerTarget);
+        console.log("DEBUG: Count target found?", this.hasCountTarget);
+        console.log("DEBUG: Badge target found?", this.hasBadgeTarget);
+        console.log("DEBUG: CountdownContainer target found?", this.hasCountdownContainerTarget);
+        
         this.productCount = 0;
-        // 1. Charger les produits déjà en live au chargement de la page
         this.loadInitialProducts();
-        // 2. S'abonner à Mercure pour les mises à jour suivantes
         this.subscribeToMercure();
     }
 
@@ -30,6 +33,7 @@ export default class extends Controller {
             if (!res.ok) return;
             const products = await res.json();
             this.productCount = products.length;
+            console.log("DEBUG: Initial product count:", this.productCount);
             this.renderAll(products);
             this.updateGlobalUI();
         } catch (error) {
@@ -49,8 +53,10 @@ subscribeToMercure() {
             const data = JSON.parse(event.data);
             console.log("Data parsée:", data);
             if (data.event === "product_activated") {
+                console.log("DEBUG: Activating product", data.id);
                 this.addProduct(data);
             } else if (data.event === "product_deactivated") {
+                console.log("DEBUG: Deactivating product", data.id);
                 this.removeProduct(data.id);
             } else if (data.event === "stock_updated") {
                 this.updateStock(data.id, data.stock);
@@ -92,6 +98,7 @@ subscribeToMercure() {
         if (document.getElementById(`product-card-${product.id}`)) return;
 
         this.productCount++;
+        console.log("DEBUG: Incremented count to:", this.productCount);
         this.updateGlobalUI();
 
         // Masquer le message "pas de produits"
@@ -120,6 +127,7 @@ subscribeToMercure() {
         if (!card) return;
 
         this.productCount = Math.max(0, this.productCount - 1);
+        console.log("DEBUG: Decremented count to:", this.productCount);
         this.updateGlobalUI();
 
         // Animation de disparition
@@ -138,9 +146,14 @@ subscribeToMercure() {
 
     // Met à jour les éléments de l'en-tête (compteur, badge live, etc.)
     updateGlobalUI() {
+        console.log("DEBUG: updateGlobalUI called with count:", this.productCount);
+        
         // Mettre à jour le compteur
         if (this.hasCountTarget) {
+            console.log("DEBUG: Updating count target element");
             this.countTarget.textContent = this.productCount;
+        } else {
+            console.log("DEBUG: Count target NOT FOUND in DOM");
         }
 
         // Gérer le badge "Live en cours" vs "Compte à rebours"

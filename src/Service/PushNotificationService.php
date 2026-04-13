@@ -25,7 +25,11 @@ class PushNotificationService
             ],
         ];
 
-        $this->webPush = new WebPush($auth);
+        $options = [
+            'config' => 'C:\xampp\php\extras\ssl\openssl.cnf'
+        ];
+
+        $this->webPush = new WebPush($auth, $options);
     }
 
     /**
