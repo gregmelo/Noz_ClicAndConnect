@@ -4,8 +4,9 @@ import { Controller } from "@hotwired/stimulus";
 export default class extends Controller {
     static targets = ["container", "noProductMessage", "count", "badge", "countdownContainer"];
     static values = {
-        mercureUrl: String, // URL publique du hub Mercure
-        initialUrl: String, // Endpoint pour charger les produits déjà en live
+        mercureUrl: String, 
+        initialUrl: String, 
+        imagesPath: String,
     };
 
     connect() {
@@ -213,8 +214,8 @@ subscribeToMercure() {
             ? `<span class="text-sm line-through text-gray-400 ml-2">${new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(p.originalPrice)}</span>`
             : "";
         const imagePath = p.image
-            ? `/uploads/images/${p.image}`
-            : "/uploads/images/no-image.png";
+            ? `${this.imagesPathValue}${p.image}`
+            : `${this.imagesPathValue}placeholder.svg`;
 
         return `
             <div id="product-card-${p.id}" class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 transition-all hover:shadow-xl group">

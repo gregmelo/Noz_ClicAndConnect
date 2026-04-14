@@ -13,7 +13,12 @@
 {% block title %}Réservations à Récupérer{% endblock %}
 
 {% block body %}
-<div class="container mx-auto px-4 py-8">
+{# Force Turbo to fetch fresh content and never use cache for this management page #}
+<meta name="turbo-cache-control" content="no-cache">
+
+<div class="container mx-auto px-4 py-8" 
+     data-controller="reservation-list"
+     data-reservation-list-mercure-url-value="{{ mercure('res-updates') }}">
     <h1 class="text-2xl sm:text-3xl font-bold mb-8 text-noz-blue">Gestion des Réservations</h1>
     
     <div id="preparation-selection-area">
@@ -41,7 +46,15 @@
         'type': 'expired'
     } %}
 
-    {# Section 4: Traitées #}
+    {# Section 4: Annulées par le Client #}
+    {% include 'reservation/_section.html.twig' with {
+        'title': 'Annulations par le client', 
+        'reservations': cancelledReservations, 
+        'color': 'orange', 
+        'type': 'cancelled'
+    } %}
+
+    {# Section 5: Traitées #}
     {% include 'reservation/_section.html.twig' with {
         'title': 'Historique / Traitées', 
         'reservations': collectedReservations, 

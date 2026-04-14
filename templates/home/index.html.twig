@@ -191,7 +191,8 @@
     
     <div data-controller="live-display"
          data-live-display-mercure-url-value="{{ mercure('https://nozamberieu.fr/live/products') }}"
-         data-live-display-initial-url-value="{{ path('api_live_products') }}">
+         data-live-display-initial-url-value="{{ path('api_live_products') }}"
+         data-live-display-images-path-value="{{ asset('uploads/images/') }}">
     
     <!-- Résumé live / compte à rebours -->
     <div class="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">

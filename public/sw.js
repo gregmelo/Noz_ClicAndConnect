@@ -1,4 +1,4 @@
-const CACHE_NAME = 'noz-clic-cache-v2';
+const CACHE_NAME = 'noz-clic-cache-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',

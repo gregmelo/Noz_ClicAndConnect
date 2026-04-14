@@ -3,7 +3,9 @@
 {% block title %}Mes Réservations{% endblock %}
 
 {% block body %}
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 py-8"
+     data-controller="reservation-list"
+     data-reservation-list-mercure-url-value="{{ mercure('res-updates') }}">
     {% include 'components/_breadcrumb.html.twig' with {
         'breadcrumbs': [
             {'label': 'Mes Réservations', 'url': null}

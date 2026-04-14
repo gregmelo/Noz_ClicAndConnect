@@ -17,19 +17,28 @@ class PushNotificationService
         private string $vapidPrivateKey,
         private LoggerInterface $logger,
     ) {
+        // Fix for Windows/XAMPP: ensure OpenSSL can find its config file
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            $opensslConfig = 'C:\xampp\php\extras\ssl\openssl.cnf';
+            if (file_exists($opensslConfig)) {
+                putenv("OPENSSL_CONF=$opensslConfig");
+            }
+        }
+
+        // Clean keys to avoid hidden characters or quotes issues
+        $cleanPublic = trim($this->vapidPublicKey, " \t\n\r\0\x0B\"");
+        $cleanPrivate = trim($this->vapidPrivateKey, " \t\n\r\0\x0B\"");
+
         $auth = [
             'VAPID' => [
-                'subject' => 'mailto:admin@noz-amberieu.fr', // Should be configurable
-                'publicKey' => $vapidPublicKey,
-                'privateKey' => $vapidPrivateKey,
+                'subject' => 'mailto:admin@noz-amberieu.fr',
+                'publicKey' => $cleanPublic,
+                'privateKey' => $cleanPrivate,
             ],
         ];
 
-        $options = [
-            'config' => 'C:\xampp\php\extras\ssl\openssl.cnf'
-        ];
-
-        $this->webPush = new WebPush($auth, $options);
+        // Direct initialization. If it fails here, Symfony will show a clear error.
+        $this->webPush = new WebPush($auth);
     }
 
     /**
@@ -60,6 +69,11 @@ class PushNotificationService
             'url' => $url,
         ]);
 
+        if (!isset($this->webPush)) {
+            $this->logger->error("[PushNotificationService] WebPush not initialized. Skipping notification.");
+            return;
+        }
+
         $this->webPush->queueNotification($subscription, $payload);
     }
 
@@ -73,6 +87,8 @@ class PushNotificationService
             $endpoint = $report->getEndpoint();
             if (!$report->isSuccess()) {
                 $this->logger->error("[WebPush] Message failed to sent for subscription {$endpoint}: {$report->getReason()}");
+            } else {
+                $this->logger->info("[WebPush] Message successfully sent to {$endpoint}");
             }
         }
     }

@@ -18,7 +18,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Mercure\HubInterface;
+use Symfony\Component\Mercure\Update;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
@@ -40,7 +43,9 @@ class ReservationController extends AbstractController
         private UserRepository $userRepository,
         private LoggerInterface $logger,
         private MessageBusInterface $messageBus,
-        private \Symfony\Component\RateLimiter\RateLimiterFactory $reservationLimiter
+        private \Symfony\Component\RateLimiter\RateLimiterFactory $reservationLimiter,
+        private HubInterface $hub,
+        private ReservationRepository $reservationRepo
     ) {
     }
 
@@ -219,6 +224,10 @@ class ReservationController extends AbstractController
         // Clear cart immediately
         $this->cartService->clear();
 
+        // Notify employees
+        $this->publishStatsUpdate();
+        $this->publishPageRefresh();
+
         $this->addFlash('success', sprintf('Réservation %s effectuée avec succès ! Référence : %s', 
             $existingReservation ? 'mise à jour' : 'validée', 
             $reservation->getReference()
@@ -297,6 +306,8 @@ class ReservationController extends AbstractController
         }
 
         $entityManager->flush();
+        $this->publishStatsUpdate();
+        $this->publishPageRefresh();
 
         // Log activity
         $this->activityLogger->logReservationCancelled($user, $reservation->getReference());
@@ -376,7 +387,7 @@ class ReservationController extends AbstractController
                 $reservation->getUser(),
                 '📦 Votre commande est prête !',
                 'Bonne nouvelle ! Votre réservation ' . $reservation->getReference() . ' est prête pour le retrait.',
-                $this->generateUrl('app_my_reservations')
+                $this->generateUrl('app_my_reservations', [], UrlGeneratorInterface::ABSOLUTE_URL)
             );
         } catch (\Exception $e) {
             // Log individual failure, but don't block the main process
@@ -393,6 +404,9 @@ class ReservationController extends AbstractController
         }
 
         $this->addFlash('success', 'Réservation prête. Le client a jusqu\'au ' . $expiresAt->format('d/m H:i') . ' pour la récupérer.');
+
+        $this->publishStatsUpdate();
+        $this->publishPageRefresh();
 
         return $this->redirectToRoute('app_employee_reservations');
     }
@@ -420,6 +434,8 @@ class ReservationController extends AbstractController
         }
 
         $reservation->setStatus('COLLECTED');
+        $this->publishStatsUpdate();
+        $this->publishPageRefresh();
 
         // Update persistent stats for each products creator
         foreach ($reservation->getReservationItems() as $item) {
@@ -493,24 +509,33 @@ class ReservationController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        // 3. Expirées (CANCELED, EXPIRED ou date passée et non récupérées)
+        // 3. Expirées (EXPIRED ou date passée et non récupérées)
         $expiredReservations = $reservationRepository->createQueryBuilder('r')
-            ->where('r.status IN (:done_statuses)')
+            ->where('r.status = :status_expired')
             ->orWhere('r.status IN (:active_ready) AND r.expiresAt <= :now')
-            ->setParameter('done_statuses', ['CANCELLED', 'EXPIRED'])
+            ->setParameter('status_expired', 'EXPIRED')
             ->setParameter('active_ready', ['ACTIVE', 'READY'])
             ->setParameter('now', $now)
             ->orderBy('r.expiresAt', 'DESC')
-            ->setMaxResults(20) // Limit display
+            ->setMaxResults(20)
             ->getQuery()
             ->getResult();
 
-        // 4. Traitées (COLLECTED)
+        // 4. Annulées (CANCELLED par le client)
+        $cancelledReservations = $reservationRepository->createQueryBuilder('r')
+            ->where('r.status = :status_cancelled')
+            ->setParameter('status_cancelled', 'CANCELLED')
+            ->orderBy('r.reservedAt', 'DESC')
+            ->setMaxResults(20)
+            ->getQuery()
+            ->getResult();
+
+        // 5. Traitées (COLLECTED)
         $collectedReservations = $reservationRepository->createQueryBuilder('r')
             ->where('r.status = :status')
             ->setParameter('status', 'COLLECTED')
             ->orderBy('r.reservedAt', 'DESC')
-            ->setMaxResults(20) // Limit display
+            ->setMaxResults(20)
             ->getQuery()
             ->getResult();
 
@@ -518,6 +543,7 @@ class ReservationController extends AbstractController
             'newReservations' => $newReservations,
             'readyReservations' => $readyReservations,
             'expiredReservations' => $expiredReservations,
+            'cancelledReservations' => $cancelledReservations,
             'collectedReservations' => $collectedReservations,
         ]);
     }
@@ -656,7 +682,7 @@ class ReservationController extends AbstractController
                         $reservation->getUser(),
                         '📦 Votre commande est prête !',
                         'Bonne nouvelle ! Votre réservation ' . $reservation->getReference() . ' est prête pour le retrait.',
-                        $this->generateUrl('app_my_reservations')
+                        $this->generateUrl('app_my_reservations', [], UrlGeneratorInterface::ABSOLUTE_URL)
                     );
                 } catch (\Exception $e) {
                     $this->logger->error('Push notification failed for user ' . $reservation->getUser()->getId() . ' in batchReady: ' . $e->getMessage());
@@ -675,6 +701,8 @@ class ReservationController extends AbstractController
             $this->logger->error('Push notification flush failed in batchReady: ' . $e->getMessage());
         }
 
+        $this->publishPageRefresh();
+
         // Audit Log
         if ($count > 0) {
             $this->activityLogger->logUserAction($this->getUser(), 'RESERVATIONS_BATCH_READY', [
@@ -686,5 +714,36 @@ class ReservationController extends AbstractController
         $this->addFlash('success', sprintf('%d réservations ont été marquées comme PRÊTES.', $count));
         
         return $this->redirectToRoute('app_employee_reservations');
+    }
+
+    /**
+     * Publishes the latest reservation stats to Mercure (for employees)
+     */
+    private function publishStatsUpdate(): void
+    {
+        $count = (int) $this->reservationRepo->createQueryBuilder('r')
+            ->select('count(r.id)')
+            ->where('r.status = :status')
+            ->andWhere('r.expiresAt > :now')
+            ->setParameter('status', 'ACTIVE')
+            ->setParameter('now', new \DateTimeImmutable())
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $this->hub->publish(new Update(
+            'https://nozamberieu.fr/employee/stats',
+            json_encode(['event' => 'reservation_count_updated', 'count' => $count])
+        ));
+    }
+
+    /**
+     * Publishes a signal to refresh reservation lists on all clients
+     */
+    private function publishPageRefresh(): void
+    {
+        $this->hub->publish(new Update(
+            'res-updates',
+            json_encode(['event' => 'reservation_updated', 'timestamp' => time()])
+        ));
     }
 }

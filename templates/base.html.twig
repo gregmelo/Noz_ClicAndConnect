@@ -133,17 +133,19 @@
                                 </svg>
                                 <span class="text-sm xl:text-base">Produits</span>
                             </a>
-                            <a href="{{ path('app_employee_reservations') }}" class="hover:text-noz-yellow transition flex items-center gap-1.5 relative">
+                            <a href="{{ path('app_employee_reservations') }}" 
+                               class="hover:text-noz-yellow transition flex items-center gap-1.5 relative"
+                               data-controller="reservation-alert"
+                               data-reservation-alert-mercure-url-value="{{ mercure('https://nozamberieu.fr/employee/stats') }}"
+                               data-reservation-alert-url-value="{{ path('api_reservations_count_new') }}">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                                 </svg>
                                 <span class="text-sm xl:text-base">Réservations</span>
                                 {% set todoCount = store_todo_count() %}
-                                {% if todoCount > 0 %}
-                                    <span class="bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm ml-1">
-                                        {{ todoCount }}
-                                    </span>
-                                {% endif %}
+                                <span data-reservation-alert-target="badge" class="{% if todoCount == 0 %}hidden{% endif %} bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm ml-1">
+                                    <span data-reservation-alert-target="count">{{ todoCount }}</span>
+                                </span>
                             </a>
                             
                             <!-- Live Dashboard: visible for employee -->
@@ -313,6 +315,7 @@
                         <a href="{{ path('app_employee_reservations') }}" 
                            class="block py-2 px-4 hover:bg-blue-700 rounded transition flex items-center justify-between"
                            data-controller="reservation-alert"
+                           data-reservation-alert-mercure-url-value="{{ mercure('https://nozamberieu.fr/employee/stats') }}"
                            data-reservation-alert-url-value="{{ path('api_reservations_count_new') }}">
                             <span>Gestion Réservations</span>
                             {% set todoCount = store_todo_count() %}

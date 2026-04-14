@@ -138,6 +138,7 @@
                              <div class="text-xs font-bold text-{{ color }}-600 bg-{{ color }}-50 px-2 py-1 rounded">
                                 {% if type == 'new' %}Nouveau
                                 {% elseif type == 'ready' %}Prêt
+                                {% elseif type == 'cancelled' %}Annulé
                                 {% elseif type == 'expired' %}Expiré
                                 {% else %}Terminé{% endif %}
                              </div>
