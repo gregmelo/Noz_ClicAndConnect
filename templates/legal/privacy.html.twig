@@ -4,37 +4,57 @@
 
 {% block body %}
 <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="mb-8">
+        {% include 'components/_breadcrumb.html.twig' with {
+            'breadcrumbs': [
+                {'label': 'Confidentialité', 'url': null}
+            ]
+        } %}
+    </div>
+
     <h1 class="text-3xl font-bold text-noz-blue mb-8">Politique de Confidentialité</h1>
 
-    <div class="bg-white shadow-md rounded-lg p-6 space-y-6">
+    <div class="bg-white shadow-md rounded-2xl p-6 sm:p-8 space-y-8 border border-gray-100 text-gray-600 leading-relaxed">
         <section>
-            <h2 class="text-xl font-semibold text-gray-800 mb-2">1. Collecte des données</h2>
-            <p class="text-gray-600">
-                Nous collectons les informations suivantes lors de votre inscription et de l'utilisation de nos services :
-                <ul class="list-disc ml-6 mt-2">
-                    <li>Nom et prénom</li>
-                    <li>Adresse email</li>
-                    <li>Données de connexion</li>
-                </ul>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">1. Collecte des données</h2>
+            <p class="mb-4">Nous collectons uniquement les données strictement nécessaires au bon fonctionnement du service de réservation :</p>
+            <ul class="list-disc pl-5 space-y-2">
+                <li><strong>Identité :</strong> Nom et Prénom pour l'identification lors du retrait en magasin.</li>
+                <li><strong>Contact :</strong> Adresse e-mail pour l'envoi des confirmations de réservation et des alertes de mise à disposition.</li>
+                <li><strong>Techniques :</strong> Jetons de notification Push (si activés) pour vous alerter en temps réel sur votre appareil.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">2. Utilisation des données</h2>
+            <p>Vos données sont utilisées exclusivement pour :</p>
+            <ul class="list-disc pl-5 space-y-2">
+                <li>La gestion de vos réservations et de votre panier.</li>
+                <li>Le suivi de votre historique et la gestion des "Strikes" (pénalités pour non-retrait).</li>
+                <li>L'envoi de notifications administratives (commande prête, expiration, etc.).</li>
+            </ul>
+            <p class="mt-4 font-semibold text-noz-blue italic">Nous ne vendons ni ne partageons vos données personnelles à des tiers à des fins commerciales.</p>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">3. Durée de conservation</h2>
+            <p>
+                Vos données de compte sont conservées tant que votre compte est actif. En cas d'inactivité prolongée (supérieure à 2 ans), vos données personnelles pourront être anonymisées ou supprimées selon la réglementation RGPD.
             </p>
         </section>
 
         <section>
-            <h2 class="text-xl font-semibold text-gray-800 mb-2">2. Utilisation des données</h2>
-            <p class="text-gray-600">
-                Vos données sont utilisées pour :
-                <ul class="list-disc ml-6 mt-2">
-                    <li>Gérer votre compte utilisateur</li>
-                    <li>Traiter vos réservations</li>
-                    <li>Vous contacter en cas de besoin</li>
-                </ul>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">4. Gestion des Notifications</h2>
+            <p>
+                Vous avez le plein contrôle sur les notifications Push. Vous pouvez activer ou désactiver ce service à tout moment depuis votre page de <strong>Profil</strong> sur la plateforme, ou via les paramètres de votre navigateur/appareil.
             </p>
         </section>
 
         <section>
-            <h2 class="text-xl font-semibold text-gray-800 mb-2">3. Vos droits</h2>
-            <p class="text-gray-600">
-                Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et de suppression de vos données. Vous pouvez exercer ces droits en nous contactant ou via votre page profil.
+            <h2 class="text-xl font-bold text-gray-900 mb-4">5. Vos Droits</h2>
+            <p>
+                Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et de suppression de vos données. Vous pouvez exercer ces droits en nous contactant à l'adresse suivante : 
+                <a href="mailto:contact@lain-terface.fr" class="text-noz-blue hover:underline">contact@lain-terface.fr</a>.
             </p>
         </section>
     </div>

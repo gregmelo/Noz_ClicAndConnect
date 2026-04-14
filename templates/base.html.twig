@@ -388,12 +388,14 @@
         <footer class="bg-noz-black text-white py-6 mt-auto" role="contentinfo">
             <div class="container mx-auto px-4 text-center">
                 <p>&copy; {{ 'now'|date('Y') }} NOZ AMBERIEU ClicAndCollect. Tous droits réservés.</p>
-                <div class="mt-4 space-x-4 text-sm text-gray-300">
+                <div class="mt-4 space-x-4 text-sm text-gray-400">
                     <a href="{{ path('app_mentions') }}" class="hover:text-white transition">Mentions Légales</a>
-                    <a href="{{ path('app_privacy') }}" class="hover:text-white transition">Politique de Confidentialité</a>
+                    <a href="{{ path('app_privacy') }}" class="hover:text-white transition">Politique</a>
                     <a href="{{ path('app_cgv') }}" class="hover:text-white transition">CGV</a>
+                    <span class="text-gray-600">|</span>
+                    <a href="mailto:contact@lain-terface.fr" class="text-noz-yellow hover:underline transition">Support Technique</a>
                 </div>
-                <p class="text-sm text-gray-300 mt-2">100% Bonnes Affaires</p>
+                <p class="text-xs text-gray-400 mt-4 italic">Développé pour NOZ par <a href="https://www.linkedin.com/in/gregory-vericel/" class="hover:underline">Véricel Grégory</a></p>
             </div>
         </footer>
 

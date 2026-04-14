@@ -40,10 +40,17 @@
                     <p id="password-help" class="text-xs text-gray-500 mt-1">Minimum 12 caractères, 1 majuscule, 1 minuscule, 1 chiffre, 1 caractère spécial</p>
                 </div>
 
-                <div class="flex items-center">
-                    {{ form_widget(registrationForm.agreeTerms, {'attr': {'class': 'mr-2'}}) }}
-                    {{ form_label(registrationForm.agreeTerms, 'J\'accepte les conditions', {'label_attr': {'class': 'text-sm text-gray-700'}}) }}
-                    {{ form_errors(registrationForm.agreeTerms) }}
+                <div class="flex items-start bg-blue-50 p-4 rounded-xl border border-blue-100">
+                    <div class="flex items-center h-5">
+                        {{ form_widget(registrationForm.agreeTerms, {'attr': {'class': 'w-4 h-4 text-noz-blue bg-white border-gray-300 rounded focus:ring-noz-blue focus:ring-2'}}) }}
+                    </div>
+                    <div class="ml-3 text-sm">
+                        <label for="{{ registrationForm.agreeTerms.vars.id }}" class="font-medium text-gray-700 leading-snug">
+                            J'ai lu et j'accepte les <a href="{{ path('app_cgv') }}" class="text-noz-blue font-bold hover:underline" target="_blank">Conditions Générales de Vente</a> 
+                            ainsi que la <a href="{{ path('app_privacy') }}" class="text-noz-blue font-bold hover:underline" target="_blank">Politique de Confidentialité</a>.
+                        </label>
+                        {{ form_errors(registrationForm.agreeTerms) }}
+                    </div>
                 </div>
 
                 <div class="pt-4">

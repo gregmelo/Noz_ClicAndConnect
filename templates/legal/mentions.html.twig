@@ -4,33 +4,61 @@
 
 {% block body %}
 <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="mb-8">
+        {% include 'components/_breadcrumb.html.twig' with {
+            'breadcrumbs': [
+                {'label': 'Mentions Légales', 'url': null}
+            ]
+        } %}
+    </div>
+
     <h1 class="text-3xl font-bold text-noz-blue mb-8">Mentions Légales</h1>
 
-    <div class="bg-white shadow-md rounded-lg p-6 space-y-6">
+    <div class="bg-white shadow-md rounded-2xl p-6 sm:p-8 space-y-8 border border-gray-100">
         <section>
-            <h2 class="text-xl font-semibold text-gray-800 mb-2">1. Éditeur du site</h2>
-            <p class="text-gray-600">
-                Le site <strong>NOZ AMBERIEU ClicAndCollect</strong> est édité par :<br>
-                NOZ AMBERIEU<br>
-                Adresse : [Adresse du magasin]<br>
-                Téléphone : [Numéro de téléphone]<br>
-                Email : [Email de contact]
-            </p>
+            <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-noz-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                1. Éditeur du site
+            </h2>
+            <div class="text-gray-600 leading-relaxed bg-blue-50 p-4 rounded-xl border border-blue-100">
+                <p class="font-bold text-noz-blue mb-1">NOZ AMBÉRIEU ClicAndConnect</p>
+                <p>Exploité par le magasin NOZ d'Ambérieu-en-Bugey</p>
+                <p><strong>Adresse :</strong> 19 Rue Vermorel, 01500 Ambérieu-en-Bugey</p>
+                <p><strong>Téléphone :</strong> 04 86 80 00 39</p>
+            </div>
         </section>
 
         <section>
-            <h2 class="text-xl font-semibold text-gray-800 mb-2">2. Hébergement</h2>
-            <p class="text-gray-600">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-noz-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+                2. Hébergement
+            </h2>
+            <p class="text-gray-600 leading-relaxed">
                 Ce site est hébergé par :<br>
-                [Nom de l'hébergeur]<br>
-                Adresse : [Adresse de l'hébergeur]
+                <strong>AlwaysData</strong><br>
+                91 Rue du Faubourg Saint-Honoré, 75008 Paris<br>
+                Site web : <a href="https://www.alwaysdata.com" class="text-noz-blue hover:underline" target="_blank">www.alwaysdata.com</a>
             </p>
         </section>
 
         <section>
-            <h2 class="text-xl font-semibold text-gray-800 mb-2">3. Propriété intellectuelle</h2>
-            <p class="text-gray-600">
-                L'ensemble de ce site relève de la législation française et internationale sur le droit d'auteur et la propriété intellectuelle. Tous les droits de reproduction sont réservés.
+            <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-noz-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09 briefings m0 0A9.953 9.953 0 015 12V7l10-4 10 4v5c0 1.28-.232 2.504-.657 3.627m-14.288-2.037L5 12m10 4l-4 4-4-4m4 4V12"></path></svg>
+                3. Propriété intellectuelle
+            </h2>
+            <p class="text-gray-600 leading-relaxed">
+                L'ensemble de ce site, y compris les textes, logos et visuels, relève de la législation française et internationale sur le droit d'auteur et la propriété intellectuelle. Toute reproduction, même partielle, est interdite sans l'accord préalable de l'éditeur du site.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-noz-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                4. Contact technique
+            </h2>
+            <p class="text-gray-600 leading-relaxed">
+                Pour toute question technique relative au site, vous pouvez contacter le responsable technique à l'adresse email suivante : 
+                <a href="mailto:contact@lain-terface.fr" class="text-noz-blue font-semibold hover:underline">contact@lain-terface.fr</a>
             </p>
         </section>
     </div>

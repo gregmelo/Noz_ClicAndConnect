@@ -4,27 +4,64 @@
 
 {% block body %}
 <div class="container mx-auto px-4 py-8 max-w-4xl">
-    <h1 class="text-3xl font-bold text-noz-blue mb-8">Conditions Générales de Vente</h1>
+    <div class="mb-8">
+        {% include 'components/_breadcrumb.html.twig' with {
+            'breadcrumbs': [
+                {'label': 'CGV', 'url': null}
+            ]
+        } %}
+    </div>
 
-    <div class="bg-white shadow-md rounded-lg p-6 space-y-6">
+    <h1 class="text-3xl font-bold text-noz-blue mb-8">Conditions Générales de Vente (CGV)</h1>
+
+    <div class="bg-white shadow-md rounded-2xl p-6 sm:p-8 space-y-8 border border-gray-100 text-gray-600 leading-relaxed">
         <section>
-            <h2 class="text-xl font-semibold text-gray-800 mb-2">1. Objet</h2>
-            <p class="text-gray-600">
-                Les présentes conditions régissent les réservations de produits effectuées sur le site NOZ AMBERIEU ClicAndCollect.
+            <h2 class="text-xl font-bold text-gray-900 mb-4">1. Objet</h2>
+            <p>
+                Les présentes Conditions Générales de Vente (CGV) régissent les relations entre le magasin NOZ Ambérieu et les utilisateurs de la plateforme "ClicAndConnect" souhaitant réserver des articles en ligne pour un retrait en magasin.
             </p>
         </section>
 
         <section>
-            <h2 class="text-xl font-semibold text-gray-800 mb-2">2. Réservation</h2>
-            <p class="text-gray-600">
-                La réservation de produits est gratuite et sans obligation d'achat immédiat. Le paiement s'effectue en magasin lors du retrait.
+            <h2 class="text-xl font-bold text-gray-900 mb-4">2. Modalités de Réservation</h2>
+            <ul class="list-disc pl-5 space-y-2">
+                <li>La réservation s'effectue exclusivement via la plateforme en ligne pendant ou après les sessions de vente en live.</li>
+                <li>La validation d'une réservation entraîne le blocage des stocks pour une durée limitée.</li>
+                <li>Toute réservation est considérée comme ferme mais le paiement s'effectue exclusivement lors du retrait en magasin (sauf mention contraire).</li>
+            </ul>
+        </section>
+
+        <section class="bg-yellow-50 p-6 rounded-2xl border border-yellow-100">
+            <h2 class="text-xl font-bold text-noz-blue mb-4">3. Délais de Retrait et Expiration</h2>
+            <p class="mb-4">Pour garantir la disponibilité des produits pour l'ensemble de notre clientèle, des délais stricts sont appliqués :</p>
+            <ul class="list-disc pl-5 space-y-2">
+                <li><strong>Préparation le matin :</strong> La commande doit être retirée avant 19h30 le jour même.</li>
+                <li><strong>Préparation l'après-midi :</strong> La commande doit être retirée avant 19h30 le lendemain ouvrable.</li>
+                <li>Passé ce délai, la réservation est automatiquement annulée et les articles sont remis en vente.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">4. Politique de "Strikes" et Responsabilité</h2>
+            <p class="mb-4">Le service ClicAndConnect repose sur la confiance mutuelle. Afin d'éviter les réservations fantômes :</p>
+            <ul class="list-disc pl-5 space-y-2">
+                <li>Une commande non récupérée sans annulation préalable entraîne l'attribution d'un "Strike" (pénalité).</li>
+                <li><strong>Au bout de 3 "Strikes"</strong>, le compte de l'utilisateur est automatiquement suspendu pour une durée de 30 jours.</li>
+                <li>Le client peut annuler sa commande à tout moment avant sa préparation depuis son espace "Mes Réservations" pour éviter toute pénalité.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">5. Prix et Produits</h2>
+            <p>
+                Les prix affichés sont exprimés en Euros TTC. Le magasin se réserve le droit de modifier ses prix à tout moment. En cas de différence de prix constatée, le prix pratiqué lors de l'enregistrement de la réservation prévaut.
             </p>
         </section>
 
         <section>
-            <h2 class="text-xl font-semibold text-gray-800 mb-2">3. Retrait</h2>
-            <p class="text-gray-600">
-                Les produits réservés doivent être retirés en magasin sous 48h. Passé ce délai, la réservation sera annulée et le produit remis en vente.
+            <h2 class="text-xl font-bold text-gray-900 mb-4">6. Droit de Rétractation</h2>
+            <p>
+                Le paiement ayant lieu en magasin après vérification des articles par le client, le droit de rétractation s'applique selon la politique habituelle de retour du magasin NOZ, conformément à la législation en vigueur.
             </p>
         </section>
     </div>
