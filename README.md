@@ -1,113 +1,92 @@
-# Noz Clic & Connect
+# 📦 Noz Clic & Connect
 
-Noz Clic & Connect est une plateforme de réservation en ligne pour les magasins NOZ, pensée autour des **ventes en live**. Elle permet aux clients de parcourir le catalogue de produits, de préparer leur panier et de valider leurs réservations en temps réel pendant les sessions live, pour une récupération ultérieure en magasin. La plateforme offre également une gestion administrative complète pour les employés et administrateurs.
+![Version](https://img.shields.io/badge/version-2.1.0-blue)
+![Symfony](https://img.shields.io/badge/Symfony-7.0%2B-000000?logo=symfony)
+![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php)
+![PWA](https://img.shields.io/badge/PWA-Compatible-orange?logo=pwa)
 
-## 📚 Sommaire
+**Noz Clic & Connect** est une plateforme moderne de réservation en ligne dédiée aux magasins **NOZ**. Spécialisée dans la gestion des **ventes en live**, elle permet une synchronisation parfaite entre les arrivages présentés en direct et les réservations clients.
 
-- [🚀 Fonctionnalités](#-fonctionnalités)
-- [🛠️ Stack Technique](#️-stack-technique)
-- [📦 Installation](#-installation)
-- [🏗️ Architecture des Dossiers](#️-architecture-des-dossiers)
-- [📄 Licence](#-licence)
+---
 
-## 🚀 Fonctionnalités
+## 🌟 Points Forts & Innovations
 
-### 🛒 Client (ROLE_CLIENT)
-- **Catalogue de produits** : Recherche par mots-clés, filtrage par catégorie, prix, disponibilité et promotions.
-- **Panier** : Gestion dynamique des articles avant réservation.
-- **Réservations** : Suivi des réservations en cours, historique et annulation possible.
-- **Notifications e-mail & push** :
-   - E-mails de confirmation et d'information lorsque la commande est prête.
-   - Notifications **push PWA** (si l'utilisateur a activé les notifications mobiles) pour la confirmation de réservation et lorsque la commande passe au statut "prête".
-- **Application installable (PWA)** :
-   - Bandeau d'installation automatique sur la page d'accueil lorsque le navigateur le permet.
-   - Conseils d'installation depuis le profil (Android / iOS) pour ajouter le site à l'écran d'accueil.
-- **Expérience Live** :
-   - Mise en avant des **arrivages du jour** avec badge EN LIVE.
-   - Affichage d'un prochain live avec compte à rebours dynamique lorsqu'une date de live est planifiée.
-   - Parcours de **réservation dédié aux lives** : les clients réservent en direct les produits présentés pendant le live, avec validation des réservations limitée à la durée de l'événement.
-   - Mise à jour **temps réel** de l'interface pendant les lives (produits, disponibilités, paniers) via le hub **Mercure**, conçu pour gérer plusieurs dizaines de milliers de connexions simultanées.
-- **Fiches produits enrichies** : Support de plusieurs images par produit avec galerie/carrousel sur la page de détail.
+### ⚡ Temps Réel & Performance
+- **Synchronisation Mercure** : Mise à jour instantanée des stocks, des prix et des compteurs sans rechargement de page.
+- **Auto-Refresh Intelligent** : Les listes de réservations (client et employé) se rafraîchissent automatiquement via **Stimulus** et **Turbo** lors de chaque changement de statut.
 
-### 💼 Employé (ROLE_EMPLOYEE)
-- **Tableau de Bord** : Statistiques en temps réel, alertes de stock bas et suivi du chiffre d'affaires.
-- **Gestion des Produits** : Création, modification (avec optimisation automatique des images) et suppression (soft delete via audit logs).
-- **Gestion des Réservations** : Préparation des listes de préparation groupées, validation des paniers et marquage des commandes comme prêtes ou récupérées.
-- **Optimisation Logistique** : Calcul automatique des dates d'expiration selon l'heure de préparation.
-- **Live Dashboard** : Pilotage des produits en live, activation/désactivation rapide et suivi du live en cours.
-- **Notifications push équipe** : Réception de notifications web push en temps réel à chaque nouvelle réservation (pour les rôles employé / admin / super admin).
+### 🔔 Notifications Hybrides
+- **Web Push (PWA)** : Système de notifications natif fonctionnant même lorsque le navigateur est fermé (compatible Chrome, Edge, Safari iOS/macOS).
+- **Correctifs Windows** : Support robuste pour les environnements de développement Windows/XAMPP avec patch **OpenSSL 3.0** intégré.
+- **E-mails Transactionnels** : Confirmations et alertes envoyées via Symfony Mailer.
 
-### 🛡️ Administrateur (ROLE_ADMIN / ROLE_SUPER_ADMIN)
-- **Gestion des Utilisateurs** : Création de comptes employés/admins, gestion des sanctions (strikes) et bannissements automatiques.
-- **Gestion des Catégories** : Organisation du catalogue.
-- **Logs d'Activité** : Audit complet des actions réalisées sur la plateforme pour la traçabilité.
+### 🛡️ Logistique & Discipline
+- **Gestion des "Strikes"** : Système de pénalités automatique pour les clients ne récupérant pas leurs commandes.
+- **Réhabilitation** : Retrait automatique de pénalités après 3 collectes réussies consécutives.
+- **Dashboards Segmentés** : Séparation claire entre les nouvelles demandes, les commandes prêtes, les annulations clients et les expirations.
+
+---
 
 ## 🛠️ Stack Technique
 
-- **Framework** : Symfony 7+
-- **Frontend** : Twig, Tailwind CSS, Stimulus, Flowbite, AssetMapper
-- **Base de données** : MySQL / PostgreSQL (via Doctrine ORM)
-- **Uploads** : Intervention Image (optimisation et redimensionnement)
-- **Interactions JS** : Stimulus Controllers (Live, Confetti, Optimisation Image, Alertes temps réel, bandeau PWA, notifications mobiles)
- - **Temps réel** : Symfony Mercure Hub pour la diffusion d'événements serveur → clients, dimensionné pour supporter des pics de trafic importants (jusqu'à ~20k connexions simultanées pendant les lives).
-- **PWA** : Service Worker, manifest et application installable (Add to Home Screen / Install app).
-- **Notifications Web Push** : Minishlink/WebPush avec clés VAPID, côté client via l'API Push et côté serveur avec Symfony.
-- **E-mails** : Symfony Mailer configuré via `MAILER_DSN` (voir `docs/EMAIL_CONFIGURATION.md`).
+- **Backend** : Symfony 7, Doctrine ORM, Symfony Messenger (file d'attente asynchrone).
+- **Frontend** : Twig, Tailwind CSS, Stimulus, flowbite, Turbo.
+- **Temps Réel** : Mercure Hub (Architecture événementielle).
+- **Images** : Intervention Image (Optimisation auto vers WebP/AVIF).
+- **Sécurité** : VAPID (Electronic Frontier Foundation standards), Rate Limiting.
 
-## 📦 Installation
+---
 
-1. **Clonage du projet**
-   ```bash
-   git clone [url-du-repo]
-   cd Noz_ClicAndConnect
-   ```
+## 📦 Installation & Configuration
 
-2. **Installation des dépendances**
-   ```bash
-   composer install
-   npm install
-   ```
+### 1. Prérequis
+- PHP 8.2+ (avec extensions OpenSSL, GD, Intl)
+- MySQL 8.0+ ou PostgreSQL
+- Mercure Hub (Caddy ou binaire autonome)
 
-3. **Configuration de l'environnement**
-   Copiez le fichier `.env` en `.env.local` et configurez votre base de données :
-   ```bash
-   cp .env .env.local
-   # Modifiez DATABASE_URL dans .env.local
-   ```
+### 2. Initialisation
+```bash
+git clone https://github.com/votre-depot/Noz_ClicAndConnect.git
+cd Noz_ClicAndConnect
+composer install
+cp .env .env.local  # Configurer DATABASE_URL et MERCURE_URL
+php bin/console doctrine:database:create
+php bin/console doctrine:migrations:migrate
+```
 
-4. **Base de données**
-   ```bash
-   php bin/console doctrine:database:create
-   php bin/console doctrine:migrations:migrate
-   php bin/console doctrine:fixtures:load # Pour des données de test
-   ```
+### 3. VAPID (Notifications)
+Générez vos clés pour le fichier `.env.local` :
+```bash
+# Via l'interface admin du site ou via openssl
+MERCURE_JWT_SECRET="votre_secret"
+MERCURE_URL="http://127.0.0.1:3000/.well-known/mercure"
+VAPID_PUBLIC_KEY="votre_clé_publique_base64"
+VAPID_PRIVATE_KEY="votre_clé_privée_base64"
+```
 
-5. **Assets & PWA (front)**
-   ```bash
-   # Génération de la map d'assets (CSS/JS avec AssetMapper)
-   php bin/console asset-map:compile
-   ```
+### 4. Lancement
+```bash
+# Terminal 1 : Serveur Symfony
+symfony serve
+# Terminal 2 : Mercure Hub
+.\mercure.exe run --config Caddyfile
+# Terminal 3 : Worker de notifications (Async)
+php bin/console messenger:consume async
+```
 
-5. **Lancement du serveur**
-   ```bash
-   symfony serve
-   # ou
-   php -S localhost:8000 -t public
-   ```
+---
 
-Pour le déploiement sur Alwaysdata (hébergement mutualisé), voir la documentation dédiée : `docs/DEPLOYMENT_ALWAYSDATA.md`.
+## 📖 Architecture & Maintenance
 
-## 🏗️ Architecture des Dossiers
+- **`src/Controller/ReservationController.php`** : Cœur de la logique métier (Tri logistique, Stocks, Mercure).
+- **`src/Service/PushNotificationService.php`** : Moteur d'envoi des notifications Push.
+- **`assets/controllers/`** : Comportement dynamique (PWA, Temps réel, Notifications).
+- **`public/sw.js`** : Service Worker gérant l'installation PWA et l'affichage des notifications en arrière-plan.
 
-- `src/Entity/` : Modèles de données (Product, User, Reservation, etc.).
-- `src/Controller/` : Logique de routage et de traitement.
-- `src/Service/` : Services métiers (Logger, CartService, EmailService).
-- `assets/` : Ressources CSS et Stimulus controllers.
-- `templates/` : Vues Twig organisées par fonctionnalité.
+---
 
-## 📄 Licence
+## 📝 Licence & Auteur
 
-Ce projet est la propriété de **Véricel Grégory**.
+Propriété exclusive de **Véricel Grégory**. Toute reproduction ou utilisation sans autorisation est interdite.
 
-[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/gregmelo)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/gregory-vericel/)
+[![LinkedIn](https://img.shields.io/badge/Contact-LinkedIn-0077B5?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/gregory-vericel/)

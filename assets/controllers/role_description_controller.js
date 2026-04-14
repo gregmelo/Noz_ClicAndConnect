@@ -4,18 +4,15 @@ export default class extends Controller {
     static targets = ["select", "description"];
 
     connect() {
-        console.log("Role Description Controller connected");
         this.update();
     }
 
     update() {
         if (!this.hasSelectTarget || !this.hasDescriptionTarget) {
-            console.warn("Missing targets for Role Description Controller");
             return;
         }
 
         const role = this.selectTarget.value;
-        console.log("Selected role:", role);
 
         const descriptions = {
             'ROLE_CLIENT': "Accès standard. Peut parcourir les produits, gérer son panier et ses réservations.",

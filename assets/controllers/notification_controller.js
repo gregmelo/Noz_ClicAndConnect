@@ -1,57 +1,66 @@
-console.log('DEBUG: notification_controller.js loaded');
 import { Controller } from '@hotwired/stimulus';
 
+/**
+ * Contrôleur Stimulus pour la gestion des notifications Push (Web Push).
+ * Gère l'enregistrement du Service Worker, la souscription et la communication avec le serveur.
+ */
 export default class extends Controller {
     static targets = ['button', 'status'];
 
     connect() {
-        console.log('Notification controller connected');
+        // Initialisation automatique du service de push au chargement
         this.initializePush();
     }
 
+    /**
+     * Vérifie la compatibilité du navigateur et l'état actuel de l'abonnement.
+     */
     async initializePush() {
         try {
-            console.log('[Push] Starting initialization process...');
             this.setStatus('🌐 Connexion...');
 
+            // Vérification de la compatibilité du navigateur
             if (!('serviceWorker' in navigator)) {
-                console.warn('[Push] Browser does not support Service Workers');
                 this.setError('Navigateur incompatible (SW)');
                 return;
             }
 
             if (!('PushManager' in window)) {
-                console.warn('[Push] Browser does not support Push Notifications');
                 this.setError('Navigateur incompatible (Push)');
                 return;
             }
 
             this.setStatus('⏳ En attente du Service Worker...');
+            // On attend que le Service Worker soit prêt avec un timeout de sécurité
             const registration = await Promise.race([
                 navigator.serviceWorker.ready,
                 new Promise((_, reject) => setTimeout(() => reject(new Error('Le Service Worker est trop long à démarrer.')), 8000))
             ]);
             
-            console.log('[Push] Service Worker ready:', registration.scope);
             this.setStatus('🔍 Vérification de l\'abonnement...');
             
+            // Récupération de l'abonnement existant
             const subscription = await registration.pushManager.getSubscription();
-            console.log('[Push] Subscription status:', subscription ? 'Subscribed' : 'Not subscribed');
             
             this.updateUI(subscription !== null);
 
         } catch (error) {
-            console.error('[Push] Initialization error:', error);
             this.setError(error.message);
         }
     }
 
+    /**
+     * Met à jour le message d'état textuel.
+     */
     setStatus(text) {
         if (this.hasStatusTarget) {
             this.statusTarget.textContent = text;
         }
     }
 
+    /**
+     * Affiche une erreur et désactive les contrôles de notification.
+     */
     setError(message) {
         if (this.hasStatusTarget) {
             this.statusTarget.textContent = `🚫 ${message}`;
@@ -64,10 +73,13 @@ export default class extends Controller {
         }
     }
 
+    /**
+     * Alterne entre l'abonnement et le désabonnement lors du clic sur le bouton.
+     */
     async toggleSubscription() {
         if (this.buttonTarget.disabled) return;
         
-        // Final check before proceeding
+        // Vérification des permissions
         if (Notification.permission === 'denied') {
             alert('Vous avez bloqué les notifications. Veuillez les réactiver dans les paramètres de votre navigateur.');
             return;
@@ -87,49 +99,48 @@ export default class extends Controller {
                 await this.subscribe(registration);
             }
         } catch (error) {
-            console.error('[Push] Toggle failed:', error);
             alert('Une erreur est survenue lors de l\'activation.');
             this.buttonTarget.textContent = originalText;
             this.buttonTarget.disabled = false;
         }
     }
 
+    /**
+     * Enregistre l'utilisateur auprès du service de Push du navigateur.
+     */
     async subscribe(registration) {
         try {
             this.setStatus('🔔 Demande d\'autorisation...');
             
-            // --- NEW: Force fresh subscription by unsubscribing existing one first ---
+            // Force le renouvellement de l'abonnement si un ancien existe
             const existingSubscription = await registration.pushManager.getSubscription();
             if (existingSubscription) {
-                console.log('[Push] Existing subscription found, unsubscribing to force fresh token...');
                 await existingSubscription.unsubscribe();
             }
-            // -----------------------------------------------------------------------
 
+            // Récupération de la clé VAPID publique depuis les méta-données
             const vapidMeta = document.querySelector('meta[name="vapid-public-key"]');
             if (!vapidMeta || !vapidMeta.content) {
                 throw new Error('Clé VAPID manquante');
             }
 
-            // Remove all whitespace and potential quotes (can happen with some template engines)
+            // Nettoyage de la clé (suppression des quotes éventuelles)
             const rawKey = vapidMeta.content.trim().replace(/['"]/g, '');
-            console.log(`[Push] Original VAPID Key: ${rawKey}`);
-            console.log(`[Push] Key Length: ${rawKey.length}`);
 
             if (rawKey.length < 80) {
-                throw new Error(`Clé VAPID invalide (trop courte: ${rawKey.length} chars)`);
+                throw new Error(`Clé VAPID invalide (trop courte)`);
             }
 
             const convertedVapidKey = this.urlBase64ToUint8Array(rawKey);
-            console.log(`[Push] Converted bytes length: ${convertedVapidKey.length}`);
-            console.log(`[Push] First byte: ${convertedVapidKey[0]} (Should be 4 for P-256)`);
 
+            // Souscription auprès du service push (browser side)
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: convertedVapidKey
             });
 
             this.setStatus('📡 Enregistrement sur le serveur...');
+            // Transmission de l'abonnement au serveur Symfony
             const response = await fetch('/api/push/subscribe', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -137,18 +148,14 @@ export default class extends Controller {
             });
 
             if (response.ok) {
-                console.log('[Push] Successfully subscribed and saved on server');
                 this.updateUI(true);
             } else {
                 const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.error || 'Erreur serveur lors de l\'abonnement');
             }
         } catch (error) {
-            console.error('[Push] Subscription failed:', error);
             if (error.name === 'NotAllowedError') {
                 alert('Vous devez autoriser les notifications pour utiliser cette fonctionnalité.');
-            } else if (error.message.includes('P-256')) {
-                alert(`Erreur Apple (P-256) : La clé VAPID semble invalide pour Safari. Longueur convertie: ${this.lastByteLength || '?'}`);
             } else {
                 alert(`Erreur d'activation : ${error.message}`);
             }
@@ -156,11 +163,14 @@ export default class extends Controller {
         }
     }
 
+    /**
+     * Désinscrit l'utilisateur du service Push.
+     */
     async unsubscribe(subscription) {
         try {
             this.setStatus('🔕 Désactivation en cours...');
 
-            // Informer le serveur pour supprimer l'abonnement
+            // Informer le serveur pour supprimer l'abonnement de la base de données
             const response = await fetch('/api/push/unsubscribe', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -173,22 +183,20 @@ export default class extends Controller {
             }
 
             // Se désabonner côté navigateur
-            const success = await subscription.unsubscribe();
-            if (!success) {
-                console.warn('[Push] Unsubscribe returned false (subscription may already be inactive).');
-            }
+            await subscription.unsubscribe();
 
             this.setStatus('🔕 Notifications désactivées');
             this.updateUI(false);
         } catch (error) {
-            console.error('[Push] Unsubscribe failed:', error);
             alert(`Erreur lors de la désactivation : ${error.message}`);
             this.updateUI(true);
         }
     }
 
+    /**
+     * Met à jour l'interface graphique (boutons et états).
+     */
     updateUI(isSubscribed) {
-        // Met à jour l'état visuel du bouton et du texte
         if (this.hasButtonTarget) {
             this.buttonTarget.disabled = false;
 
@@ -216,8 +224,10 @@ export default class extends Controller {
         }
     }
 
+    /**
+     * Utilitaire : Convertit une chaîne Base64 (VAPID) en Uint8Array pour le navigateur.
+     */
     urlBase64ToUint8Array(base64String) {
-        // Cleaning the string again to be safe
         const base64Clean = base64String.trim().replace(/['"]/g, '');
         const padding = '='.repeat((4 - base64Clean.length % 4) % 4);
         const base64 = (base64Clean + padding)
@@ -230,7 +240,6 @@ export default class extends Controller {
         for (let i = 0; i < rawData.length; ++i) {
             outputArray[i] = rawData.charCodeAt(i);
         }
-        this.lastByteLength = outputArray.length;
         return outputArray;
     }
 }

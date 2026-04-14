@@ -5,7 +5,6 @@ export default class extends Controller {
     static targets = ["product", "status", "activateBtn", "deactivateBtn", "stock"];
 
     connect() {
-        console.log("Live Dashboard Controller Connected");
     }
 
     async toggleFromSwitch(event) {

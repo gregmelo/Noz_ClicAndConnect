@@ -25,16 +25,19 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
- * ReservationController
+ * Contrôleur gérant le cycle de vie complet des réservations.
  * 
- * Manages the complete lifecycle of customer reservations.
- * Accessible to ROLE_CLIENT for their own reservations, and ROLE_EMPLOYEE
- * for administrative actions (marking as ready, collected, etc.).
+ * Ce contrôleur permet aux clients de valider leurs paniers, de suivre leurs réservations,
+ * et aux employés de gérer le flux logistique (préparation, mise à disposition, retrait).
+ * Il intègre également des fonctionnalités de temps réel via Mercure et des notifications Push.
  */
 #[Route('/reservation')]
 #[IsGranted('ROLE_CLIENT')]
 class ReservationController extends AbstractController
 {
+    /**
+     * Injection des dépendances via le constructeur.
+     */
     public function __construct(
         private ActivityLogger $activityLogger,
         private EmailNotificationService $emailService,
@@ -49,16 +52,22 @@ class ReservationController extends AbstractController
     ) {
     }
 
+    /**
+     * Affiche la liste des réservations du client connecté.
+     * Gère la pagination pour optimiser les performances.
+     */
     #[Route('/my-reservations', name: 'app_my_reservations')]
     public function myReservations(Request $request, ReservationRepository $reservationRepository): Response
     {
         /** @var User $user */
         $user = $this->getUser();
 
+        // Paramètres de pagination
         $page = max(1, (int) $request->query->get('page', 1));
         $limit = 10;
         $offset = ($page - 1) * $limit;
 
+        // Récupération des réservations de l'utilisateur
         $allReservations = $reservationRepository->findBy(['user' => $user], ['reservedAt' => 'DESC']);
         $totalReservations = count($allReservations);
         $totalPages = ceil($totalReservations / $limit);
@@ -72,12 +81,14 @@ class ReservationController extends AbstractController
     }
 
     /**
-     * Validate the current cart and create a reservation
-     * Performs stock checks, CSRF validation, and reservation limit checks.
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * Valide le panier actuel et crée (ou met à jour) une réservation.
+     * 
+     * Actions réalisées :
+     * 1. Vérification du Rate Limiting et CSRF.
+     * 2. Contrôle du statut de bannissement du client.
+     * 3. Groupement automatique avec une réservation ACTIVE existante si possible.
+     * 4. Vérification stricte des stocks avec verrouillage pessimiste (PESSIMISTIC_WRITE).
+     * 5. Déclenchement des notifications asynchrones et mise à jour temps réel Mercure.
      */
     #[Route('/validate', name: 'app_reservation_validate', methods: ['POST'])]
     public function validate(Request $request, EntityManagerInterface $entityManager): Response
@@ -85,33 +96,32 @@ class ReservationController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        // Rate limiting
+        // Protection contre le spam (Rate Limiting)
         $limiter = $this->reservationLimiter->create($request->getClientIp());
         if (false === $limiter->consume(1)->isAccepted()) {
             $this->addFlash('danger', 'Trop de tentatives de réservation. Veuillez patienter une minute.');
             return $this->redirectToRoute('app_cart_index');
         }
 
-        // CSRF Protection
+        // Sécurité CSRF
         if (!$this->isCsrfTokenValid('reservation_validate', $request->request->get('_token'))) {
             $this->addFlash('danger', 'Jeton de sécurité invalide. Veuillez réessayer.');
             return $this->redirectToRoute('app_cart_index');
         }
 
-        // Check if user is banned
+        // Vérification du bannissement (Strikes)
         if ($user->getBanExpiresAt() && $user->getBanExpiresAt() > new \DateTimeImmutable()) {
             $this->addFlash('danger', 'Vous êtes banni jusqu\'au ' . $user->getBanExpiresAt()->format('d/m/Y H:i'));
             return $this->redirectToRoute('app_banned');
         }
 
         $cartItems = $this->cartService->getFullCart();
-
         if (empty($cartItems)) {
             $this->addFlash('warning', 'Votre panier est vide.');
             return $this->redirectToRoute('app_cart_index');
         }
 
-        // Check for an existing ACTIVE and non-expired reservation to group items
+        // Tentative de groupement avec une réservation ACTIVE non expirée
         /** @var Reservation|null $existingReservation */
         $existingReservation = $entityManager->getRepository(Reservation::class)->findOneBy([
             'user' => $user,
@@ -124,17 +134,17 @@ class ReservationController extends AbstractController
 
         if ($existingReservation) {
             $reservation = $existingReservation;
-            // Update expiration to 48h from now
+            // On repousse l'expiration à 48h à partir de maintenant
             $reservation->setExpiresAt((new \DateTimeImmutable())->modify('+48 hours'));
             
-            // Append comment if provided
+            // Ajout du nouveau commentaire si présent
             $newComment = $request->request->get('comment');
             if ($newComment) {
                 $currentComment = $reservation->getComment();
                 $reservation->setComment($currentComment ? $currentComment . " | " . $newComment : $newComment);
             }
         } else {
-            // Check reservation limit only if creating a NEW one
+            // Limite de 5 réservations actives par client
             $activeReservationsCount = $entityManager->getRepository(Reservation::class)->count([
                 'user' => $user,
                 'status' => 'ACTIVE'
@@ -145,13 +155,13 @@ class ReservationController extends AbstractController
                 return $this->redirectToRoute('app_cart_index');
             }
 
-            // Create New Reservation Header
+            // Création d'une nouvelle réservation
             $reservation = new Reservation();
             $reservation->setUser($user);
             $reservation->setExpiresAt((new \DateTimeImmutable())->modify('+48 hours'));
             $reservation->setComment($request->request->get('comment'));
             
-            // Generate Reference
+            // Génération d'une référence unique : RES-YYYYMMDD-XXXX
             $date = (new \DateTime())->format('Ymd');
             $uniqId = strtoupper(substr(uniqid(), -4));
             $reservation->setReference(sprintf('RES-%s-%s', $date, $uniqId));
@@ -159,19 +169,19 @@ class ReservationController extends AbstractController
             $entityManager->persist($reservation);
         }
 
-        // Process Items
+        // Traitement des produits du panier
         foreach ($cartItems as $cartItem) {
             $productId = $cartItem['product']->getId();
-            // Fetch product with Pessimistic Write Lock (LockMode::PESSIMISTIC_WRITE = 4)
+            
+            // Verrouillage de la ligne SQL pour éviter les race conditions sur le stock
             /** @var \App\Entity\Product $product */
-            $product = $entityManager->find(\App\Entity\Product::class, $productId, 4);
+            $product = $entityManager->find(\App\Entity\Product::class, $productId, \Doctrine\DBAL\LockMode::PESSIMISTIC_WRITE);
 
-            if (!$product) {
-                continue;
-            }
+            if (!$product) continue;
 
             $quantity = $cartItem['quantity'];
 
+            // Validation de la disponibilité
             if (!$product->isLive()) {
                 $this->addFlash('danger', 'Le produit ' . $product->getName() . ' n\'est plus disponible pour le live.');
                 return $this->redirectToRoute('app_cart_index');
@@ -182,11 +192,11 @@ class ReservationController extends AbstractController
                 return $this->redirectToRoute('app_cart_index');
             }
 
-            // Decrement stock
+            // Mise à jour du stock
             $product->setStock($product->getStock() - $quantity);
             $entityManager->persist($product);
 
-            // Check if product is already in this reservation
+            // Ajout ou mise à jour de l'item dans la réservation
             $existingItem = null;
             foreach ($reservation->getReservationItems() as $resItem) {
                 if ($resItem->getProduct()->getId() === $product->getId()) {
@@ -196,35 +206,29 @@ class ReservationController extends AbstractController
             }
 
             if ($existingItem) {
-                // Update existing item quantity
                 $existingItem->setQuantity($existingItem->getQuantity() + $quantity);
                 $entityManager->persist($existingItem);
             } else {
-                // Create New Reservation Item
                 $item = new ReservationItem();
                 $item->setReservation($reservation);
                 $item->setProduct($product);
                 $item->setQuantity($quantity);
                 $item->setPrice($product->getPrice());
                 $entityManager->persist($item);
-                
-                // Add to collection
                 $reservation->addReservationItem($item);
             }
         }
 
         $entityManager->flush();
 
-        // Log activity
+        // Enregistrement de l'action dans les logs d'audit
         $this->activityLogger->logReservation($user, $reservation->getReference(), count($cartItems));
 
-        // Dispatch notification message (Async)
+        // Envoi asynchrone des notifications (E-mail / Push via Messenger)
         $this->messageBus->dispatch(new ReservationNotificationMessage($reservation->getId()));
 
-        // Clear cart immediately
+        // Vidage du panier et notifications temps réel
         $this->cartService->clear();
-
-        // Notify employees
         $this->publishStatsUpdate();
         $this->publishPageRefresh();
 
@@ -237,13 +241,8 @@ class ReservationController extends AbstractController
     }
 
     /**
-     * Cancel a reservation
-     * Restores stock and applies strike/ban logic if cancelled after expiration.
-     *
-     * @param Reservation $reservation
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * Annule une réservation et remet les produits en stock.
+     * Gère les pénalités (Strikes) si l'annulation survient après expiration d'une commande PRÊTE.
      */
     #[Route('/cancel/{id}', name: 'app_reservation_cancel', methods: ['POST'])]
     public function cancel(Reservation $reservation, Request $request, EntityManagerInterface $entityManager): Response
@@ -256,49 +255,40 @@ class ReservationController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        // Allow owner OR employee
+        // Vérification des droits : Propriétaire ou Employé
         if ($reservation->getUser() !== $user && !$this->isGranted('ROLE_EMPLOYEE')) {
             throw $this->createAccessDeniedException();
         }
 
-        // Allow cancellation for ACTIVE or READY
         if (!in_array($reservation->getStatus(), ['ACTIVE', 'READY'])) {
             $this->addFlash('danger', 'Cette réservation ne peut plus être annulée.');
-            
-            if ($this->isGranted('ROLE_EMPLOYEE')) {
-                return $this->redirectToRoute('app_employee_reservations');
-            }
-            return $this->redirectToRoute('app_my_reservations');
+            return $this->redirectToRoute($this->isGranted('ROLE_EMPLOYEE') ? 'app_employee_reservations' : 'app_my_reservations');
         }
 
-        // Restore stock for all items
+        // Restauration des stocks
         foreach ($reservation->getReservationItems() as $item) {
             $product = $item->getProduct();
             $product->setStock($product->getStock() + $item->getQuantity());
             $entityManager->persist($product);
         }
 
-        // Check if expired to apply Strike logic
+        // Si la réservation était prête et a expiré : application d'un Strike
         if ($reservation->isExpired()) {
             if ($reservation->getStatus() === 'READY') {
                 $reservation->setStatus('EXPIRED'); 
-                
-                // Add Strike to User
                 $owner = $reservation->getUser();
                 $owner->setStrikes($owner->getStrikes() + 1);
                 
-                // Ban logic (e.g. >= 3 strikes)
+                // Bannissement automatique à partir de 3 strikes
                 if ($owner->getStrikes() >= 3) {
                      $owner->setBanExpiresAt((new \DateTimeImmutable())->modify('+30 days'));
                      $this->addFlash('warning', 'Utilisateur banni pour 30 jours (3 strikes).');
                 }
                 $entityManager->persist($owner);
-                
                 $this->addFlash('success', 'Réservation marquée comme EXPIRÉE. Stock rétabli et Strike ajouté.');
             } else {
-                // Expired but was never READY (store didn't prepare it in time)
                 $reservation->setStatus('CANCELLED');
-                $this->addFlash('info', 'Réservation expirée sans avoir été préparée par le magasin. Stock rétabli sans pénalité pour le client.');
+                $this->addFlash('info', 'Réservation expirée et annulée. Stock rétabli sans pénalité.');
             }
         } else {
             $reservation->setStatus('CANCELLED');
@@ -309,24 +299,14 @@ class ReservationController extends AbstractController
         $this->publishStatsUpdate();
         $this->publishPageRefresh();
 
-        // Log activity
         $this->activityLogger->logReservationCancelled($user, $reservation->getReference());
 
-        if ($this->isGranted('ROLE_EMPLOYEE')) {
-            return $this->redirectToRoute('app_employee_reservations');
-        }
-
-        return $this->redirectToRoute('app_my_reservations');
+        return $this->redirectToRoute($this->isGranted('ROLE_EMPLOYEE') ? 'app_employee_reservations' : 'app_my_reservations');
     }
 
     /**
-     * Mark a reservation as ready for collection
-     * Updates expiration date according to morning/afternoon logic.
-     *
-     * @param Reservation $reservation
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * Marque une réservation comme "PRÊTE" pour le retrait.
+     * Calcule automatiquement la nouvelle date d'expiration (Matin/Après-midi).
      */
     #[Route('/ready/{id}', name: 'app_reservation_ready', methods: ['POST'])]
     public function markAsReady(Reservation $reservation, Request $request, EntityManagerInterface $entityManager): Response
@@ -343,45 +323,27 @@ class ReservationController extends AbstractController
 
         $reservation->setStatus('READY');
 
-        // Logic d'expiration : 
-        // - Avant midi -> 19h30 le jour même
-        // - Après midi -> 19h30 le lendemain (sauf si dimanche -> lundi)
+        // Calcul de la date d'échéance : 
+        // Préparée le matin -> Expire à 19h30 le soir même.
+        // Préparée l'après-midi -> Expire à 19h30 le lendemain ouvrable.
         $now = new \DateTimeImmutable();
         $hour = (int) $now->format('G');
 
         if ($hour < 12) {
-            // Matin : 19h30 le jour même
             $expiresAt = $now->setTime(19, 30);
         } else {
-            // Après-midi : 19h30 le lendemain
             $expiresAt = $now->modify('+1 day')->setTime(19, 30);
-            
-            // Si le lendemain est Dimanche (7), on reporte à Lundi
-            if ($expiresAt->format('N') == 7) {
+            if ($expiresAt->format('N') == 7) { // Dimanche -> Report au Lundi
                 $expiresAt = $expiresAt->modify('+1 day');
             }
         }
         
         $reservation->setExpiresAt($expiresAt);
-
         $entityManager->flush();
-        // Send email (will use the new expiresAt date)
+
+        // Envoi des notifications de disponibilité
         $this->emailService->sendReadyNotification($reservation);
 
-        // Send Push Notification
-        // The original code had a single try-catch for sendToUser and flush.
-        // The instruction implies separating them, possibly for a batch operation.
-        // Since batchReady is not in the provided context, I'll apply the change
-        // to markAsReady as closely as possible to the snippet, assuming the
-        // `flush` part is intended to be outside the `sendToUser` try-catch.
-        // The provided snippet for markAsReady seems to be a partial diff,
-        // specifically showing the `sendToUser` part and then a `flush` part
-        // that looks like it belongs to a different context (e.g., a loop or batch).
-        // I will interpret the instruction as:
-        // 1. Wrap `sendToUser` in its own try-catch, with a generic log.
-        // 2. Add a `flush` call with its own try-catch, logging specific to `markAsReady`.
-        // This interpretation aligns with the provided snippet's structure,
-        // even if the snippet itself has some structural ambiguity (e.g., the extra `}`).
         try {
             $this->pushService->sendToUser(
                 $reservation->getUser(),
@@ -389,18 +351,9 @@ class ReservationController extends AbstractController
                 'Bonne nouvelle ! Votre réservation ' . $reservation->getReference() . ' est prête pour le retrait.',
                 $this->generateUrl('app_my_reservations', [], UrlGeneratorInterface::ABSOLUTE_URL)
             );
-        } catch (\Exception $e) {
-            // Log individual failure, but don't block the main process
-            $this->logger->error('Push notification failed for user ' . $reservation->getUser()->getId() . ' in markAsReady: ' . $e->getMessage());
-        }
-
-        $entityManager->flush();
-
-        // Flush any pending push notifications after all entities are persisted
-        try {
             $this->pushService->flush();
         } catch (\Exception $e) {
-            $this->logger->error('Push notification flush failed in markAsReady: ' . $e->getMessage());
+            $this->logger->error('Erreur Push notification : ' . $e->getMessage());
         }
 
         $this->addFlash('success', 'Réservation prête. Le client a jusqu\'au ' . $expiresAt->format('d/m H:i') . ' pour la récupérer.');
@@ -412,12 +365,8 @@ class ReservationController extends AbstractController
     }
 
     /**
-     * Mark a reservation as collected by the customer
-     *
-     * @param Reservation $reservation
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * Marque la réservation comme récupérée par le client.
+     * Met à jour les statistiques de vente et gère la réhabilitation des strikes.
      */
     #[Route('/collect/{id}', name: 'app_reservation_collect', methods: ['POST'])]
     public function markAsCollected(Reservation $reservation, Request $request, EntityManagerInterface $entityManager): Response
@@ -427,22 +376,17 @@ class ReservationController extends AbstractController
             return $this->redirectToRoute('app_employee_reservations');
         }
 
-        // Allow collection from ACTIVE or READY
         if (!in_array($reservation->getStatus(), ['ACTIVE', 'READY'])) {
             $this->addFlash('danger', 'Cette réservation ne peut pas être marquée comme récupérée.');
             return $this->redirectToRoute('app_employee_reservations');
         }
 
         $reservation->setStatus('COLLECTED');
-        $this->publishStatsUpdate();
-        $this->publishPageRefresh();
-
-        // Update persistent stats for each products creator
+        
+        // Mise à jour des revenus cumulés pour les créateurs de produits
         foreach ($reservation->getReservationItems() as $item) {
             $product = $item->getProduct();
-            /** @var User|null $creator */
             $creator = $product->getCreatedBy();
-
             if ($creator) {
                 $creator->addCumulativeRevenue((float) ($item->getQuantity() * $item->getPrice()));
                 $creator->addCumulativeSoldItems($item->getQuantity());
@@ -450,94 +394,76 @@ class ReservationController extends AbstractController
             }
         }
 
-        // --- STRIKE REHABILITATION LOGIC ---
+        // Système de réhabilitation : Réduire les strikes si le client est exemplaire (3 retraits réussis)
         /** @var User $client */
         $client = $reservation->getUser();
         $client->setSuccessfulCollectionsCount($client->getSuccessfulCollectionsCount() + 1);
 
         if ($client->getSuccessfulCollectionsCount() >= 3) {
-            // Remove 1 strike if the user has any
             if ($client->getStrikes() > 0) {
                 $client->setStrikes($client->getStrikes() - 1);
-                $this->addFlash('info', 'Réhabilitation : Un "Strike" a été retiré de votre compte pour votre bonne conduite !');
+                $this->addFlash('info', 'Réhabilitation : Un Strike a été retiré pour votre bonne conduite !');
             }
-            // Reset the counter
             $client->setSuccessfulCollectionsCount(0);
         }
         $entityManager->persist($client);
-        // ------------------------------------
 
         $entityManager->flush();
+        $this->publishStatsUpdate();
+        $this->publishPageRefresh();
 
-        // Log activity
         $this->activityLogger->logReservationCollected($reservation->getReference(), $this->getUser()->getUserIdentifier());
-
         $this->addFlash('success', 'Réservation marquée comme récupérée.');
 
         return $this->redirectToRoute('app_employee_reservations');
     }
 
     /**
-     * Dashboard for employees to manage all reservations
-     *
-     * @param ReservationRepository $reservationRepository
-     * @param \App\Repository\GlobalStatRepository $globalStatRepository
-     * @return Response
+     * Tableau de bord employé : Affiche les réservations triées par importance logistique.
      */
     #[Route('/employee/reservations', name: 'app_employee_reservations')]
-    public function employeeReservations(ReservationRepository $reservationRepository, \App\Repository\GlobalStatRepository $globalStatRepository): Response
+    public function employeeReservations(ReservationRepository $reservationRepository): Response
     {
         $now = new \DateTimeImmutable();
 
-        // 1. Nouvelles (ACTIVE et non expirées)
+        // 1. Nouvelles demandes actives
         $newReservations = $reservationRepository->createQueryBuilder('r')
-            ->where('r.status = :status')
-            ->andWhere('r.expiresAt > :now')
+            ->where('r.status = :status AND r.expiresAt > :now')
             ->setParameter('status', 'ACTIVE')
             ->setParameter('now', $now)
             ->orderBy('r.reservedAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->getQuery()->getResult();
 
-        // 2. À récupérer (READY et non expirées)
+        // 2. Commandes prêtes en attente de retrait
         $readyReservations = $reservationRepository->createQueryBuilder('r')
-            ->where('r.status = :status')
-            ->andWhere('r.expiresAt > :now')
+            ->where('r.status = :status AND r.expiresAt > :now')
             ->setParameter('status', 'READY')
             ->setParameter('now', $now)
-            ->orderBy('r.reservedAt', 'ASC') // Les plus anciennes prêtes en premier (urgence)
-            ->getQuery()
-            ->getResult();
+            ->orderBy('r.reservedAt', 'ASC')
+            ->getQuery()->getResult();
 
-        // 3. Expirées (EXPIRED ou date passée et non récupérées)
+        // 3. Commandes expirées (pour traitement des strikes)
         $expiredReservations = $reservationRepository->createQueryBuilder('r')
-            ->where('r.status = :status_expired')
-            ->orWhere('r.status IN (:active_ready) AND r.expiresAt <= :now')
+            ->where('r.status = :status_expired OR (r.status IN (:active_ready) AND r.expiresAt <= :now)')
             ->setParameter('status_expired', 'EXPIRED')
             ->setParameter('active_ready', ['ACTIVE', 'READY'])
             ->setParameter('now', $now)
             ->orderBy('r.expiresAt', 'DESC')
-            ->setMaxResults(20)
-            ->getQuery()
-            ->getResult();
+            ->setMaxResults(20)->getQuery()->getResult();
 
-        // 4. Annulées (CANCELLED par le client)
+        // 4. Annulations manuelles du client
         $cancelledReservations = $reservationRepository->createQueryBuilder('r')
             ->where('r.status = :status_cancelled')
             ->setParameter('status_cancelled', 'CANCELLED')
             ->orderBy('r.reservedAt', 'DESC')
-            ->setMaxResults(20)
-            ->getQuery()
-            ->getResult();
+            ->setMaxResults(20)->getQuery()->getResult();
 
-        // 5. Traitées (COLLECTED)
+        // 5. Historique des commandes récupérées
         $collectedReservations = $reservationRepository->createQueryBuilder('r')
             ->where('r.status = :status')
             ->setParameter('status', 'COLLECTED')
             ->orderBy('r.reservedAt', 'DESC')
-            ->setMaxResults(20)
-            ->getQuery()
-            ->getResult();
+            ->setMaxResults(20)->getQuery()->getResult();
 
         return $this->render('reservation/employee_reservations.html.twig', [
             'newReservations' => $newReservations,
@@ -549,49 +475,12 @@ class ReservationController extends AbstractController
     }
 
     /**
-     * Force cleanup of expired reservations (Admin only)
-     *
-     * @param \Symfony\Component\HttpKernel\KernelInterface $kernel
-     * @return Response
-     */
-    #[Route('/employee/cleanup', name: 'app_employee_cleanup')]
-    public function cleanup(\Symfony\Component\HttpKernel\KernelInterface $kernel): Response
-    {
-        // Security Check: Admin, Super Admin, or Dev
-        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_SUPER_ADMIN') && !$this->isGranted('ROLE_DEV')) {
-            throw $this->createAccessDeniedException('Accès réservé aux administrateurs.');
-        }
-
-        $application = new \Symfony\Bundle\FrameworkBundle\Console\Application($kernel);
-        $application->setAutoExit(false);
-
-        $input = new \Symfony\Component\Console\Input\ArrayInput([
-            'command' => 'app:cleanup-reservations',
-        ]);
-
-        $output = new \Symfony\Component\Console\Output\BufferedOutput();
-        $application->run($input, $output);
-
-        $content = $output->fetch();
-
-        // Simple check for success string or just flash the output
-        $this->addFlash('info', 'Nettoyage terminé : ' . $content);
-
-        return $this->redirectToRoute('app_employee_reservations');
-    }
-
-    /**
-     * Generate a preparation list for selected reservations (Employee)
-     *
-     * @param Request $request
-     * @param ReservationRepository $reservationRepository
-     * @return Response
+     * Génère une liste de préparation agrégée pour plusieurs réservations (Pick list).
      */
     #[Route('/employee/preparation', name: 'app_reservation_preparation', methods: ['POST'])]
     public function preparationList(Request $request, ReservationRepository $reservationRepository): Response
     {
         $reservationIds = $request->request->all('reservation_ids');
-        
         if (empty($reservationIds)) {
             $this->addFlash('warning', 'Veuillez sélectionner au moins une réservation.');
             return $this->redirectToRoute('app_employee_reservations');
@@ -599,7 +488,7 @@ class ReservationController extends AbstractController
 
         $reservations = $reservationRepository->findBy(['id' => $reservationIds]);
         
-        // Aggregate items
+        // Agrégation des produits par référence pour optimiser le ramassage en rayon
         $aggregatedItems = [];
         foreach ($reservations as $reservation) {
             foreach ($reservation->getReservationItems() as $item) {
@@ -616,7 +505,7 @@ class ReservationController extends AbstractController
             }
         }
 
-        // Sort by Category name
+        // Tri par catégorie de produit pour faciliter le parcours en magasin
         usort($aggregatedItems, function($a, $b) {
             $catA = $a['product']->getCategory() ? $a['product']->getCategory()->getName() : 'Z_SANS_CATEGORIE';
             $catB = $b['product']->getCategory() ? $b['product']->getCategory()->getName() : 'Z_SANS_CATEGORIE';
@@ -631,12 +520,7 @@ class ReservationController extends AbstractController
     }
 
     /**
-     * Mark multiple reservations as ready in bulk
-     *
-     * @param Request $request
-     * @param ReservationRepository $reservationRepository
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * Valide un lot de réservations comme prêtes en une seule fois.
      */
     #[Route('/employee/batch-ready', name: 'app_reservation_batch_ready', methods: ['POST'])]
     public function batchReady(Request $request, ReservationRepository $reservationRepository, EntityManagerInterface $entityManager): Response
@@ -647,7 +531,6 @@ class ReservationController extends AbstractController
         }
 
         $reservationIds = $request->request->all('reservation_ids');
-        
         if (empty($reservationIds)) {
             $this->addFlash('warning', 'Aucune réservation à valider.');
             return $this->redirectToRoute('app_employee_reservations');
@@ -659,76 +542,39 @@ class ReservationController extends AbstractController
         foreach ($reservations as $reservation) {
             if ($reservation->getStatus() === 'ACTIVE') {
                 $reservation->setStatus('READY');
-                
-                // Expiry logic (same as markAsReady)
-                $now = new \DateTimeImmutable();
-                $hour = (int) $now->format('G');
-                if ($hour < 12) {
-                    $expiresAt = $now->setTime(19, 30);
-                } else {
-                    $expiresAt = $now->modify('+1 day')->setTime(19, 30);
-                    if ($expiresAt->format('N') == 7) {
-                        $expiresAt = $expiresAt->modify('+1 day');
-                    }
-                }
-                $reservation->setExpiresAt($expiresAt);
-                
-                // Send email
                 $this->emailService->sendReadyNotification($reservation);
 
-                // Send Push Notification
                 try {
                     $this->pushService->sendToUser(
                         $reservation->getUser(),
                         '📦 Votre commande est prête !',
-                        'Bonne nouvelle ! Votre réservation ' . $reservation->getReference() . ' est prête pour le retrait.',
+                        'Votre réservation ' . $reservation->getReference() . ' est prête pour le retrait.',
                         $this->generateUrl('app_my_reservations', [], UrlGeneratorInterface::ABSOLUTE_URL)
                     );
-                } catch (\Exception $e) {
-                    $this->logger->error('Push notification failed for user ' . $reservation->getUser()->getId() . ' in batchReady: ' . $e->getMessage());
-                }
-
+                } catch (\Exception $e) {}
                 $count++;
             }
         }
 
         $entityManager->flush();
-
-        // Flush all push notifications at once
-        try {
-            $this->pushService->flush();
-        } catch (\Exception $e) {
-            $this->logger->error('Push notification flush failed in batchReady: ' . $e->getMessage());
-        }
-
+        $this->pushService->flush();
         $this->publishPageRefresh();
 
-        // Audit Log
-        if ($count > 0) {
-            $this->activityLogger->logUserAction($this->getUser(), 'RESERVATIONS_BATCH_READY', [
-                'count' => $count,
-                'reservation_ids' => $reservationIds
-            ]);
-        }
-
         $this->addFlash('success', sprintf('%d réservations ont été marquées comme PRÊTES.', $count));
-        
         return $this->redirectToRoute('app_employee_reservations');
     }
 
     /**
-     * Publishes the latest reservation stats to Mercure (for employees)
+     * Publie les compteurs de réservations mis à jour via Mercure.
      */
     private function publishStatsUpdate(): void
     {
         $count = (int) $this->reservationRepo->createQueryBuilder('r')
             ->select('count(r.id)')
-            ->where('r.status = :status')
-            ->andWhere('r.expiresAt > :now')
+            ->where('r.status = :status AND r.expiresAt > :now')
             ->setParameter('status', 'ACTIVE')
             ->setParameter('now', new \DateTimeImmutable())
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->getQuery()->getSingleScalarResult();
 
         $this->hub->publish(new Update(
             'https://nozamberieu.fr/employee/stats',
@@ -737,7 +583,7 @@ class ReservationController extends AbstractController
     }
 
     /**
-     * Publishes a signal to refresh reservation lists on all clients
+     * Signale aux clients de rafraîchir leurs listes de réservations.
      */
     private function publishPageRefresh(): void
     {

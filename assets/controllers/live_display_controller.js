@@ -1,5 +1,9 @@
 import { Controller } from "@hotwired/stimulus";
 
+/**
+ * Contrôleur Stimulus pour l'affichage dynamique des produits "EN LIVE".
+ * Gère le chargement initial et les mises à jour en temps réel via Mercure Hub.
+ */
 /* stimulusFetch: 'lazy' */
 export default class extends Controller {
     static targets = ["container", "noProductMessage", "count", "badge", "countdownContainer"];
@@ -10,71 +14,73 @@ export default class extends Controller {
     };
 
     connect() {
-        console.log("Live Display Controller Connected (Mercure)");
-        console.log("DEBUG: Container target found?", this.hasContainerTarget);
-        console.log("DEBUG: Count target found?", this.hasCountTarget);
-        console.log("DEBUG: Badge target found?", this.hasBadgeTarget);
-        console.log("DEBUG: CountdownContainer target found?", this.hasCountdownContainerTarget);
-        
+        // Initialisation de la vue live
         this.productCount = 0;
         this.loadInitialProducts();
         this.subscribeToMercure();
     }
 
     disconnect() {
+        // Fermeture de la connexion Mercure pour libérer les ressources
         if (this.eventSource) {
             this.eventSource.close();
         }
     }
 
-    // Charge les produits déjà actifs via un simple fetch (1 requête, pas de boucle)
+    /**
+     * Charge les produits déjà marqués comme actifs via une API REST.
+     */
     async loadInitialProducts() {
         try {
             const res = await fetch(this.initialUrlValue);
             if (!res.ok) return;
             const products = await res.json();
+            
             this.productCount = products.length;
-            console.log("DEBUG: Initial product count:", this.productCount);
             this.renderAll(products);
             this.updateGlobalUI();
         } catch (error) {
-            console.error("Erreur chargement initial:", error);
+            // Silence en production, erreur métier gérée par l'absence d'affichage
         }
     }
 
-    // Ouvre une connexion SSE vers le hub Mercure (géré par Mercure, pas par PHP)
-subscribeToMercure() {
-    this.eventSource = new EventSource(this.mercureUrlValue);
+    /**
+     * S'abonne aux événements Mercure pour réagir aux activations/désactivations de produits.
+     */
+    subscribeToMercure() {
+        if (!this.mercureUrlValue) return;
 
-    this.eventSource.onmessage = (event) => {
-        if (!event || !event.data) return;
-        
-        console.log("Mercure message reçu:", event.data);
-        try {
-            const data = JSON.parse(event.data);
-            console.log("Data parsée:", data);
-            if (data.event === "product_activated") {
-                console.log("DEBUG: Activating product", data.id);
-                this.addProduct(data);
-            } else if (data.event === "product_deactivated") {
-                console.log("DEBUG: Deactivating product", data.id);
-                this.removeProduct(data.id);
-            } else if (data.event === "stock_updated") {
-                this.updateStock(data.id, data.stock);
-            } else if (data.event === "live_schedule_updated") {
-                this.updateSchedule(data);
+        this.eventSource = new EventSource(this.mercureUrlValue);
+
+        this.eventSource.onmessage = (event) => {
+            if (!event || !event.data) return;
+            
+            try {
+                const data = JSON.parse(event.data);
+                
+                // Routage des événements Mercure
+                if (data.event === "product_activated") {
+                    this.addProduct(data);
+                } else if (data.event === "product_deactivated") {
+                    this.removeProduct(data.id);
+                } else if (data.event === "stock_updated") {
+                    this.updateStock(data.id, data.stock);
+                } else if (data.event === "live_schedule_updated") {
+                    this.updateSchedule(data);
+                }
+            } catch (error) {
+                // Erreur de parsing JSON ignorée car structurelle
             }
-        } catch (error) {
-            console.error("Erreur parsing Mercure:", error);
-        }
-    };
+        };
 
-    this.eventSource.onerror = (error) => {
-        console.warn("Mercure: reconnexion en cours...", error);
-    };
-}
+        this.eventSource.onerror = (error) => {
+            // Géré par le mécanisme de reconnexion auto de EventSource
+        };
+    }
 
-    // Affiche tous les produits (chargement initial)
+    /**
+     * Rendu initial du catalogue complet.
+     */
     renderAll(products) {
         if (!this.hasContainerTarget) return;
 
@@ -91,73 +97,69 @@ subscribeToMercure() {
             .join("");
     }
 
-    // Ajoute un nouveau produit activé en temps réel (avec animation)
+    /**
+     * Ajoute fluidement un nouveau produit activé sans recharger la page.
+     */
     addProduct(product) {
         if (!this.hasContainerTarget) return;
 
-        // Ne pas ajouter si la carte existe déjà
+        // Évite les doublons
         if (document.getElementById(`product-card-${product.id}`)) return;
 
         this.productCount++;
-        console.log("DEBUG: Incremented count to:", this.productCount);
         this.updateGlobalUI();
 
-        // Masquer le message "pas de produits"
         this.noProductMessageTarget?.classList.add("hidden");
 
         const div = document.createElement("div");
         div.innerHTML = this.createProductCard(product);
         const card = div.firstElementChild;
 
-        // Animation d'apparition
+        // Animation d'apparition CSS
         card.style.opacity = "0";
         card.style.transform = "translateY(20px)";
         card.style.transition = "opacity 0.4s ease, transform 0.4s ease";
 
         this.containerTarget.prepend(card);
 
+        // Déclenchement de l'animation au prochain cycle de rendu
         requestAnimationFrame(() => {
             card.style.opacity = "1";
             card.style.transform = "translateY(0)";
         });
     }
 
-    // Supprime un produit désactivé en temps réel
+    /**
+     * Retire un produit désactivé avec une animation de sortie.
+     */
     removeProduct(id) {
         const card = document.getElementById(`product-card-${id}`);
         if (!card) return;
 
         this.productCount = Math.max(0, this.productCount - 1);
-        console.log("DEBUG: Decremented count to:", this.productCount);
         this.updateGlobalUI();
 
-        // Animation de disparition
         card.style.transition = "opacity 0.3s ease, transform 0.3s ease";
         card.style.opacity = "0";
         card.style.transform = "translateY(-10px)";
 
         setTimeout(() => {
             card.remove();
-            // Si plus aucun produit, afficher le message
             if (this.productCount === 0) {
                 this.noProductMessageTarget?.classList.remove("hidden");
             }
         }, 300);
     }
 
-    // Met à jour les éléments de l'en-tête (compteur, badge live, etc.)
+    /**
+     * Met à jour les éléments globaux de l'interface (compteurs et badges).
+     */
     updateGlobalUI() {
-        console.log("DEBUG: updateGlobalUI called with count:", this.productCount);
-        
-        // Mettre à jour le compteur
         if (this.hasCountTarget) {
-            console.log("DEBUG: Updating count target element");
             this.countTarget.textContent = this.productCount;
-        } else {
-            console.log("DEBUG: Count target NOT FOUND in DOM");
         }
 
-        // Gérer le badge "Live en cours" vs "Compte à rebours"
+        // Gestion de l'affichage du badge "Live" vs "Compte à rebours"
         if (this.productCount > 0) {
             this.badgeTarget?.classList.remove("hidden");
             this.countdownContainerTarget?.classList.add("hidden");
@@ -167,7 +169,9 @@ subscribeToMercure() {
         }
     }
 
-    // Met à jour la programmation du live sans recharger la page
+    /**
+     * Met à jour dynamiquement la programmation du live.
+     */
     updateSchedule(data) {
         if (!this.hasCountdownContainerTarget) return;
 
@@ -176,7 +180,6 @@ subscribeToMercure() {
             return;
         }
 
-        // Créer le nouveau compte à rebours
         const nextLiveIso = data.nextLiveAt;
         this.countdownContainerTarget.innerHTML = `
             <div id="next-live-countdown" data-next-live="${nextLiveIso}" class="flex items-center gap-3 text-base md:text-lg bg-blue-50 border border-noz-blue text-noz-blue px-4 py-3 rounded-xl shadow-sm" aria-live="polite">
@@ -184,15 +187,11 @@ subscribeToMercure() {
                 <span class="font-mono next-live-countdown-value text-xl md:text-2xl">calcul en cours...</span>
             </div>
         `;
-
-        // Note: Le script global dans index.html.twig gère l'intervalle 
-        // mais il ne trouvera peut-être pas le nouvel élément. 
-        // Idéalement, on redéclencherait le script ou on gère le countdown ici.
-        // Pour faire simple, on va juste forcer un rafraîchissement si la date change radicalement
-        // ou laisser l'utilisateur actualiser pour le countdown PRÉCIS, mais au moins la bannière change.
     }
 
-    // Met à jour le stock d'une carte existante sans tout re-rendre
+    /**
+     * Met à jour le stock d'un produit spécifique de manière chirurgicale.
+     */
     updateStock(id, stock) {
         const card = document.getElementById(`product-card-${id}`);
         if (!card) return;
@@ -200,19 +199,23 @@ subscribeToMercure() {
         const stockEl = card.querySelector("[data-stock-display]");
         if (stockEl) {
             stockEl.textContent = stock > 0 ? `Stock : ${stock}` : "Rupture de stock";
-            stockEl.className =
-                stock <= 5 ? "text-red-600 font-bold" : "text-gray-500";
+            stockEl.className = stock <= 5 ? "text-red-600 font-bold" : "text-gray-500";
         }
     }
 
+    /**
+     * Génère le HTML d'une carte produit.
+     */
     createProductCard(p) {
         const price = new Intl.NumberFormat("fr-FR", {
             style: "currency",
             currency: "EUR",
         }).format(p.price);
+        
         const originalPriceHtml = p.originalPrice
             ? `<span class="text-sm line-through text-gray-400 ml-2">${new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(p.originalPrice)}</span>`
             : "";
+            
         const imagePath = p.image
             ? `${this.imagesPathValue}${p.image}`
             : `${this.imagesPathValue}placeholder.svg`;

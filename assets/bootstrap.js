@@ -7,3 +7,6 @@ const app = startStimulusApp(import.meta.url);
 
 // Enregistrement manuel du contrôleur "live" (tableau de bord Live)
 app.register('live', LiveController);
+
+// Désactive le mode debug pour éviter les logs verbeux dans la console
+app.debug = false;

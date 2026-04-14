@@ -4,7 +4,6 @@ export default class extends Controller {
     static targets = ["select", "description"];
 
     connect() {
-        console.log("Role Editor Controller connected");
         this.update();
     }
 

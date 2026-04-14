@@ -10,7 +10,6 @@ export default class extends Controller {
     static targets = ["badge", "count"]
 
     connect() {
-        console.log("DEBUG: Reservation Alert Controller Connected");
         this.checkNewReservations();
         
         if (this.hasMercureUrlValue) {
@@ -30,13 +29,12 @@ export default class extends Controller {
     subscribeToMercure() {
         if (!this.mercureUrlValue) return;
 
-        console.log("DEBUG: Subscribing to reservation stats via Mercure:", this.mercureUrlValue);
         this.eventSource = new EventSource(this.mercureUrlValue);
 
         this.eventSource.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                console.log("DEBUG: Reservation Mercure event:", data);
+                
                 if (data.event === 'reservation_count_updated') {
                     this.updateBadge(data.count);
                 }
