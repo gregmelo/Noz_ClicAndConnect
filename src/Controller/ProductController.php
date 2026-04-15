@@ -197,12 +197,14 @@ final class ProductController extends AbstractController
     #[Route('/{id}', name: 'app_product_delete', methods: ['POST'])]
     public function delete(Request $request, Product $product, EntityManagerInterface $entityManager, ActivityLogger $logger): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$product->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $product->getId(), $request->getPayload()->getString('_token'))) {
             $logger->logProductDeleted($this->getUser(), $product->getId(), $product->getName());
+            // Supprimer les reservation_items liés avant suppression du produit
+            $conn = $entityManager->getConnection();
+            $conn->executeStatement("DELETE FROM reservation_item WHERE product_id = ?", [$product->getId()]);
             $entityManager->remove($product);
             $entityManager->flush();
         }
-
         return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
     }
 }
