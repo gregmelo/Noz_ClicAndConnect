@@ -3,9 +3,8 @@
   Provides the global HTML structure, navigation, and common assets.
   
   Blocks:
-  - title: Page title suffix
+  - title: Page-specific title
   - body: Main content area
-  - javascripts: Page-specific JS
 #}
 <!DOCTYPE html>
 <html lang="fr">
@@ -28,6 +27,10 @@
         
         {# Canonical URL #}
         <link rel="canonical" href="{{ app.request.uri }}">
+        
+        {# Flatpickr for premium date/time picking #}
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css">
 
         {# Open Graph / Facebook #}
         <meta property="og:type" content="website">
@@ -45,10 +48,6 @@
 
         <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><path d='M40 40V30C40 16.7 50.7 6 64 6s24 10.7 24 24v10h17c5.5 0 10 4.5 10 10v55c0 8.3-6.7 15-15 15H28c-8.3 0-15-6.7-15-15V50c0-5.5 4.5-10 10-10h17zm8 0h32V30c0-8.8-7.2-16-16-16s-16 7.2-16 16v10z' fill='%23ffcc00'/><g stroke='%230078d7' stroke-width='6' stroke-linecap='round'><line x1='85' x2='90' y1='55' y2='50'/><line x1='95' x2='102' y1='65' y2='62'/><line x1='82' x2='77' y1='68' y2='72'/></g><path d='M95 65l25 35h-12l7 15-10 5-7-15-12 5V65z' fill='%230078d7'/></svg>">
         {% block stylesheets %}
-        {% endblock %}
-
-        {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
         {% endblock %}
     </head>
     <body class="bg-gray-100 flex flex-col min-h-screen" data-controller="mobile-menu">
@@ -523,5 +522,12 @@
                 }
             }
         </script>
+        {# Global Scripts #}
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+
+        {% block javascripts %}
+            {{ importmap('app') }}
+        {% endblock %}
     </body>
 </html>

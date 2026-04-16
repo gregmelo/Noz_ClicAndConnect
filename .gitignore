@@ -32,3 +32,6 @@ dev.log
 migration_error.log
 doctrine_validate.txt
 mercure.exe
+Caddyfile.prod
+deploy/.env.prod.template
+mercure

@@ -28,11 +28,11 @@ class CheckExpiredReservationsCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $now = new \DateTimeImmutable();
 
-        // Find reservations that are ACTIVE or READY and have expired
+        // Find reservations that are READY and have expired
         $expiredReservations = $this->reservationRepository->createQueryBuilder('r')
-            ->where('r.status IN (:statuses)')
+            ->where('r.status = :status')
             ->andWhere('r.expiresAt < :now')
-            ->setParameter('statuses', ['ACTIVE', 'READY'])
+            ->setParameter('status', 'READY')
             ->setParameter('now', $now)
             ->getQuery()
             ->getResult();
@@ -57,8 +57,8 @@ class CheckExpiredReservationsCommand extends Command
             
             // Check for Ban (e.g., if strikes >= 3)
             if ($user->getStrikes() >= 3) {
-                // Ban for 30 days (example logic, adjust as needed)
-                $user->setBanExpiresAt((new \DateTimeImmutable())->modify('+30 days'));
+                // Ban for 7 days
+                $user->setBanExpiresAt((new \DateTimeImmutable())->modify('+7 days'));
                 $io->note(sprintf('User %s has been banned due to excessive strikes.', $user->getEmail()));
             }
 

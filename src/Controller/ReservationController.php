@@ -118,108 +118,123 @@ class ReservationController extends AbstractController
         $cartItems = $this->cartService->getFullCart();
         if (empty($cartItems)) {
             $this->addFlash('warning', 'Votre panier est vide.');
-            return $this->redirectToRoute('app_cart_index');
+            return $this->redirectToRoute('app_home');
         }
 
-        // Tentative de groupement avec une réservation ACTIVE non expirée
-        /** @var Reservation|null $existingReservation */
-        $existingReservation = $entityManager->getRepository(Reservation::class)->findOneBy([
-            'user' => $user,
-            'status' => 'ACTIVE'
-        ], ['reservedAt' => 'DESC']);
-
-        if ($existingReservation && $existingReservation->isExpired()) {
-            $existingReservation = null;
-        }
-
-        if ($existingReservation) {
-            $reservation = $existingReservation;
-            // On repousse l'expiration à 48h à partir de maintenant
-            $reservation->setExpiresAt((new \DateTimeImmutable())->modify('+48 hours'));
-            
-            // Ajout du nouveau commentaire si présent
-            $newComment = $request->request->get('comment');
-            if ($newComment) {
-                $currentComment = $reservation->getComment();
-                $reservation->setComment($currentComment ? $currentComment . " | " . $newComment : $newComment);
-            }
-        } else {
-            // Limite de 5 réservations actives par client
-            $activeReservationsCount = $entityManager->getRepository(Reservation::class)->count([
+        // Début de la transaction pour le verrouillage pessimiste des stocks
+        $entityManager->beginTransaction();
+        try {
+            // Tentative de groupement avec une réservation ACTIVE non expirée
+            /** @var Reservation|null $existingReservation */
+            $existingReservation = $entityManager->getRepository(Reservation::class)->findOneBy([
                 'user' => $user,
                 'status' => 'ACTIVE'
-            ]);
+            ], ['reservedAt' => 'DESC']);
 
-            if ($activeReservationsCount >= 5) {
-                $this->addFlash('danger', 'Vous avez atteint la limite de 5 réservations actives. Veuillez récupérer vos articles avant de réserver à nouveau.');
-                return $this->redirectToRoute('app_cart_index');
+            if ($existingReservation && $existingReservation->isExpired()) {
+                $existingReservation = null;
             }
 
-            // Création d'une nouvelle réservation
-            $reservation = new Reservation();
-            $reservation->setUser($user);
-            $reservation->setExpiresAt((new \DateTimeImmutable())->modify('+48 hours'));
-            $reservation->setComment($request->request->get('comment'));
-            
-            // Génération d'une référence unique : RES-YYYYMMDD-XXXX
-            $date = (new \DateTime())->format('Ymd');
-            $uniqId = strtoupper(substr(uniqid(), -4));
-            $reservation->setReference(sprintf('RES-%s-%s', $date, $uniqId));
-            
-            $entityManager->persist($reservation);
-        }
+            if ($existingReservation) {
+                $reservation = $existingReservation;
+                // Une réservation ACTIVE (en attente) n'expire plus automatiquement
+                $reservation->setExpiresAt((new \DateTimeImmutable())->modify('+10 years'));
+                
+                // Ajout du nouveau commentaire si présent
+                $newComment = $request->request->get('comment');
+                if ($newComment) {
+                    $currentComment = $reservation->getComment();
+                    $reservation->setComment($currentComment ? $currentComment . " | " . $newComment : $newComment);
+                }
+            } else {
+                // Limite de 5 réservations actives par client
+                $activeReservationsCount = $entityManager->getRepository(Reservation::class)->count([
+                    'user' => $user,
+                    'status' => 'ACTIVE'
+                ]);
 
-        // Traitement des produits du panier
-        foreach ($cartItems as $cartItem) {
-            $productId = $cartItem['product']->getId();
-            
-            // Verrouillage de la ligne SQL pour éviter les race conditions sur le stock
-            /** @var \App\Entity\Product $product */
-            $product = $entityManager->find(\App\Entity\Product::class, $productId, \Doctrine\DBAL\LockMode::PESSIMISTIC_WRITE);
+                if ($activeReservationsCount >= 5) {
+                    $this->addFlash('danger', 'Vous avez atteint la limite de 5 réservations actives. Veuillez récupérer vos articles avant de réserver à nouveau.');
+                    $entityManager->rollback();
+                    return $this->redirectToRoute('app_cart_index');
+                }
 
-            if (!$product) continue;
-
-            $quantity = $cartItem['quantity'];
-
-            // Validation de la disponibilité
-            if (!$product->isLive()) {
-                $this->addFlash('danger', 'Le produit ' . $product->getName() . ' n\'est plus disponible pour le live.');
-                return $this->redirectToRoute('app_cart_index');
+                // Création d'une nouvelle réservation
+                $reservation = new Reservation();
+                $reservation->setUser($user);
+                $reservation->setExpiresAt((new \DateTimeImmutable())->modify('+10 years'));
+                $reservation->setComment($request->request->get('comment'));
+                
+                // Génération d'une référence unique : RES-YYYYMMDD-XXXX
+                $date = (new \DateTime())->format('Ymd');
+                $uniqId = strtoupper(substr(uniqid(), -4));
+                $reservation->setReference(sprintf('RES-%s-%s', $date, $uniqId));
+                
+                $entityManager->persist($reservation);
             }
 
-            if ($product->getStock() < $quantity) {
-                $this->addFlash('danger', 'Stock insuffisant pour le produit : ' . $product->getName());
-                return $this->redirectToRoute('app_cart_index');
-            }
+            // Traitement des produits du panier
+            foreach ($cartItems as $cartItem) {
+                $productId = $cartItem['product']->getId();
+                
+                // Verrouillage de la ligne SQL pour éviter les race conditions sur le stock
+                /** @var \App\Entity\Product $product */
+                $product = $entityManager->find(\App\Entity\Product::class, $productId, \Doctrine\DBAL\LockMode::PESSIMISTIC_WRITE);
 
-            // Mise à jour du stock
-            $product->setStock($product->getStock() - $quantity);
-            $entityManager->persist($product);
+                if (!$product) continue;
 
-            // Ajout ou mise à jour de l'item dans la réservation
-            $existingItem = null;
-            foreach ($reservation->getReservationItems() as $resItem) {
-                if ($resItem->getProduct()->getId() === $product->getId()) {
-                    $existingItem = $resItem;
-                    break;
+                $quantity = $cartItem['quantity'];
+
+                // Validation de la disponibilité
+                if (!$product->isLive()) {
+                    $this->addFlash('danger', 'Le produit ' . $product->getName() . ' n\'est plus disponible pour le live.');
+                    $entityManager->rollback();
+                    return $this->redirectToRoute('app_cart_index');
+                }
+
+                if ($product->getStock() < $quantity) {
+                    $this->addFlash('danger', 'Stock insuffisant pour le produit : ' . $product->getName());
+                    $entityManager->rollback();
+                    return $this->redirectToRoute('app_cart_index');
+                }
+
+                // Mise à jour du stock
+                $product->setStock($product->getStock() - $quantity);
+                $entityManager->persist($product);
+
+                // Ajout ou mise à jour de l'item dans la réservation
+                $existingItem = null;
+                foreach ($reservation->getReservationItems() as $resItem) {
+                    if ($resItem->getProduct()->getId() === $product->getId()) {
+                        $existingItem = $resItem;
+                        break;
+                    }
+                }
+
+                if ($existingItem) {
+                    $existingItem->setQuantity($existingItem->getQuantity() + $quantity);
+                    $entityManager->persist($existingItem);
+                } else {
+                    $item = new ReservationItem();
+                    $item->setReservation($reservation);
+                    $item->setProduct($product);
+                    $item->setQuantity($quantity);
+                    $item->setPrice($product->getPrice());
+                    $entityManager->persist($item);
+                    $reservation->addReservationItem($item);
                 }
             }
 
-            if ($existingItem) {
-                $existingItem->setQuantity($existingItem->getQuantity() + $quantity);
-                $entityManager->persist($existingItem);
-            } else {
-                $item = new ReservationItem();
-                $item->setReservation($reservation);
-                $item->setProduct($product);
-                $item->setQuantity($quantity);
-                $item->setPrice($product->getPrice());
-                $entityManager->persist($item);
-                $reservation->addReservationItem($item);
-            }
-        }
+            $entityManager->flush();
+            $entityManager->commit();
 
-        $entityManager->flush();
+        } catch (\Exception $e) {
+            if ($entityManager->getConnection()->isTransactionActive()) {
+                $entityManager->rollback();
+            }
+            $this->addFlash('danger', 'Une erreur est survenue lors de la validation : ' . $e->getMessage());
+            return $this->redirectToRoute('app_cart_index');
+        }
 
         // Enregistrement de l'action dans les logs d'audit
         $this->activityLogger->logReservation($user, $reservation->getReference(), count($cartItems));
@@ -281,8 +296,8 @@ class ReservationController extends AbstractController
                 
                 // Bannissement automatique à partir de 3 strikes
                 if ($owner->getStrikes() >= 3) {
-                     $owner->setBanExpiresAt((new \DateTimeImmutable())->modify('+30 days'));
-                     $this->addFlash('warning', 'Utilisateur banni pour 30 jours (3 strikes).');
+                     $owner->setBanExpiresAt((new \DateTimeImmutable())->modify('+7 days'));
+                     $this->addFlash('warning', 'Utilisateur banni pour 7 jours (3 strikes).');
                 }
                 $entityManager->persist($owner);
                 $this->addFlash('success', 'Réservation marquée comme EXPIRÉE. Stock rétabli et Strike ajouté.');
@@ -323,19 +338,11 @@ class ReservationController extends AbstractController
 
         $reservation->setStatus('READY');
 
-        // Calcul de la date d'échéance : 
-        // Préparée le matin -> Expire à 19h30 le soir même.
-        // Préparée l'après-midi -> Expire à 19h30 le lendemain ouvrable.
-        $now = new \DateTimeImmutable();
-        $hour = (int) $now->format('G');
-
-        if ($hour < 12) {
-            $expiresAt = $now->setTime(19, 30);
-        } else {
-            $expiresAt = $now->modify('+1 day')->setTime(19, 30);
-            if ($expiresAt->format('N') == 7) { // Dimanche -> Report au Lundi
-                $expiresAt = $expiresAt->modify('+1 day');
-            }
+        // Calcul de la date d'échéance : Demain 19h30
+        $expiresAt = (new \DateTimeImmutable())->modify('+1 day')->setTime(19, 30);
+        
+        if ($expiresAt->format('N') == 7) { // Dimanche -> Report au Lundi 19h30
+            $expiresAt = $expiresAt->modify('+1 day');
         }
         
         $reservation->setExpiresAt($expiresAt);
@@ -591,5 +598,27 @@ class ReservationController extends AbstractController
             'res-updates',
             json_encode(['event' => 'reservation_updated', 'timestamp' => time()])
         ));
+    }
+    /**
+     * Nettoie les anciennes réservations terminées (plus de 7 jours).
+     */
+    #[Route('/employee/cleanup', name: 'app_employee_cleanup', methods: ['GET'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function cleanup(EntityManagerInterface $entityManager): Response
+    {
+        $limitDate = (new \DateTimeImmutable())->modify('-7 days');
+        
+        $count = $entityManager->createQueryBuilder()
+            ->delete(Reservation::class, 'r')
+            ->where('r.status IN (:statuses)')
+            ->andWhere('r.reservedAt < :limitDate')
+            ->setParameter('statuses', ['CANCELLED', 'COLLECTED', 'EXPIRED'])
+            ->setParameter('limitDate', $limitDate)
+            ->getQuery()
+            ->execute();
+
+        $this->addFlash('success', sprintf('%d anciennes réservations ont été définitivement supprimées.', $count));
+        
+        return $this->redirectToRoute('app_employee_reservations');
     }
 }

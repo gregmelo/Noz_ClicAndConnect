@@ -24,7 +24,7 @@
             <div class="ml-3">
                 <p class="text-sm text-blue-700">
                     <span class="font-bold">Attention aux strikes :</span> Si vous ne récupérez pas votre commande à temps, vous recevrez un "strike". 
-                    Au bout de <span class="font-bold">3 strikes</span>, votre compte sera banni du site pour 30 jours.
+                    Au bout de <span class="font-bold">3 strikes</span>, votre compte sera banni du site pour 7 jours.
                     Vous avez actuellement <span class="font-bold text-red-600">{{ app.user.strikes }} strike(s)</span>.
                 </p>
             </div>
@@ -68,7 +68,11 @@
                             {{ reservation.reservedAt|date('d/m/Y H:i') }}
                         </td>
                         <td class="py-3 px-6 text-center">
-                            {{ reservation.expiresAt|date('d/m/Y H:i') }}
+                            {% if reservation.status == 'ACTIVE' %}
+                                <span class="text-gray-400 italic">En attente de préparation</span>
+                            {% else %}
+                                {{ reservation.expiresAt|date('d/m/Y H:i') }}
+                            {% endif %}
                         </td>
                         <td class="py-3 px-6 text-center">
                             {% set status = reservation.effectiveStatus %}

@@ -61,7 +61,7 @@
                                 <div class="text-gray-500 text-xs">Réservé le : {{ reservation.reservedAt|date('d/m/Y H:i') }}</div>
                                 {% if type == 'expired' %}
                                     <div class="text-red-600 font-bold text-xs mt-1">Expiré le : {{ reservation.expiresAt|date('d/m/Y H:i') }}</div>
-                                {% elseif type != 'history' %}
+                                {% elseif type != 'history' and type != 'new' %}
                                     <div class="text-{{ color }}-600 font-bold text-xs mt-1">Expire le : {{ reservation.expiresAt|date('d/m/Y H:i') }}</div>
                                 {% endif %}
                             </td>

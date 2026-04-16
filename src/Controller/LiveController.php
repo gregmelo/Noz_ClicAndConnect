@@ -29,7 +29,7 @@ class LiveController extends AbstractController
         $globalStat = $globalStatRepository->getOrCreate();
 
         return $this->render('live/dashboard.html.twig', [
-            'products'   => $productRepository->findBy([], ['isLive' => 'DESC', 'name' => 'ASC']),
+            'products'   => $productRepository->findBy([], ['id' => 'DESC']),
             'nextLiveAt' => $globalStat->getNextLiveAt(),
         ]);
     }
@@ -171,7 +171,7 @@ class LiveController extends AbstractController
     #[Route('/api/live/products', name: 'api_live_products', methods: ['GET'])]
     public function getLiveProducts(ProductRepository $productRepository): JsonResponse
     {
-        $products = $productRepository->findBy(['isLive' => true]);
+        $products = $productRepository->findBy(['isLive' => true], ['id' => 'DESC']);
 
         $data = array_map(fn(Product $p) => [
             'id'            => $p->getId(),

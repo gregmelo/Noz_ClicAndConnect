@@ -175,7 +175,7 @@ class UserAdminController extends AbstractController
                 // Auto-ban/Unban logic
                 if ($strikes >= 3) {
                     if (!$user->getBanExpiresAt() || $user->getBanExpiresAt() < new \DateTimeImmutable()) {
-                        $user->setBanExpiresAt((new \DateTimeImmutable())->modify('+30 days'));
+                        $user->setBanExpiresAt((new \DateTimeImmutable())->modify('+7 days'));
                     }
                 } else {
                     $user->setBanExpiresAt(null);
