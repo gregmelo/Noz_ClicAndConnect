@@ -113,7 +113,6 @@ class LiveController extends AbstractController
         $product->setActivatedAt(new \DateTimeImmutable());
         $entityManager->flush();
 
-        file_put_contents('/tmp/mercure_debug.log', date('Y-m-d H:i:s') . " - Activation produit " . $product->getId() . "\n", FILE_APPEND);
         // Publier l'événement vers tous les clients abonnés
         $hub->publish(new Update(
             self::LIVE_TOPIC,
@@ -128,7 +127,7 @@ class LiveController extends AbstractController
                 'image'         => $product->getImageFilename(),
             ])
         ));
-        file_put_contents('/tmp/mercure_debug.log', date('Y-m-d H:i:s') . " - Publication Mercure OK\n", FILE_APPEND);
+
         return $this->json([
             'success' => true,
             'message' => 'Produit "' . $product->getName() . '" est maintenant en ligne !',
