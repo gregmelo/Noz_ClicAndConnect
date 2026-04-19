@@ -61,11 +61,11 @@
     {% elseif log.action == 'USER_ADMIN_DELETED' %}
         Compte de <strong>{{ log.context.target_user }}</strong> supprimé définitivement.
     {% elseif log.action == 'RESERVATION_CREATED' %}
-        Nouvelle réservation <span class="font-bold text-blue-700">{{ log.context.reservation_reference ?? '#' ~ log.context.reservation_id }}</span> (<strong>{{ log.context.quantity }}</strong> articles).
+        Nouvelle réservation <span class="font-bold text-blue-700">{{ log.context.reservation_reference ?? '#' ~ (log.context.reservation_id ?? '?') }}</span> (<strong>{{ log.context.quantity ?? '?' }}</strong> articles).
     {% elseif log.action == 'RESERVATION_CANCELLED' %}
-        Réservation <span class="font-bold text-red-600">{{ log.context.reservation_reference ?? '#' ~ log.context.reservation_id }}</span> annulée.
+        Réservation <span class="font-bold text-red-600">{{ log.context.reservation_reference ?? '#' ~ (log.context.reservation_id ?? '?') }}</span> annulée.
     {% elseif log.action == 'RESERVATION_COLLECTED' %}
-        Réservation <span class="font-bold text-green-600">{{ log.context.reservation_reference ?? '#' ~ log.context.reservation_id }}</span> récupérée par le client.
+        Réservation <span class="font-bold text-green-600">{{ log.context.reservation_reference ?? '#' ~ (log.context.reservation_id ?? '?') }}</span> récupérée par le client.
     {% elseif log.action == 'RESERVATIONS_BATCH_READY' %}
         <strong>{{ log.context.count }}</strong> réservations marquées comme PRÊTES simultanément.
     {% elseif log.action == 'LOGIN_SUCCESS' %}
