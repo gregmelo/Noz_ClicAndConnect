@@ -202,39 +202,41 @@ class UserAdminController extends AbstractController
         ]);
     }
 
-    /**
-     * Delete a user (Admin only)
-     *
-     * @param User $user
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param ActivityLogger $logger
-     * @return Response
-     */
-    #[Route('/{id}/delete', name: 'app_admin_users_delete', methods: ['POST'])]
-    public function delete(User $user, Request $request, EntityManagerInterface $entityManager, ActivityLogger $logger): Response
-    {
-        if (!$this->isCsrfTokenValid('delete_user'.$user->getId(), $request->request->get('_token'))) {
-            $this->addFlash('danger', 'Jeton de sécurité invalide.');
-            return $this->redirectToRoute('app_admin_users_index');
-        }
-
-        if (!$this->isGranted('USER_DELETE', $user)) {
-            $this->addFlash('danger', 'Vous n\'avez pas les permissions pour supprimer cet utilisateur.');
-            return $this->redirectToRoute('app_admin_users_index');
-        }
-
-        $targetEmail = $user->getEmail();
-        $entityManager->remove($user);
-        $entityManager->flush();
-
-        $logger->logUserAction($this->getUser(), 'USER_ADMIN_DELETED', [
-            'target_user' => $targetEmail
-        ]);
-
-        $this->addFlash('success', 'Utilisateur supprimé.');
+#[Route('/{id}/delete', name: 'app_admin_users_delete', methods: ['POST'])]
+public function delete(User $user, Request $request, EntityManagerInterface $entityManager, ActivityLogger $logger): Response
+{
+    if (!$this->isCsrfTokenValid('delete_user'.$user->getId(), $request->request->get('_token'))) {
+        $this->addFlash('danger', 'Jeton de sécurité invalide.');
         return $this->redirectToRoute('app_admin_users_index');
     }
+
+    if (!$this->isGranted('USER_DELETE', $user)) {
+        $this->addFlash('danger', 'Vous n\'avez pas les permissions pour supprimer cet utilisateur.');
+        return $this->redirectToRoute('app_admin_users_index');
+    }
+
+    $targetEmail = $user->getEmail();
+    $userId = $user->getId();
+
+    // Anonymisation au lieu de suppression (RGPD + conservation historique)
+    $user->setEmail('deleted_' . $userId . '@noz.fr');
+    $user->setFirstName('Compte');
+    $user->setLastName('Supprimé');
+    $user->setPassword('DELETED_' . bin2hex(random_bytes(16)));
+    $user->setRoles(['ROLE_CLIENT']);
+
+    // Invalider les tokens de réinitialisation de mot de passe si la méthode existe
+    // (les reset_password_request seront orphelins mais ça ne pose pas de problème)
+
+    $entityManager->flush();
+
+    $logger->logUserAction($this->getUser(), 'USER_ADMIN_DELETED', [
+        'target_user' => $targetEmail
+    ]);
+
+    $this->addFlash('success', 'Compte utilisateur anonymisé avec succès.');
+    return $this->redirectToRoute('app_admin_users_index');
+}
 
     private function getAllowedRolesToCreate(User $user): array
     {
