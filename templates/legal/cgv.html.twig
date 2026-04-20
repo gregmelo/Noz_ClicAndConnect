@@ -1,7 +1,5 @@
 {% extends 'base.html.twig' %}
-
 {% block title %}Conditions Générales de Vente{% endblock %}
-
 {% block body %}
 <div class="container mx-auto px-4 py-8 max-w-4xl">
     <div class="mb-8">
@@ -11,28 +9,38 @@
             ]
         } %}
     </div>
-
     <h1 class="text-3xl font-bold text-noz-blue mb-8">Conditions Générales de Vente (CGV)</h1>
-
     <div class="bg-white shadow-md rounded-2xl p-6 sm:p-8 space-y-8 border border-gray-100 text-gray-600 leading-relaxed">
+
         <section>
-            <h2 class="text-xl font-bold text-gray-900 mb-4">1. Objet</h2>
-            <p>
-                Les présentes Conditions Générales de Vente (CGV) régissent les relations entre le magasin NOZ Ambérieu et les utilisateurs de la plateforme "ClicAndConnect" souhaitant réserver des articles en ligne pour un retrait en magasin.
-            </p>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Article 1. Objet</h2>
+            <p>Les présentes Conditions Générales de Vente régissent les relations entre le magasin NOZ Ambérieu-en-Bugey et les utilisateurs de la plateforme "ClicAndConnect" souhaitant réserver des articles en ligne pour un retrait en magasin. L'utilisation de la plateforme implique une acceptation sans réserve des présentes CGV dont l'utilisateur reconnaît avoir pris connaissance préalablement à sa commande.</p>
+            <p class="mt-2">Sauf preuve contraire, les données enregistrées dans les systèmes d'information de la plateforme constituent la preuve de l'ensemble des transactions passées entre le magasin et le Client.</p>
         </section>
 
         <section>
-            <h2 class="text-xl font-bold text-gray-900 mb-4">2. Modalités de Réservation</h2>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Article 2. Produits</h2>
+            <p>Les produits proposés sont ceux figurant sur la plateforme dans la limite des stocks disponibles. Le magasin NOZ se réserve le droit de modifier à tout moment l'assortiment de produits. Les photographies sont les plus fidèles possibles mais n'engagent en rien le magasin. Toute offre est valable dans la limite des stocks disponibles.</p>
+            <p class="mt-2">Pour toute commande de boissons alcoolisées, le Client s'engage à avoir 18 ans révolus à la date de la commande, conformément à l'article L3342-1 du Code de la santé publique.</p>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Article 3. Modalités de Réservation</h2>
             <ul class="list-disc pl-5 space-y-2">
                 <li>La réservation s'effectue exclusivement via la plateforme en ligne pendant ou après les sessions de vente en live.</li>
                 <li>La validation d'une réservation entraîne le blocage des stocks pour une durée limitée.</li>
-                <li>Toute réservation est considérée comme ferme mais le paiement s'effectue exclusivement lors du retrait en magasin (sauf mention contraire).</li>
+                <li>Toute réservation est considérée comme ferme. Le paiement s'effectue exclusivement lors du retrait en magasin.</li>
+                <li>Le Client doit se présenter au magasin NOZ, <strong>19 Rue Vermorel, 01500 Ambérieu-en-Bugey</strong>, muni de son numéro de commande et d'une pièce d'identité.</li>
             </ul>
         </section>
 
+        <section>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Article 4. Prix</h2>
+            <p>Les prix affichés sont exprimés en Euros TTC. Tout changement du taux de TVA pourra être répercuté sur le prix des produits. Le magasin se réserve le droit de modifier ses prix à tout moment. Le prix applicable est celui en vigueur lors de l'enregistrement de la réservation.</p>
+        </section>
+
         <section class="bg-yellow-50 p-6 rounded-2xl border border-yellow-100">
-            <h2 class="text-xl font-bold text-noz-blue mb-4">3. Délais de Retrait et Expiration</h2>
+            <h2 class="text-xl font-bold text-noz-blue mb-4">Article 5. Délais de Retrait et Expiration</h2>
             <p class="mb-4">Pour garantir la disponibilité des produits pour l'ensemble de notre clientèle, des délais stricts sont appliqués :</p>
             <ul class="list-disc pl-5 space-y-2">
                 <li><strong>Préparation le matin :</strong> La commande doit être retirée avant 19h30 le jour même.</li>
@@ -42,28 +50,60 @@
         </section>
 
         <section>
-            <h2 class="text-xl font-bold text-gray-900 mb-4">4. Politique de "Strikes" et Responsabilité</h2>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Article 6. Politique de "Strikes" et Responsabilité</h2>
             <p class="mb-4">Le service ClicAndConnect repose sur la confiance mutuelle. Afin d'éviter les réservations fantômes :</p>
             <ul class="list-disc pl-5 space-y-2">
                 <li>Une commande non récupérée sans annulation préalable entraîne l'attribution d'un "Strike" (pénalité).</li>
-                <li><strong>Au bout de 3 "Strikes"</strong>, le compte de l'utilisateur est automatiquement suspendu pour une durée de 7 jours.</li>
-                <li>Le client peut annuler sa commande à tout moment avant sa préparation depuis son espace "Mes Réservations" pour éviter toute pénalité.</li>
+                <li><strong>Au bout de 3 "Strikes"</strong>, le compte de l'utilisateur est automatiquement suspendu pour une durée de <strong>7 jours</strong>.</li>
+                <li>Le Client peut annuler sa commande à tout moment avant sa préparation depuis son espace "Mes Réservations" pour éviter toute pénalité.</li>
             </ul>
         </section>
 
         <section>
-            <h2 class="text-xl font-bold text-gray-900 mb-4">5. Prix et Produits</h2>
-            <p>
-                Les prix affichés sont exprimés en Euros TTC. Le magasin se réserve le droit de modifier ses prix à tout moment. En cas de différence de prix constatée, le prix pratiqué lors de l'enregistrement de la réservation prévaut.
-            </p>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Article 7. Réserve de Propriété</h2>
+            <p>Le magasin NOZ conserve la propriété pleine et entière des produits vendus jusqu'au parfait encaissement du prix lors du retrait en magasin.</p>
         </section>
 
         <section>
-            <h2 class="text-xl font-bold text-gray-900 mb-4">6. Droit de Rétractation</h2>
-            <p>
-                Le paiement ayant lieu en magasin après vérification des articles par le client, le droit de rétractation s'applique selon la politique habituelle de retour du magasin NOZ, conformément à la législation en vigueur.
-            </p>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Article 8. Droit de Rétractation</h2>
+            <p>Le paiement ayant lieu en magasin après vérification des articles par le Client, le droit de rétractation s'applique selon la politique habituelle de retour du magasin NOZ, conformément à la législation en vigueur et notamment aux articles L121-21 et suivants du Code de la consommation.</p>
         </section>
+
+        <section>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Article 9. Garantie</h2>
+            <p>Tous les produits bénéficient de la garantie légale prévue par les articles 1641 et suivants du Code civil. En cas de non-conformité d'un produit, il peut être retourné au magasin NOZ qui le reprend, l'échange ou le rembourse. Toutes réclamations doivent s'effectuer par email à <strong>amberieu@mag-noz.fr</strong> dans un délai de trente jours à compter de la commande.</p>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Article 10. Responsabilité</h2>
+            <p>Le magasin NOZ, dans le processus de réservation en ligne, n'est tenu que par une obligation de moyens. Sa responsabilité ne pourra être engagée pour un dommage résultant de l'utilisation du réseau Internet tel que perte de données, intrusion, virus, rupture du service, ou autres problèmes involontaires. La responsabilité du magasin ne peut être engagée en cas de force majeure.</p>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Article 11. Propriété Intellectuelle</h2>
+            <p>La marque « NOZ » est une marque déposée auprès de l'INPI. Tous les éléments de la plateforme sont protégés par des droits de propriété intellectuelle. Toute reproduction totale ou partielle est interdite sans accord préalable.</p>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Article 12. Données à Caractère Personnel</h2>
+            <p>Le magasin et ses prestataires s'engagent à préserver la confidentialité des informations fournies par le Client. Pour toute information, le Client se réfère à notre Politique de Confidentialité disponible sur le site.</p>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Article 13. Contact</h2>
+            <p>Si le Client souhaite contacter le magasin NOZ, il peut le faire :</p>
+            <ul class="list-disc pl-5 space-y-2 mt-2">
+                <li>Par courrier : <strong>19 Rue Vermorel, 01500 Ambérieu-en-Bugey</strong></li>
+                <li>Par email : <strong>amberieu@mag-noz.fr</strong></li>
+                <li>Par téléphone : <strong>04 86 80 00 39</strong></li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Article 14. Règlement des Litiges et Droit Applicable</h2>
+            <p>Les présentes CGV sont soumises à la loi française. Pour tous litiges ou contentieux, le Tribunal compétent sera celui du lieu du magasin NOZ Ambérieu-en-Bugey.</p>
+        </section>
+
     </div>
 </div>
 {% endblock %}
