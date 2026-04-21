@@ -51,7 +51,7 @@ class DashboardController extends AbstractController
         // Statistiques réservations (Live + Archives)
         $activeReservations = $reservationRepository->count(['status' => 'ACTIVE']);
         $readyReservations = $reservationRepository->count(['status' => 'READY']);
-        
+
         // Expired = Live Expired + Archived Expired
         $liveExpired = $reservationRepository->count(['status' => 'EXPIRED']); // Only checks EXPIRED status, check if others need inclusion? 
         // Note: The "Expired" section in employee list includes 'CANCELLED' etc. 
@@ -61,7 +61,7 @@ class DashboardController extends AbstractController
         // Collected = Live Collected + Archived Collected
         $liveCollected = $reservationRepository->count(['status' => 'COLLECTED']);
         $collectedReservations = $liveCollected + $globalStat->getTotalCollectedCount();
-        
+
         // Calcul du CA total (Live + Archives)
         $liveRevenue = $reservationRepository->createQueryBuilder('r')
             ->select('SUM(ri.quantity * ri.price)')
@@ -70,13 +70,13 @@ class DashboardController extends AbstractController
             ->setParameter('status', 'COLLECTED')
             ->getQuery()
             ->getSingleScalarResult() ?? 0;
-            
+
         $totalRevenue = $liveRevenue + $globalStat->getTotalRevenue();
 
         // Réservations à récupérer aujourd'hui
         $today = new \DateTimeImmutable();
         $tomorrow = $today->modify('+1 day');
-        
+
         $reservationsToday = $reservationRepository->createQueryBuilder('r')
             ->where('r.status = :status')
             ->andWhere('r.expiresAt >= :today')
@@ -119,6 +119,14 @@ class DashboardController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        // Nombre de clients enregistrés
+        $totalClients = $entityManager->getRepository(\App\Entity\User::class)->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->where('u.roles LIKE :role')
+            ->setParameter('role', '%ROLE_CLIENT%')
+            ->getQuery()
+            ->getSingleScalarResult();
+
         return $this->render('dashboard/index.html.twig', [
             'totalProducts' => $totalProducts,
             'productsInStock' => $productsInStock,
@@ -132,6 +140,7 @@ class DashboardController extends AbstractController
             'totalRevenue' => $totalRevenue,
             'bestSellers' => $bestSellers,
             'lowStockProducts' => $lowStockProducts,
+            'totalClients' => $totalClients,
         ]);
     }
 }
