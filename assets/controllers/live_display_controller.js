@@ -8,8 +8,8 @@ import { Controller } from "@hotwired/stimulus";
 export default class extends Controller {
     static targets = ["container", "noProductMessage", "count", "badge", "countdownContainer"];
     static values = {
-        mercureUrl: String, 
-        initialUrl: String, 
+        mercureUrl: String,
+        initialUrl: String,
         imagesPath: String,
     };
 
@@ -35,7 +35,7 @@ export default class extends Controller {
             const res = await fetch(this.initialUrlValue);
             if (!res.ok) return;
             const products = await res.json();
-            
+
             this.productCount = products.length;
             this.renderAll(products);
             this.updateGlobalUI();
@@ -54,10 +54,10 @@ export default class extends Controller {
 
         this.eventSource.onmessage = (event) => {
             if (!event || !event.data) return;
-            
+
             try {
                 const data = JSON.parse(event.data);
-                
+
                 // Routage des événements Mercure
                 if (data.event === "product_activated") {
                     this.addProduct(data);
@@ -110,6 +110,10 @@ export default class extends Controller {
         this.updateGlobalUI();
 
         this.noProductMessageTarget?.classList.add("hidden");
+
+        // Masquer le message "en attente du premier produit"
+        const waitingMsg = document.getElementById('waiting-first-product');
+        if (waitingMsg) waitingMsg.classList.add('hidden');
 
         const div = document.createElement("div");
         div.innerHTML = this.createProductCard(product);
@@ -211,11 +215,11 @@ export default class extends Controller {
             style: "currency",
             currency: "EUR",
         }).format(p.price);
-        
+
         const originalPriceHtml = p.originalPrice
             ? `<span class="text-sm line-through text-gray-400 ml-2">${new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(p.originalPrice)}</span>`
             : "";
-            
+
         const imagePath = p.image
             ? `${this.imagesPathValue}${p.image}`
             : `${this.imagesPathValue}placeholder.svg`;

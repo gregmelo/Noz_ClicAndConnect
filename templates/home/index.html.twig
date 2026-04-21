@@ -211,14 +211,22 @@
         </div>
 
         <div data-live-display-target="countdownContainer" class="{{ liveInProgress ? 'hidden' : '' }}">
-            {% if nextLiveAt %}
-                <div id="next-live-countdown" data-next-live="{{ nextLiveAt|date('c') }}" class="flex items-center gap-3 text-base md:text-lg bg-blue-50 border border-noz-blue text-noz-blue px-4 py-3 rounded-xl shadow-sm" aria-live="polite">
-                    <span class="font-semibold">Prochain live&nbsp;: </span>
-                    <span class="font-mono next-live-countdown-value text-xl md:text-2xl">calcul en cours...</span>
-                </div>
-            {% else %}
-                <div class="text-sm md:text-base text-gray-500 italic">Pas de live prévu pour le moment.</div>
-            {% endif %}
+{% if nextLiveAt %}
+    <div id="next-live-countdown" data-next-live="{{ nextLiveAt|date('c') }}" class="flex items-center gap-3 text-base md:text-lg bg-blue-50 border border-noz-blue text-noz-blue px-4 py-3 rounded-xl shadow-sm" aria-live="polite">
+        <span class="font-semibold">Prochain live&nbsp;: </span>
+        <span class="font-mono next-live-countdown-value text-xl md:text-2xl">calcul en cours...</span>
+    </div>
+    {# Badge Facebook - visible 35 min après le début du live #}
+    <a id="facebook-live-badge" href="https://www.facebook.com/groups/566648330181493/" target="_blank" rel="noopener noreferrer"
+       class="hidden items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-3 rounded-xl shadow-lg transition-all animate-pulse">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+        </svg>
+        🔴 Live en cours — Rejoindre sur Facebook
+    </a>
+{% else %}
+    <div class="text-sm md:text-base text-gray-500 italic">Pas de live prévu pour le moment.</div>
+{% endif %}
         </div>
     </div>
     
@@ -299,12 +307,13 @@
             </div>
             <div class="mt-2 flex flex-col items-center gap-1">
                 {% if nextLiveAt %}
-                    <div class="text-sm uppercase tracking-wider text-gray-500">Prochain live</div>
-                    <div class="font-mono next-live-countdown-value text-3xl md:text-4xl font-extrabold text-noz-blue">calcul en cours...</div>
-                {% else %}
-                    <div class="text-lg font-semibold text-gray-700">Pas de live prévu pour le moment.</div>
-                    <p class="text-gray-500 max-w-md mx-auto">Restez connectés, les prochains lives seront annoncés ici.</p>
-                {% endif %}
+    <div class="text-sm uppercase tracking-wider text-gray-500">Prochain live</div>
+    <div class="font-mono next-live-countdown-value text-3xl md:text-4xl font-extrabold text-noz-blue">calcul en cours...</div>
+    <p id="waiting-first-product" class="hidden text-red-600 font-bold text-lg animate-pulse mt-2">🔴 Live en cours — En attente du premier produit...</p>
+{% else %}
+    <div class="text-lg font-semibold text-gray-700">Pas de live prévu pour le moment.</div>
+    <p class="text-gray-500 max-w-md mx-auto">Restez connectés, les prochains lives seront annoncés ici.</p>
+{% endif %}
             </div>
         </div>
     </div>
@@ -363,32 +372,59 @@
 // Compte à rebours jusqu'à la date programmée du prochain live
 (function() {
     const valueEls = document.querySelectorAll('.next-live-countdown-value');
-    if (!valueEls.length) {
-        return;
-    }
+    if (!valueEls.length) return;
 
     const root = document.getElementById('next-live-countdown');
     const isoDate = root ? root.dataset.nextLive : null;
-    if (!isoDate) {
-        return;
-    }
+    if (!isoDate) return;
 
     const target = new Date(isoDate);
-    if (isNaN(target.getTime())) {
-        return;
-    }
+    if (isNaN(target.getTime())) return;
+
+    const FACEBOOK_BADGE_DURATION = 35 * 60 * 1000; // 35 minutes en ms
+    const facebookBadge = document.getElementById('facebook-live-badge');
+    const waitingMessage = document.getElementById('waiting-first-product');
+    let badgeShown = false;
+    let liveStarted = false;
 
     function update() {
         const now = new Date();
-        let diff = Math.max(0, target.getTime() - now.getTime());
+        let diff = target.getTime() - now.getTime();
 
+        // Le live vient de commencer (compte à rebours à 0)
+        if (diff <= 0 && !liveStarted) {
+            liveStarted = true;
+
+            // Afficher le badge Facebook
+            if (facebookBadge && !badgeShown) {
+                badgeShown = true;
+                facebookBadge.classList.remove('hidden');
+                facebookBadge.classList.add('flex');
+
+                // Masquer le badge après 35 minutes
+                setTimeout(function() {
+                    facebookBadge.classList.add('hidden');
+                    facebookBadge.classList.remove('flex');
+                }, FACEBOOK_BADGE_DURATION);
+            }
+
+            // Afficher "en attente du premier produit" si aucun produit en ligne
+            if (waitingMessage) {
+                waitingMessage.classList.remove('hidden');
+            }
+        }
+
+        // Affichage du compte à rebours
+        diff = Math.max(0, diff);
         const totalSeconds = Math.floor(diff / 1000);
         const days = Math.floor(totalSeconds / 86400);
         const hours = Math.floor((totalSeconds % 86400) / 3600);
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const seconds = totalSeconds % 60;
 
-        const text = `${days}j ${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`;
+        const text = diff > 0
+            ? `${days}j ${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`
+            : '🔴 Live en cours !';
 
         valueEls.forEach(function(el) {
             el.textContent = text;
