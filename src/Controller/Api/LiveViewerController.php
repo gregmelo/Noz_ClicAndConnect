@@ -46,7 +46,7 @@ class LiveViewerController extends AbstractController
         // Nettoie les viewers expirés
         $allViewers = $redis->hGetAll(self::REDIS_VIEWERS_KEY);
         foreach ($allViewers as $id => $timestamp) {
-            if ($now - (int)$timestamp > self::VIEWER_TTL) {
+            if ($now - (int) $timestamp > self::VIEWER_TTL) {
                 $redis->hDel(self::REDIS_VIEWERS_KEY, $id);
             }
         }
@@ -81,7 +81,7 @@ class LiveViewerController extends AbstractController
 
         $active = 0;
         foreach ($allViewers as $id => $timestamp) {
-            if ($now - (int)$timestamp <= self::VIEWER_TTL) {
+            if ($now - (int) $timestamp <= self::VIEWER_TTL) {
                 $active++;
             } else {
                 $redis->hDel(self::REDIS_VIEWERS_KEY, $id);
@@ -119,5 +119,53 @@ class LiveViewerController extends AbstractController
             'session_id' => $session->getId(),
             'existing' => false,
         ]);
+    }
+
+    #[Route('/global/ping', name: 'api_global_ping', methods: ['POST'])]
+    public function globalPing(Request $request): JsonResponse
+    {
+        $session = $request->getSession();
+        $viewerId = $session->getId();
+
+        if (!$viewerId) {
+            return $this->json(['ok' => false]);
+        }
+
+        $redis = $this->getRedis();
+        $now = time();
+
+        $redis->hSet('global_visitors', $viewerId, $now);
+
+        // Nettoie les visiteurs expirés (inactifs depuis plus de 5 minutes)
+        $allVisitors = $redis->hGetAll('global_visitors');
+        foreach ($allVisitors as $id => $timestamp) {
+            if ($now - (int) $timestamp > 300) {
+                $redis->hDel('global_visitors', $id);
+            }
+        }
+
+        return $this->json([
+            'ok' => true,
+            'current' => $redis->hLen('global_visitors'),
+        ]);
+    }
+
+    #[Route('/global/viewers', name: 'api_global_viewers', methods: ['GET'])]
+    public function globalViewers(): JsonResponse
+    {
+        $redis = $this->getRedis();
+        $now = time();
+        $allVisitors = $redis->hGetAll('global_visitors') ?: [];
+
+        $active = 0;
+        foreach ($allVisitors as $id => $timestamp) {
+            if ($now - (int) $timestamp <= 300) {
+                $active++;
+            } else {
+                $redis->hDel('global_visitors', $id);
+            }
+        }
+
+        return $this->json(['current' => $active]);
     }
 }

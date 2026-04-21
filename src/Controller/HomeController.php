@@ -8,6 +8,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Repository\LiveSessionRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * HomeController
@@ -26,7 +28,7 @@ class HomeController extends AbstractController
      * @return Response
      */
     #[Route('/', name: 'app_home')]
-    public function index(Request $request, ProductRepository $productRepository, \App\Repository\CategoryRepository $categoryRepository, GlobalStatRepository $globalStatRepository): Response
+    public function index(Request $request, ProductRepository $productRepository, \App\Repository\CategoryRepository $categoryRepository, GlobalStatRepository $globalStatRepository, LiveSessionRepository $liveSessionRepository, EntityManagerInterface $entityManager): Response
     {
         $search = $request->query->get('search', '');
         $minPrice = $request->query->get('min_price', '');
@@ -111,9 +113,27 @@ class HomeController extends AbstractController
         $globalStat = $globalStatRepository->getOrCreate();
         $nextLiveAt = $globalStat->getNextLiveAt();
         $now = new \DateTimeImmutable('now');
+        
+        // Vérifie si le live vient de commencer (dans les 35 dernières minutes)
+        $liveJustStarted = false;
         if ($nextLiveAt && $nextLiveAt <= $now) {
-            // Si la date est passée, on ne l'affiche plus comme "prochain live"
+            $diffMinutes = ($now->getTimestamp() - $nextLiveAt->getTimestamp()) / 60;
+            if ($diffMinutes <= 35) {
+                $liveJustStarted = true;
+            }
+            // On ne l'affiche plus comme "prochain live"
             $nextLiveAt = null;
+        }
+
+        // Crée automatiquement une live_session si le live vient de commencer
+        if ($liveJustStarted) {
+            $existingSession = $liveSessionRepository->findCurrentSession();
+            if (!$existingSession) {
+                $liveSession = new \App\Entity\LiveSession();
+                $liveSession->setStartedAt($globalStat->getNextLiveAt() ?? $now);
+                $entityManager->persist($liveSession);
+                $entityManager->flush();
+            }
         }
 
         return $this->render('home/index.html.twig', [
@@ -129,6 +149,7 @@ class HomeController extends AbstractController
             'totalPages' => $totalPages,
             'liveInProgress' => $liveInProgress,
             'nextLiveAt' => $nextLiveAt,
+            'liveJustStarted' => $liveJustStarted,
         ]);
     }
 

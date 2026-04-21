@@ -529,5 +529,15 @@
         {% block javascripts %}
             {{ importmap('app') }}
         {% endblock %}
+        <script>
+            // Ping global - toutes les pages toutes les 2 minutes
+            (function() {
+                function globalPing() {
+                    fetch('/api/live/global/ping', { method: 'POST' }).catch(() => {});
+                }
+                globalPing();
+                setInterval(globalPing, 120000);
+            })();
+        </script>
     </body>
 </html>

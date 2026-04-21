@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Repository\LiveSessionRepository;
 
 /**
  * DashboardController
@@ -34,7 +35,8 @@ class DashboardController extends AbstractController
         ProductRepository $productRepository,
         ReservationRepository $reservationRepository,
         \App\Repository\GlobalStatRepository $globalStatRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        LiveSessionRepository $liveSessionRepository
     ): Response {
         // Statistiques produits
         $totalProducts = $productRepository->count([]);
@@ -127,6 +129,25 @@ class DashboardController extends AbstractController
             ->getQuery()
             ->getSingleScalarResult();
 
+        // Historique des lives
+        $liveSessions = $liveSessionRepository->findLastSessions(10);
+
+        // Viewers en temps réel
+        $currentViewers = 0;
+        try {
+            $redis = new \Redis();
+            $redis->connect('127.0.0.1', 6379);
+            $now = time();
+            $allViewers = $redis->hGetAll('live_viewers') ?: [];
+            foreach ($allViewers as $id => $timestamp) {
+                if ($now - (int) $timestamp <= 60) {
+                    $currentViewers++;
+                }
+            }
+        } catch (\Exception $e) {
+            $currentViewers = 0;
+        }
+
         return $this->render('dashboard/index.html.twig', [
             'totalProducts' => $totalProducts,
             'productsInStock' => $productsInStock,
@@ -141,6 +162,8 @@ class DashboardController extends AbstractController
             'bestSellers' => $bestSellers,
             'lowStockProducts' => $lowStockProducts,
             'totalClients' => $totalClients,
+            'liveSessions' => $liveSessions,
+            'currentViewers' => $currentViewers,
         ]);
     }
 }
