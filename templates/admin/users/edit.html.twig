@@ -42,9 +42,9 @@
                         {% for role in allowedRoles %}
                             <option value="{{ role }}" {% if role in user.roles %}selected{% endif %}>
                                 {% if role == 'ROLE_DEVELOPER' %}Développeur
-                                {% elseif role == 'ROLE_SUPER_WARRIOR' %}Super Admin
-                                {% elseif role == 'ROLE_WARRIOR' %}Admin
-                                {% elseif role == 'ROLE_WARRIOR_JUNIOR' %}Employé
+                                {% elseif role == 'ROLE_SUPER_WARRIOR' %}Super Warrior
+                                {% elseif role == 'ROLE_WARRIOR' %}Warrior
+                                {% elseif role == 'ROLE_WARRIOR_JUNIOR' %}Warrior junior
                                 {% else %}Client
                                 {% endif %}
                             </option>

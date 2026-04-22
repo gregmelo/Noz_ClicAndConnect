@@ -30,9 +30,9 @@
                 <select id="admin-role-select" name="role" class="w-full px-4 py-2 border rounded focus:outline-none focus:border-noz-blue">
                     <option value="">Tous les rôles</option>
                     <option value="ROLE_DEVELOPER" {% if currentRole == 'ROLE_DEVELOPER' %}selected{% endif %}>Développeur</option>
-                    <option value="ROLE_SUPER_WARRIOR" {% if currentRole == 'ROLE_SUPER_WARRIOR' %}selected{% endif %}>Super Admin</option>
-                    <option value="ROLE_WARRIOR" {% if currentRole == 'ROLE_WARRIOR' %}selected{% endif %}>Administrateur</option>
-                    <option value="ROLE_WARRIOR_JUNIOR" {% if currentRole == 'ROLE_WARRIOR_JUNIOR' %}selected{% endif %}>Employé</option>
+                    <option value="ROLE_SUPER_WARRIOR" {% if currentRole == 'ROLE_SUPER_WARRIOR' %}selected{% endif %}>Super Warrior</option>
+                    <option value="ROLE_WARRIOR" {% if currentRole == 'ROLE_WARRIOR' %}selected{% endif %}>Warrior</option>
+                    <option value="ROLE_WARRIOR_JUNIOR" {% if currentRole == 'ROLE_WARRIOR_JUNIOR' %}selected{% endif %}>Warrior junior</option>
                     <option value="ROLE_CLIENT" {% if currentRole == 'ROLE_CLIENT' %}selected{% endif %}>Client</option>
                 </select>
             </div>
@@ -73,11 +73,11 @@
                             {% if 'ROLE_DEVELOPER' in user.roles %}
                                 <span class="bg-purple-200 text-purple-600 py-1 px-3 rounded-full text-xs">Développeur</span>
                             {% elseif 'ROLE_SUPER_WARRIOR' in user.roles %}
-                                <span class="bg-yellow-200 text-yellow-800 py-1 px-3 rounded-full text-xs">Super Admin</span>
+                                <span class="bg-yellow-200 text-yellow-800 py-1 px-3 rounded-full text-xs">Super Warr   ior</span>
                             {% elseif 'ROLE_WARRIOR' in user.roles %}
-                                <span class="bg-red-200 text-red-600 py-1 px-3 rounded-full text-xs">Admin</span>
+                                <span class="bg-red-200 text-red-600 py-1 px-3 rounded-full text-xs">Warrior</span>
                             {% elseif 'ROLE_WARRIOR_JUNIOR' in user.roles %}
-                                <span class="bg-blue-200 text-blue-600 py-1 px-3 rounded-full text-xs">Employé</span>
+                                <span class="bg-blue-200 text-blue-600 py-1 px-3 rounded-full text-xs">Warrior junior</span>
                             {% else %}
                                 <span class="bg-gray-200 text-gray-600 py-1 px-3 rounded-full text-xs">Client</span>
                             {% endif %}
@@ -129,11 +129,11 @@
                     {% if 'ROLE_DEVELOPER' in user.roles %}
                         <span class="bg-purple-200 text-purple-600 py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap">Développeur</span>
                     {% elseif 'ROLE_SUPER_WARRIOR' in user.roles %}
-                        <span class="bg-yellow-200 text-yellow-800 py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap">Super Admin</span>
+                        <span class="bg-yellow-200 text-yellow-800 py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap">Super Warrior</span>
                     {% elseif 'ROLE_WARRIOR' in user.roles %}
-                        <span class="bg-red-200 text-red-600 py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap">Admin</span>
+                        <span class="bg-red-200 text-red-600 py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap">Warrior</span>
                     {% elseif 'ROLE_WARRIOR_JUNIOR' in user.roles %}
-                        <span class="bg-blue-200 text-blue-600 py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap">Employé</span>
+                        <span class="bg-blue-200 text-blue-600 py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap">Warrior junior</span>
                     {% else %}
                         <span class="bg-gray-200 text-gray-600 py-1 px-2 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap">Client</span>
                     {% endif %}

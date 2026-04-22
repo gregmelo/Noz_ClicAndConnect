@@ -49,9 +49,9 @@
                         {% for role in allowedRoles %}
                             <option value="{{ role }}">
                                 {% if role == 'ROLE_DEVELOPER' %}Développeur
-                                {% elseif role == 'ROLE_SUPER_WARRIOR' %}Super Admin
-                                {% elseif role == 'ROLE_WARRIOR' %}Admin
-                                {% elseif role == 'ROLE_WARRIOR_JUNIOR' %}Employé
+                                {% elseif role == 'ROLE_SUPER_WARRIOR' %}Super Warrior
+                                {% elseif role == 'ROLE_WARRIOR' %}Warrior
+                                {% elseif role == 'ROLE_WARRIOR_JUNIOR' %}Warrior junior
                                 {% else %}Client
                                 {% endif %}
                             </option>
@@ -72,7 +72,7 @@
                             const descriptions = {
                                 'ROLE_CLIENT': "Accès standard. Peut parcourir les produits, gérer son panier et ses réservations.",
                                 'ROLE_WARRIOR_JUNIOR': "Accès magasin. Peut gérer les stocks, préparer les commandes (picking) et valider les retraits clients.",
-                                'ROLE_WARRIOR': "Accès gestion. Peut gérer les utilisateurs (Client/Employé), les catégories et consulter les logs d'audit.",
+                                'ROLE_WARRIOR': "Accès gestion. Peut gérer les utilisateurs (Client/Warrior junior/Warrior), les catégories et consulter les logs d'audit.",
                                 'ROLE_SUPER_WARRIOR': "Accès total (sauf technique). Peut gérer tous les niveaux d'utilisateurs et les paramètres critiques.",
                                 'ROLE_DEVELOPER': "Accès technique complet. Accès à tous les outils de maintenance, y compris la base de données."
                             };
