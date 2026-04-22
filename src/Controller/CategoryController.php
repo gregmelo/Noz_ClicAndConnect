@@ -15,10 +15,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  * CategoryController
  * 
  * Administrative controller for managing product categories.
- * Accessible only to users with ROLE_ADMIN or higher.
+ * Accessible only to users with ROLE_WARRIOR or higher.
  */
 #[Route('/admin/category')]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_WARRIOR')]
 class CategoryController extends AbstractController
 {
     /**

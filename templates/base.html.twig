@@ -124,7 +124,7 @@
                             <span class="text-sm xl:text-base">Accueil</span>
                         </a>
                         
-                        {% if is_granted('ROLE_EMPLOYEE') %}
+                        {% if is_granted('ROLE_WARRIOR_JUNIOR') %}
                             <!-- Visible on all desktop sizes -->
                             <a href="{{ path('app_product_index') }}" class="hover:text-noz-yellow transition flex items-center gap-1.5">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -160,7 +160,7 @@
                             </a>
                         {% endif %}
 
-                        {% if is_granted('ROLE_ADMIN') %}
+                        {% if is_granted('ROLE_WARRIOR') %}
                             <a href="{{ path('app_dashboard') }}" class="hidden xl:flex hover:text-noz-yellow transition items-center gap-1.5">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -222,7 +222,7 @@
                                     </svg>
                                 </button>
                                 <div id="more-menu-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50" data-dropdown-target="menu">
-                                    {% if is_granted('ROLE_EMPLOYEE') %}
+                                    {% if is_granted('ROLE_WARRIOR_JUNIOR') %}
                                         <a href="{{ path('app_live_dashboard') }}" class="block px-4 py-2 text-sm text-red-600 font-bold hover:bg-gray-100 flex items-center gap-2">
                                             <span class="relative flex h-2 w-2">
                                               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -234,7 +234,7 @@
                                             LIVE Dashboard
                                         </a>
                                     {% endif %}
-                                    {% if is_granted('ROLE_ADMIN') %}
+                                    {% if is_granted('ROLE_WARRIOR') %}
                                         <a href="{{ path('app_dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 border-b border-gray-100 mb-1 pb-2">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -310,7 +310,7 @@
                 <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4 space-y-2" data-mobile-menu-target="menu">
                     <a href="{{ path('app_home') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Accueil</a>
                     
-                    {% if is_granted('ROLE_EMPLOYEE') %}
+                    {% if is_granted('ROLE_WARRIOR_JUNIOR') %}
                         <a href="{{ path('app_employee_reservations') }}" 
                            class="block py-2 px-4 hover:bg-blue-700 rounded transition flex items-center justify-between"
                            data-controller="reservation-alert"
@@ -334,7 +334,7 @@
                         <a href="{{ path('app_product_index') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Gestion Produits</a>
                     {% endif %}
 
-                    {% if is_granted('ROLE_ADMIN') %}
+                    {% if is_granted('ROLE_WARRIOR') %}
                         <a href="{{ path('app_admin_users_index') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Gestion Utilisateurs</a>
                         <a href="{{ path('app_admin_category_index') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Gestion Catégories</a>
                         <a href="{{ path('app_admin_audit_index') }}" class="block py-2 px-4 hover:bg-blue-700 rounded transition">Logs d'Audit</a>
@@ -376,7 +376,7 @@
                 {% endfor %}
             {% endfor %}
 
-            {% if is_granted('ROLE_EMPLOYEE') %}
+            {% if is_granted('ROLE_WARRIOR_JUNIOR') %}
             {% set totalRevenue = store_revenue() %}
             <div data-controller="confetti" data-confetti-amount-value="{{ totalRevenue }}"></div>
         {% endif %}

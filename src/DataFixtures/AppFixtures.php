@@ -39,7 +39,7 @@ class AppFixtures extends Fixture
         $directeur->setEmail('directeur@noz.fr');
         $directeur->setFirstName('Directeur');
         $directeur->setLastName('Noz');
-        $directeur->setRoles(['ROLE_SUPER_ADMIN']);
+        $directeur->setRoles(['ROLE_SUPER_WARRIOR']);
         $directeur->setPassword($this->passwordHasher->hashPassword($directeur, 'password'));
         $manager->persist($directeur);
         $users['directeur'] = $directeur;
@@ -49,7 +49,7 @@ class AppFixtures extends Fixture
         $adjoint->setEmail('adjoint@noz.fr');
         $adjoint->setFirstName('Adjoint');
         $adjoint->setLastName('Noz');
-        $adjoint->setRoles(['ROLE_ADMIN']);
+        $adjoint->setRoles(['ROLE_WARRIOR']);
         $adjoint->setPassword($this->passwordHasher->hashPassword($adjoint, 'password'));
         $manager->persist($adjoint);
         $users['adjoint'] = $adjoint;
@@ -59,7 +59,7 @@ class AppFixtures extends Fixture
         $employee->setEmail('employe@noz.fr');
         $employee->setFirstName('Jean');
         $employee->setLastName('Employé');
-        $employee->setRoles(['ROLE_EMPLOYEE']);
+        $employee->setRoles(['ROLE_WARRIOR_JUNIOR']);
         $employee->setPassword($this->passwordHasher->hashPassword($employee, 'password'));
         $manager->persist($employee);
         $users['employee'] = $employee;

@@ -63,7 +63,7 @@
     } %}
 
     {# Cleanup Button (Admin/Dev Only) #}
-    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_SUPER_ADMIN') or is_granted('ROLE_DEV') %}
+    {% if is_granted('ROLE_WARRIOR') or is_granted('ROLE_SUPER_WARRIOR') or is_granted('ROLE_DEV') %}
         <div class="mt-12 pt-6 border-t border-gray-200 text-right">
              <a href="{{ path('app_employee_cleanup') }}" 
                onclick="return confirm('Attention : Cela va supprimer définitivement toutes les réservations terminées (Annulées/Récupérées) qui datent de plus d\'une semaine. Confirmer ?');"

@@ -23,7 +23,7 @@ class ProfileController extends AbstractController
         $userRank = null;
 
         // Check Ranking if Employee/Admin/Dev
-        if ($this->isGranted('ROLE_EMPLOYEE')) {
+        if ($this->isGranted('ROLE_WARRIOR_JUNIOR')) {
             $bestSellers = $entityManager->getRepository(\App\Entity\ReservationItem::class)->createQueryBuilder('ri')
                 ->select('u.id', 'SUM(ri.quantity * p.price) as revenue')
                 ->join('ri.product', 'p')

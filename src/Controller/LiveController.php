@@ -21,7 +21,7 @@ class LiveController extends AbstractController
     private const LIVE_TOPIC = 'https://nozamberieu.fr/live/products';
 
     #[Route('/live', name: 'app_live_dashboard')]
-    #[IsGranted('ROLE_EMPLOYEE')]
+    #[IsGranted('ROLE_WARRIOR_JUNIOR')]
     public function index(
         ProductRepository $productRepository,
         GlobalStatRepository $globalStatRepository
@@ -35,7 +35,7 @@ class LiveController extends AbstractController
     }
 
     #[Route('/live/schedule', name: 'app_live_schedule', methods: ['POST'])]
-    #[IsGranted('ROLE_EMPLOYEE')]
+    #[IsGranted('ROLE_WARRIOR_JUNIOR')]
     public function schedule(
         Request $request,
         GlobalStatRepository $globalStatRepository,
@@ -98,7 +98,7 @@ class LiveController extends AbstractController
     }
 
     #[Route('/live/activate/{id}', name: 'app_live_product_activate', methods: ['POST'])]
-    #[IsGranted('ROLE_EMPLOYEE')]
+    #[IsGranted('ROLE_WARRIOR_JUNIOR')]
     public function activate(
         Product $product,
         Request $request,
@@ -135,7 +135,7 @@ class LiveController extends AbstractController
     }
 
     #[Route('/live/deactivate/{id}', name: 'app_live_product_deactivate', methods: ['POST'])]
-    #[IsGranted('ROLE_EMPLOYEE')]
+    #[IsGranted('ROLE_WARRIOR_JUNIOR')]
     public function deactivate(
         Product $product,
         Request $request,

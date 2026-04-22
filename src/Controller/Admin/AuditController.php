@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/admin/audit')]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_WARRIOR')]
 class AuditController extends AbstractController
 {
     #[Route('', name: 'app_admin_audit_index')]
@@ -46,7 +46,7 @@ class AuditController extends AbstractController
     }
 
     #[Route('/purge', name: 'app_admin_audit_purge')]
-    #[IsGranted('ROLE_SUPER_ADMIN')]
+    #[IsGranted('ROLE_SUPER_WARRIOR')]
     public function purgeLogs(EntityManagerInterface $entityManager, ActivityLogRepository $logRepository): Response
     {
         $count = $logRepository->createQueryBuilder('l')

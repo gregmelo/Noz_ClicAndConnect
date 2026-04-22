@@ -18,10 +18,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  * ProductController
  * 
  * Administrative controller for managing the product catalog.
- * Accessible to users with ROLE_EMPLOYEE or higher.
+ * Accessible to users with ROLE_WARRIOR_JUNIOR or higher.
  */
 #[Route('/product')]
-#[IsGranted('ROLE_EMPLOYEE')]
+#[IsGranted('ROLE_WARRIOR_JUNIOR')]
 final class ProductController extends AbstractController
 {
     /**

@@ -76,11 +76,11 @@
                     <span class="sr-only">Rôle : </span>
                     {% if is_granted('ROLE_DEVELOPER') %}
                         Développeur
-                    {% elseif is_granted('ROLE_SUPER_ADMIN') %}
+                    {% elseif is_granted('ROLE_SUPER_WARRIOR') %}
                         Super Admin
-                    {% elseif is_granted('ROLE_ADMIN') %}
+                    {% elseif is_granted('ROLE_WARRIOR') %}
                         Admin
-                    {% elseif is_granted('ROLE_EMPLOYEE') %}
+                    {% elseif is_granted('ROLE_WARRIOR_JUNIOR') %}
                         Employé
                     {% else %}
                         Client
@@ -88,7 +88,7 @@
                 </p>
             </div>
 
-            {% if is_granted('ROLE_CLIENT') and not is_granted('ROLE_EMPLOYEE') %}
+            {% if is_granted('ROLE_CLIENT') and not is_granted('ROLE_WARRIOR_JUNIOR') %}
                 <div class="mb-4">
                     <p class="block text-gray-700 text-sm font-bold mb-1" aria-hidden="true">Avertissements</p>
                     <div class="flex items-center gap-2">

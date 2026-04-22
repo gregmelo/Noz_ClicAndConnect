@@ -18,10 +18,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  * 
  * Administrative controller for managing users.
  * Allows creating, editing, and deleting users with role-based restrictions.
- * Accessible only to users with ROLE_ADMIN or higher.
+ * Accessible only to users with ROLE_WARRIOR or higher.
  */
 #[Route('/admin/users')]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_WARRIOR')]
 class UserAdminController extends AbstractController
 {
     /**
@@ -241,11 +241,11 @@ public function delete(User $user, Request $request, EntityManagerInterface $ent
     private function getAllowedRolesToCreate(User $user): array
     {
         if ($this->isGranted('ROLE_DEVELOPER')) {
-            return ['ROLE_CLIENT', 'ROLE_EMPLOYEE', 'ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_DEVELOPER'];
-        } elseif ($this->isGranted('ROLE_SUPER_ADMIN')) {
-            return ['ROLE_CLIENT', 'ROLE_EMPLOYEE', 'ROLE_ADMIN'];
-        } elseif ($this->isGranted('ROLE_ADMIN')) {
-            return ['ROLE_CLIENT', 'ROLE_EMPLOYEE'];
+            return ['ROLE_CLIENT', 'ROLE_WARRIOR_JUNIOR', 'ROLE_WARRIOR', 'ROLE_SUPER_WARRIOR', 'ROLE_DEVELOPER'];
+        } elseif ($this->isGranted('ROLE_SUPER_WARRIOR')) {
+            return ['ROLE_CLIENT', 'ROLE_WARRIOR_JUNIOR', 'ROLE_WARRIOR'];
+        } elseif ($this->isGranted('ROLE_WARRIOR')) {
+            return ['ROLE_CLIENT', 'ROLE_WARRIOR_JUNIOR'];
         }
 
         return [];

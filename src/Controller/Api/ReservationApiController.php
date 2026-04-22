@@ -9,7 +9,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/reservations')]
-#[IsGranted('ROLE_EMPLOYEE')]
+#[IsGranted('ROLE_WARRIOR_JUNIOR')]
 class ReservationApiController extends AbstractController
 {
     #[Route('/count-new', name: 'api_reservations_count_new', methods: ['GET'])]

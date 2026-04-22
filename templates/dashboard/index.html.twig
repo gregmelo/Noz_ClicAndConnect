@@ -297,7 +297,7 @@
     </div>
 
     {# Historique des lives #}
-    {% if is_granted('ROLE_SUPER_ADMIN') or is_granted('ROLE_DEV') %}
+    {% if is_granted('ROLE_SUPER_WARRIOR') or is_granted('ROLE_DEV') %}
     <div class="mt-8 bg-white rounded-lg shadow-md p-6">
         <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-noz-blue">
             📺 Historique des Lives
@@ -348,7 +348,7 @@
     </div>
     {% endif %}
     <!-- Best Sellers Leaderboard (Secret Section) -->
-    {% if is_granted('ROLE_SUPER_ADMIN') or is_granted('ROLE_DEV') %}
+    {% if is_granted('ROLE_SUPER_WARRIOR') or is_granted('ROLE_DEV') %}
         <div class="mt-8 bg-white rounded-lg shadow-md p-6">
             <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-noz-blue">
                 🏆 Top Vendeurs (Classement Posteurs)

@@ -48,9 +48,9 @@ class UserVoter extends Voter
         foreach ($roles as $role) {
             $level = match ($role) {
                 'ROLE_DEVELOPER' => 4,
-                'ROLE_SUPER_ADMIN' => 3,
-                'ROLE_ADMIN' => 2,
-                'ROLE_EMPLOYEE' => 1,
+                'ROLE_SUPER_WARRIOR' => 3,
+                'ROLE_WARRIOR' => 2,
+                'ROLE_WARRIOR_JUNIOR' => 1,
                 default => 0,
             };
             if ($level > $maxLevel) {

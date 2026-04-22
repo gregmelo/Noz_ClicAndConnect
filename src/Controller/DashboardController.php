@@ -18,7 +18,7 @@ use App\Repository\LiveSessionRepository;
  * Displays stock alerts, revenue tracking, and urgent reservations.
  */
 #[Route('/dashboard')]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_WARRIOR')]
 class DashboardController extends AbstractController
 {
     /**
@@ -103,7 +103,7 @@ class DashboardController extends AbstractController
 
         // Best Sellers Leaderboard (Super Admin / Dev only)
         $bestSellers = [];
-        if ($this->isGranted('ROLE_SUPER_ADMIN') || $this->isGranted('ROLE_DEV')) {
+        if ($this->isGranted('ROLE_SUPER_WARRIOR') || $this->isGranted('ROLE_DEV')) {
             $bestSellers = $entityManager->getRepository(\App\Entity\User::class)->createQueryBuilder('u')
                 ->select('u.firstName', 'u.lastName', 'u.cumulativeRevenue as revenue', 'u.cumulativeSoldItems as itemsSold')
                 ->where('u.cumulativeRevenue > 0')

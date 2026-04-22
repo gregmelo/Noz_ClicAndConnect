@@ -271,13 +271,13 @@ class ReservationController extends AbstractController
         $user = $this->getUser();
 
         // Vérification des droits : Propriétaire ou Employé
-        if ($reservation->getUser() !== $user && !$this->isGranted('ROLE_EMPLOYEE')) {
+        if ($reservation->getUser() !== $user && !$this->isGranted('ROLE_WARRIOR_JUNIOR')) {
             throw $this->createAccessDeniedException();
         }
 
         if (!in_array($reservation->getStatus(), ['ACTIVE', 'READY'])) {
             $this->addFlash('danger', 'Cette réservation ne peut plus être annulée.');
-            return $this->redirectToRoute($this->isGranted('ROLE_EMPLOYEE') ? 'app_employee_reservations' : 'app_my_reservations');
+            return $this->redirectToRoute($this->isGranted('ROLE_WARRIOR_JUNIOR') ? 'app_employee_reservations' : 'app_my_reservations');
         }
 
         // Restauration des stocks
@@ -316,7 +316,7 @@ class ReservationController extends AbstractController
 
         $this->activityLogger->logReservationCancelled($user, $reservation->getReference());
 
-        return $this->redirectToRoute($this->isGranted('ROLE_EMPLOYEE') ? 'app_employee_reservations' : 'app_my_reservations');
+        return $this->redirectToRoute($this->isGranted('ROLE_WARRIOR_JUNIOR') ? 'app_employee_reservations' : 'app_my_reservations');
     }
 
     /**
@@ -603,7 +603,7 @@ class ReservationController extends AbstractController
      * Nettoie les anciennes réservations terminées (plus de 7 jours).
      */
     #[Route('/employee/cleanup', name: 'app_employee_cleanup', methods: ['GET'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted('ROLE_WARRIOR')]
     public function cleanup(EntityManagerInterface $entityManager): Response
     {
         $limitDate = (new \DateTimeImmutable())->modify('-7 days');
