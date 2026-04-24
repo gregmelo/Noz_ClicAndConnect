@@ -1,4 +1,4 @@
-const CACHE_NAME = 'noz-clic-cache-v3';
+const CACHE_NAME = 'noz-clic-cache-v4';
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',
@@ -54,9 +54,18 @@ self.addEventListener('fetch', (event) => {
       }
 
       return fetch(event.request).then((networkResponse) => {
-        // Don't cache admin or sensitive paths
+        // Don't cache authenticated or sensitive paths
         const url = new URL(event.request.url);
-        if (url.pathname.startsWith('/admin') || url.pathname.startsWith('/login')) {
+        if (
+            url.pathname.startsWith('/admin') ||
+            url.pathname.startsWith('/login') ||
+            url.pathname.startsWith('/logout') ||
+            url.pathname.startsWith('/register') ||
+            url.pathname.startsWith('/cart') ||
+            url.pathname.startsWith('/profile') ||
+            url.pathname.startsWith('/reservation') ||
+            url.pathname.startsWith('/api/')
+        ) {
             return networkResponse;
         }
 
