@@ -105,7 +105,7 @@
                                             </form>
                                         {% elseif type == 'expired' and reservation.status in ['CANCELLED', 'EXPIRED'] %}
                                             <span class="text-xs text-gray-400 font-italic">
-                                                {% if reservation.status == 'EXPIRED' %}Expirée (Strike){% else %}Annulée{% endif %}
+                                                {% if reservation.status == 'EXPIRED' %}Expirée (Avertissement){% else %}Annulée{% endif %}
                                             </span>
                                         {% endif %}
                                     </div>

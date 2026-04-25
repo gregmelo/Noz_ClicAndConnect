@@ -74,9 +74,9 @@
         {% endfor %}
         
         <div class="warning-box">
-            <h3>⚠️ Avertissement (Strike)</h3>
+            <h3>⚠️ Avertissement</h3>
             <p>Vous avez reçu un avertissement pour cette réservation non récupérée.</p>
-            <p><strong>Strikes actuels :</strong> {{ user.strikes }} / 3</p>
+            <p><strong>Avertissements actuels :</strong> {{ user.strikes }} / 3</p>
             {% if user.strikes >= 3 %}
                 <p style="color: #e30613; font-weight: bold;">🚫 Votre compte a été temporairement suspendu suite à 3 avertissements.</p>
             {% else %}

@@ -56,7 +56,7 @@
                     <th scope="col" class="py-3 px-6 text-left">Email</th>
                     <th scope="col" class="py-3 px-6 text-left">Nom</th>
                     <th scope="col" class="py-3 px-6 text-center">Rôle</th>
-                    <th scope="col" class="py-3 px-6 text-center">Strikes</th>
+                    <th scope="col" class="py-3 px-6 text-center">Avertissements</th>
                     <th scope="col" class="py-3 px-6 text-center">Actions</th>
                 </tr>
             </thead>
@@ -139,10 +139,10 @@
                     {% endif %}
                 </div>
                 
-                <!-- Strikes indicator -->
+                <!-- Avertissements indicator -->
                 <div class="mb-3 sm:mb-4">
                     <div class="flex items-center gap-2">
-                        <span class="text-xs sm:text-sm text-gray-600">Strikes:</span>
+                        <span class="text-xs sm:text-sm text-gray-600">Avertissements :</span>
                         <span class="font-bold {% if user.strikes >= 3 %}text-red-600{% elseif user.strikes > 0 %}text-orange-600{% else %}text-green-600{% endif %}">
                             {{ user.strikes }}/3
                         </span>
