@@ -36,7 +36,7 @@ class HomeController extends AbstractController
         $availability = $request->query->get('availability', '');
         $sort = $request->query->get('sort', 'newest');
         $categoryId = $request->query->get('category', '');
-        
+
         $qb = $productRepository->createQueryBuilder('p');
 
         // Live only filter
@@ -45,24 +45,24 @@ class HomeController extends AbstractController
         // Category filter
         if ($categoryId) {
             $qb->andWhere('p.category = :categoryId')
-               ->setParameter('categoryId', $categoryId);
+                ->setParameter('categoryId', $categoryId);
         }
 
         // Search filter
         if ($search) {
             $qb->andWhere('p.name LIKE :search OR p.description LIKE :search')
-               ->setParameter('search', '%' . $search . '%');
+                ->setParameter('search', '%' . $search . '%');
         }
 
         // Price filters
         if ($minPrice !== '') {
             $qb->andWhere('p.price >= :minPrice')
-               ->setParameter('minPrice', (float)$minPrice);
+                ->setParameter('minPrice', (float) $minPrice);
         }
 
         if ($maxPrice !== '') {
             $qb->andWhere('p.price <= :maxPrice')
-               ->setParameter('maxPrice', (float)$maxPrice);
+                ->setParameter('maxPrice', (float) $maxPrice);
         }
 
         // Availability filter
@@ -72,7 +72,7 @@ class HomeController extends AbstractController
             $qb->andWhere('p.stock = 0');
         } elseif ($availability === 'promotion') {
             $qb->andWhere('p.originalPrice IS NOT NULL')
-               ->andWhere('p.originalPrice > p.price');
+                ->andWhere('p.originalPrice > p.price');
         }
 
         // Sorting
@@ -112,8 +112,11 @@ class HomeController extends AbstractController
         // Next live scheduling (if configured)
         $globalStat = $globalStatRepository->getOrCreate();
         $nextLiveAt = $globalStat->getNextLiveAt();
-        $now = new \DateTimeImmutable('now');
-        
+        if ($nextLiveAt) {
+            $nextLiveAt = $nextLiveAt->setTimezone(new \DateTimeZone('Europe/Paris'));
+        }
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
+
         // Vérifie si le live vient de commencer (dans les 35 dernières minutes)
         $liveJustStarted = false;
         if ($nextLiveAt && $nextLiveAt <= $now) {

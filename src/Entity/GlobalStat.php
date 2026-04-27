@@ -68,7 +68,15 @@ class GlobalStat
 
     public function getNextLiveAt(): ?\DateTimeImmutable
     {
-        return $this->nextLiveAt;
+        if ($this->nextLiveAt === null) {
+            return null;
+        }
+        // La date est stockée sans timezone en BDD, on la reinterprète comme Europe/Paris
+        return \DateTimeImmutable::createFromFormat(
+            'Y-m-d H:i:s',
+            $this->nextLiveAt->format('Y-m-d H:i:s'),
+            new \DateTimeZone('Europe/Paris')
+        );
     }
 
     public function setNextLiveAt(?\DateTimeImmutable $nextLiveAt): static

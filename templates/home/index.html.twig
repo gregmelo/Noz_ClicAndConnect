@@ -212,7 +212,7 @@
 
         <div data-live-display-target="countdownContainer" class="{{ liveInProgress ? 'hidden' : '' }}">
 {% if nextLiveAt %}
-    <div id="next-live-countdown" data-next-live="{{ nextLiveAt|date('c') }}" class="flex items-center gap-3 text-base md:text-lg bg-blue-50 border border-noz-blue text-noz-blue px-4 py-3 rounded-xl shadow-sm" aria-live="polite">
+    <div id="next-live-countdown" data-next-live="{{ nextLiveAt|date('Y-m-d\\TH:i:sP', 'Europe/Paris') }}" class="flex items-center gap-3 text-base md:text-lg bg-blue-50 border border-noz-blue text-noz-blue px-4 py-3 rounded-xl shadow-sm" aria-live="polite">
         <span class="font-semibold">Prochain live&nbsp;: </span>
         <span class="font-mono next-live-countdown-value text-xl md:text-2xl">calcul en cours...</span>
     </div>

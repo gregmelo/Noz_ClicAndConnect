@@ -73,7 +73,7 @@ class LiveController extends AbstractController
         }
 
         try {
-            $nextLiveAt = new \DateTimeImmutable($date . ' ' . $time);
+            $nextLiveAt = new \DateTimeImmutable($date . ' ' . $time, new \DateTimeZone('Europe/Paris'));
         } catch (\Exception $e) {
             $this->addFlash('danger', 'Format de date/heure invalide.');
             return $this->redirectToRoute('app_live_dashboard');

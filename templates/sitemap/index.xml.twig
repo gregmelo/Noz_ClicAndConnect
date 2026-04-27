@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+    {% for url in staticUrls %}
+    <url>
+        <loc>https://nozamberieu.fr{{ url.loc }}</loc>
+        <changefreq>{{ url.changefreq }}</changefreq>
+        <priority>{{ url.priority }}</priority>
+    </url>
+    {% endfor %}
+
+    {% for product in liveProducts %}
+    <url>
+        <loc>https://nozamberieu.fr{{ path('app_product_show_public', {'id': product.id}) }}</loc>
+        <changefreq>daily</changefreq>
+        <priority>0.8</priority>
+    </url>
+    {% endfor %}
+
+</urlset>

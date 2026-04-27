@@ -3,6 +3,9 @@ twig:
     form_themes: ['form/tailwind_theme.html.twig']
     globals:
         vapid_public_key: '%env(VAPID_PUBLIC_KEY)%'
+    default_path: '%kernel.project_dir%/templates'
+    date:
+        timezone: Europe/Paris
 
 when@test:
     twig:
