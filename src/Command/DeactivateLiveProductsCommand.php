@@ -37,11 +37,12 @@ class DeactivateLiveProductsCommand extends Command
             return Command::SUCCESS;
         }
 
-        $now = new \DateTimeImmutable('now');
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
 
-        // Seuil = lendemain du live à 10h
+        // Seuil = lendemain du live à midi (heure Paris)
         $deactivationThreshold = $nextLiveAt
-            ->setTime(10, 0, 0)
+            ->setTimezone(new \DateTimeZone('Europe/Paris'))
+            ->setTime(12, 0, 0)
             ->modify('+1 day');
 
         if ($now < $deactivationThreshold) {

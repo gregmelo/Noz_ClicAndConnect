@@ -97,14 +97,7 @@ class HomeController extends AbstractController
 
         $products = $qb->getQuery()->getResult();
 
-        // Pagination
-        $page = max(1, (int) $request->query->get('page', 1));
-        $limit = 9; // 3x3 grid
-        $offset = ($page - 1) * $limit;
-
         $totalProducts = count($products);
-        $totalPages = (int) ceil($totalProducts / $limit);
-        $paginatedProducts = array_slice($products, $offset, $limit);
 
         // Indicate if a live is currently running (at least one product en ligne)
         $liveInProgress = $totalProducts > 0;
@@ -133,14 +126,14 @@ class HomeController extends AbstractController
             $existingSession = $liveSessionRepository->findCurrentSession();
             if (!$existingSession) {
                 $liveSession = new \App\Entity\LiveSession();
-                $liveSession->setStartedAt($globalStat->getNextLiveAt() ?? $now);
+                // startedAt = maintenant (heure réelle du serveur) pour que findCurrentSession() puisse le retrouver
                 $entityManager->persist($liveSession);
                 $entityManager->flush();
             }
         }
 
         return $this->render('home/index.html.twig', [
-            'products' => $paginatedProducts,
+            'products' => $products,
             'categories' => $categoryRepository->findBy([], ['name' => 'ASC']),
             'currentCategory' => $categoryId,
             'search' => $search,
@@ -148,8 +141,6 @@ class HomeController extends AbstractController
             'max_price' => $maxPrice,
             'availability' => $availability,
             'sort' => $sort,
-            'currentPage' => $page,
-            'totalPages' => $totalPages,
             'liveInProgress' => $liveInProgress,
             'nextLiveAt' => $nextLiveAt,
             'liveJustStarted' => $liveJustStarted,

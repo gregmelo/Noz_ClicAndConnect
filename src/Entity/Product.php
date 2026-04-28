@@ -243,6 +243,21 @@ class Product
 
         return $this;
     }
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isAlcohol = false;
+
+    public function isAlcohol(): bool
+    {
+        return $this->isAlcohol;
+    }
+
+    public function setIsAlcohol(bool $isAlcohol): static
+    {
+        $this->isAlcohol = $isAlcohol;
+
+        return $this;
+    }
+
     /** @var User|null The user (employee/admin) who created this product */
     #[ORM\ManyToOne(inversedBy: 'products')]
     private ?User $createdBy = null;

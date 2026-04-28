@@ -18,6 +18,7 @@ export default class extends Controller {
         this.productCount = 0;
         this.loadInitialProducts();
         this.subscribeToMercure();
+        this.startViewerPing();
     }
 
     disconnect() {
@@ -25,6 +26,22 @@ export default class extends Controller {
         if (this.eventSource) {
             this.eventSource.close();
         }
+        this.stopViewerPing();
+    }
+
+    startViewerPing() {
+        this.pingViewers();
+        this.pingInterval = setInterval(() => this.pingViewers(), 30000);
+    }
+
+    stopViewerPing() {
+        if (this.pingInterval) {
+            clearInterval(this.pingInterval);
+        }
+    }
+
+    pingViewers() {
+        fetch('/api/live/ping', { method: 'POST' }).catch(() => {});
     }
 
     /**

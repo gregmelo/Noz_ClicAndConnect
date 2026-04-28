@@ -318,54 +318,6 @@
         </div>
     </div>
 
-    <!-- Pagination -->
-    {% if totalPages > 1 %}
-        <div class="mt-8 flex justify-center">
-            <nav class="inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination des produits">
-                <!-- Previous -->
-                {% if currentPage > 1 %}
-                    <a href="{{ path('app_home', {page: currentPage - 1, search: search, min_price: min_price, max_price: max_price, availability: availability, sort: sort, category: currentCategory}) }}" 
-                       class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                        ‹ Précédent
-                    </a>
-                {% else %}
-                    <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-500 cursor-not-allowed" aria-disabled="true">
-                        ‹ Précédent
-                    </span>
-                {% endif %}
-
-                <!-- Page numbers -->
-                {% for page in 1..totalPages %}
-                    {% if page == currentPage %}
-                        <span aria-current="page" class="relative inline-flex items-center px-4 py-2 border border-noz-blue bg-noz-blue text-sm font-medium text-white">
-                            {{ page }}
-                        </span>
-                    {% elseif page == 1 or page == totalPages or (page >= currentPage - 2 and page <= currentPage + 2) %}
-                        <a href="{{ path('app_home', {page: page, search: search, min_price: min_price, max_price: max_price, availability: availability, sort: sort, category: currentCategory}) }}" 
-                           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                            {{ page }}
-                        </a>
-                    {% elseif page == currentPage - 3 or page == currentPage + 3 %}
-                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                            ...
-                        </span>
-                    {% endif %}
-                {% endfor %}
-
-                <!-- Next -->
-                {% if currentPage < totalPages %}
-                    <a href="{{ path('app_home', {page: currentPage + 1, search: search, min_price: min_price, max_price: max_price, availability: availability, sort: sort, category: currentCategory}) }}" 
-                       class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                        Suivant ›
-                    </a>
-                {% else %}
-                    <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-500 cursor-not-allowed" aria-disabled="true">
-                        Suivant ›
-                    </span>
-                {% endif %}
-            </nav>
-        </div>
-    {% endif %}
 </div>
 
 <script>

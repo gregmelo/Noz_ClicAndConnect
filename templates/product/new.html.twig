@@ -2,6 +2,60 @@
 
 {% block title %}{{ product.id ? 'Modifier' : 'Nouveau' }} Produit{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.live-switch-container {
+    display: inline-grid;
+    grid-template-columns: auto;
+    align-items: center;
+}
+.live-switch-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+.live-switch-input:focus + .live-slider.round {
+    outline: 3px solid #ff9800;
+    outline-offset: 2px;
+}
+.live-slider.round {
+    display: inline-block;
+    width: 55px;
+    height: 32px;
+    background-color: #ffffff;
+    border: 2px solid #0078d7;
+    border-radius: 9999px;
+    position: relative;
+    cursor: pointer;
+}
+.live-slider.round::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: #0078d7;
+    border-radius: 50%;
+    top: 4px;
+    left: 8px;
+    transition: all 0.3s;
+}
+.live-switch-input:checked + .live-slider.round {
+    background-color: #dcfce7;
+    border-color: #dcfce7;
+}
+.live-switch-input:checked + .live-slider.round::before {
+    transform: translateX(18px);
+}
+</style>
+{% endblock %}
+
 {% block body %}
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-2xl mx-auto">
@@ -25,6 +79,17 @@
                     {{ form_label(form.description, null, {'label_attr': {'class': 'block text-gray-700 text-sm font-bold mb-2'}}) }}
                     {{ form_widget(form.description, {'attr': {'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline', 'rows': 4}}) }}
                     {{ form_errors(form.description, {'attr': {'class': 'text-red-500 text-xs italic'}}) }}
+                </div>
+
+                <div class="flex items-center gap-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                    <label class="live-switch-container cursor-pointer select-none" for="{{ form.isAlcohol.vars.id }}">
+                        {{ form_widget(form.isAlcohol, {'attr': {'class': 'live-switch-input'}}) }}
+                        <span class="live-slider round"></span>
+                    </label>
+                    <div>
+                        <p class="text-sm font-bold text-gray-700">Produit alcoolisé</p>
+                        <p class="text-xs text-gray-500">Affiche automatiquement l'avertissement légal sur la fiche produit.</p>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">

@@ -77,6 +77,17 @@
                         {{ product.description|nl2br }}
                     </div>
 
+                    {% if product.isAlcohol %}
+                    <div class="flex items-start gap-3 bg-amber-50 border border-amber-300 rounded-lg px-4 py-3 mb-6" role="alert">
+                        <span class="text-amber-600 text-xl leading-none mt-0.5" aria-hidden="true">⚠️</span>
+                        <p class="text-xs text-amber-800 leading-relaxed">
+                            <strong>L'abus d'alcool est dangereux pour la santé, à consommer avec modération.</strong>
+                            La vente d'alcool est interdite aux mineurs de moins de 18 ans
+                            (Art. L.3342-1 du Code de la Santé Publique).
+                        </p>
+                    </div>
+                    {% endif %}
+
                     <div class="flex items-center gap-3 mb-8">
                         <div class="flex items-center gap-2">
                             {% if product.stock > 0 %}
