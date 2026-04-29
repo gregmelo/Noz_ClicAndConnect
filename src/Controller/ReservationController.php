@@ -139,7 +139,7 @@ class ReservationController extends AbstractController
                 $reservation = $existingReservation;
                 // Une réservation ACTIVE (en attente) n'expire plus automatiquement
                 $reservation->setExpiresAt((new \DateTimeImmutable())->modify('+10 years'));
-                
+
                 // Ajout du nouveau commentaire si présent
                 $newComment = $request->request->get('comment');
                 if ($newComment) {
@@ -164,24 +164,25 @@ class ReservationController extends AbstractController
                 $reservation->setUser($user);
                 $reservation->setExpiresAt((new \DateTimeImmutable())->modify('+10 years'));
                 $reservation->setComment($request->request->get('comment'));
-                
+
                 // Génération d'une référence unique : RES-YYYYMMDD-XXXX
                 $date = (new \DateTime())->format('Ymd');
                 $uniqId = strtoupper(substr(uniqid(), -4));
                 $reservation->setReference(sprintf('RES-%s-%s', $date, $uniqId));
-                
+
                 $entityManager->persist($reservation);
             }
 
             // Traitement des produits du panier
             foreach ($cartItems as $cartItem) {
                 $productId = $cartItem['product']->getId();
-                
+
                 // Verrouillage de la ligne SQL pour éviter les race conditions sur le stock
                 /** @var \App\Entity\Product $product */
                 $product = $entityManager->find(\App\Entity\Product::class, $productId, \Doctrine\DBAL\LockMode::PESSIMISTIC_WRITE);
 
-                if (!$product) continue;
+                if (!$product)
+                    continue;
 
                 $quantity = $cartItem['quantity'];
 
@@ -247,8 +248,9 @@ class ReservationController extends AbstractController
         $this->publishStatsUpdate();
         $this->publishPageRefresh();
 
-        $this->addFlash('success', sprintf('Réservation %s effectuée avec succès ! Référence : %s', 
-            $existingReservation ? 'mise à jour' : 'validée', 
+        $this->addFlash('success', sprintf(
+            'Réservation %s effectuée avec succès ! Référence : %s',
+            $existingReservation ? 'mise à jour' : 'validée',
             $reservation->getReference()
         ));
 
@@ -262,7 +264,7 @@ class ReservationController extends AbstractController
     #[Route('/cancel/{id}', name: 'app_reservation_cancel', methods: ['POST'])]
     public function cancel(Reservation $reservation, Request $request, EntityManagerInterface $entityManager): Response
     {
-        if (!$this->isCsrfTokenValid('cancel_reservation'.$reservation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('cancel_reservation' . $reservation->getId(), $request->request->get('_token'))) {
             $this->addFlash('danger', 'Jeton de sécurité invalide.');
             return $this->redirectToRoute('app_my_reservations');
         }
@@ -290,14 +292,14 @@ class ReservationController extends AbstractController
         // Si la réservation était prête et a expiré : application d'un Strike
         if ($reservation->isExpired()) {
             if ($reservation->getStatus() === 'READY') {
-                $reservation->setStatus('EXPIRED'); 
+                $reservation->setStatus('EXPIRED');
                 $owner = $reservation->getUser();
                 $owner->setStrikes($owner->getStrikes() + 1);
-                
+
                 // Bannissement automatique à partir de 3 strikes
                 if ($owner->getStrikes() >= 3) {
-                     $owner->setBanExpiresAt((new \DateTimeImmutable())->modify('+7 days'));
-                     $this->addFlash('warning', 'Utilisateur banni pour 7 jours (3 strikes).');
+                    $owner->setBanExpiresAt((new \DateTimeImmutable())->modify('+7 days'));
+                    $this->addFlash('warning', 'Utilisateur banni pour 7 jours (3 strikes).');
                 }
                 $entityManager->persist($owner);
                 $this->addFlash('success', 'Réservation marquée comme EXPIRÉE. Stock rétabli et Strike ajouté.');
@@ -326,7 +328,7 @@ class ReservationController extends AbstractController
     #[Route('/ready/{id}', name: 'app_reservation_ready', methods: ['POST'])]
     public function markAsReady(Reservation $reservation, Request $request, EntityManagerInterface $entityManager): Response
     {
-        if (!$this->isCsrfTokenValid('ready_reservation'.$reservation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('ready_reservation' . $reservation->getId(), $request->request->get('_token'))) {
             $this->addFlash('danger', 'Jeton de sécurité invalide.');
             return $this->redirectToRoute('app_employee_reservations');
         }
@@ -340,11 +342,11 @@ class ReservationController extends AbstractController
 
         // Calcul de la date d'échéance : Demain 19h30
         $expiresAt = (new \DateTimeImmutable())->modify('+1 day')->setTime(19, 30);
-        
+
         if ($expiresAt->format('N') == 7) { // Dimanche -> Report au Lundi 19h30
             $expiresAt = $expiresAt->modify('+1 day');
         }
-        
+
         $reservation->setExpiresAt($expiresAt);
         $entityManager->flush();
 
@@ -378,7 +380,7 @@ class ReservationController extends AbstractController
     #[Route('/collect/{id}', name: 'app_reservation_collect', methods: ['POST'])]
     public function markAsCollected(Reservation $reservation, Request $request, EntityManagerInterface $entityManager): Response
     {
-        if (!$this->isCsrfTokenValid('collect_reservation'.$reservation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('collect_reservation' . $reservation->getId(), $request->request->get('_token'))) {
             $this->addFlash('danger', 'Jeton de sécurité invalide.');
             return $this->redirectToRoute('app_employee_reservations');
         }
@@ -389,7 +391,7 @@ class ReservationController extends AbstractController
         }
 
         $reservation->setStatus('COLLECTED');
-        
+
         // Mise à jour des revenus cumulés pour les créateurs de produits
         foreach ($reservation->getReservationItems() as $item) {
             $product = $item->getProduct();
@@ -494,7 +496,7 @@ class ReservationController extends AbstractController
         }
 
         $reservations = $reservationRepository->findBy(['id' => $reservationIds]);
-        
+
         // Agrégation des produits par référence pour optimiser le ramassage en rayon
         $aggregatedItems = [];
         foreach ($reservations as $reservation) {
@@ -513,7 +515,7 @@ class ReservationController extends AbstractController
         }
 
         // Tri par catégorie de produit pour faciliter le parcours en magasin
-        usort($aggregatedItems, function($a, $b) {
+        usort($aggregatedItems, function ($a, $b) {
             $catA = $a['product']->getCategory() ? $a['product']->getCategory()->getName() : 'Z_SANS_CATEGORIE';
             $catB = $b['product']->getCategory() ? $b['product']->getCategory()->getName() : 'Z_SANS_CATEGORIE';
             return strcmp($catA, $catB);
@@ -558,7 +560,8 @@ class ReservationController extends AbstractController
                         'Votre réservation ' . $reservation->getReference() . ' est prête pour le retrait.',
                         $this->generateUrl('app_my_reservations', [], UrlGeneratorInterface::ABSOLUTE_URL)
                     );
-                } catch (\Exception $e) {}
+                } catch (\Exception $e) {
+                }
                 $count++;
             }
         }
@@ -607,7 +610,7 @@ class ReservationController extends AbstractController
     public function cleanup(EntityManagerInterface $entityManager): Response
     {
         $limitDate = (new \DateTimeImmutable())->modify('-7 days');
-        
+
         $count = $entityManager->createQueryBuilder()
             ->delete(Reservation::class, 'r')
             ->where('r.status IN (:statuses)')
@@ -618,7 +621,16 @@ class ReservationController extends AbstractController
             ->execute();
 
         $this->addFlash('success', sprintf('%d anciennes réservations ont été définitivement supprimées.', $count));
-        
+
         return $this->redirectToRoute('app_employee_reservations');
+    }
+
+    #[Route('/api/csrf-token/{intention}', name: 'app_csrf_token', methods: ['GET'])]
+    public function getCsrfToken(string $intention): Response
+    {
+        return $this->json([
+            'token' => $this->container->get('security.csrf.token_manager')
+                ->getToken($intention)->getValue()
+        ]);
     }
 }

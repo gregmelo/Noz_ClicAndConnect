@@ -143,6 +143,50 @@
 })();
 </script>
 
+<script>
+(function() {
+    function refreshCsrfTokens() {
+        // Récupère tous les boutons avec token CSRF
+        document.querySelectorAll('input[name="_token"]').forEach(function(input) {
+            const form = input.closest('form');
+            if (!form) return;
+            
+            // Détermine l'intention depuis l'action du formulaire
+            const action = form.action || '';
+            let intention = '';
+            
+            if (action.includes('/ready/')) {
+                const id = action.match(/\/ready\/(\d+)/)?.[1];
+                if (id) intention = 'ready_reservation' + id;
+            } else if (action.includes('/collected/')) {
+                const id = action.match(/\/collected\/(\d+)/)?.[1];
+                if (id) intention = 'collected_reservation' + id;
+            } else if (action.includes('/cancel/')) {
+                const id = action.match(/\/cancel\/(\d+)/)?.[1];
+                if (id) intention = 'cancel_reservation' + id;
+            }
+            
+            if (!intention) return;
+            
+            fetch('/api/csrf-token/' + intention)
+                .then(r => r.json())
+                .then(data => { input.value = data.token; })
+                .catch(() => {});
+        });
+    }
+    
+    // Rafraîchit toutes les 10 minutes
+    setInterval(refreshCsrfTokens, 10 * 60 * 1000);
+    
+    // Rafraîchit aussi quand la page redevient visible (PWA en arrière-plan)
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+            refreshCsrfTokens();
+        }
+    });
+})();
+</script>
+
 <style>
     .animate-bounce-slow {
         animation: bounce-slow 3s infinite;
