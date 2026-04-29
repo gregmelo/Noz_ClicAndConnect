@@ -23,6 +23,18 @@ export default class extends Controller {
         const file = event.target.files[0];
         if (!file || !file.type.startsWith('image/')) return;
 
+        // Vérification support DataTransfer (non supporté sur iOS/WebKit)
+        try {
+            const testDT = new DataTransfer();
+            testDT.items.add(new File([''], 'test'));
+        } catch (e) {
+            // iOS ne supporte pas DataTransfer - on laisse le fichier original sans optimisation
+            if (this.hasStatusTarget) {
+                this.statusTarget.classList.add('hidden');
+            }
+            return;
+        }
+
         // Visual feedback
         if (this.hasStatusTarget) {
             this.statusTarget.textContent = "Optimisation en cours...";
