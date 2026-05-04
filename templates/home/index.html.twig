@@ -247,9 +247,11 @@
                             </div>
                         {% endif %}
                         
+                        {# Badge "EN LIVE" désactivé — décommenter pour le réactiver
                         <div class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse flex items-center gap-1">
                             <span class="w-2 h-2 bg-white rounded-full"></span> EN LIVE
                         </div>
+                        #}
 
                         {% if product.stock <= 0 %}
                             <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white font-bold text-xl uppercase tracking-widest">Épuisé</div>
@@ -268,12 +270,8 @@
 
                         <div class="flex items-center justify-between">
                             <div class="text-sm">
-                                <span class="{{ product.stock <= 5 ? 'text-red-600 font-bold' : 'text-gray-500' }}">
-                                    {% if product.stock > 0 %}
-                                        Stock : {{ product.stock }}
-                                    {% else %}
-                                        Rupture de stock
-                                    {% endif %}
+                                <span class="{{ product.stock <= 0 ? 'text-red-600 font-bold' : 'text-gray-500' }}">
+                                    {{ product.stock > 0 ? 'En stock' : 'Rupture de stock' }}
                                 </span>
                             </div>
                             
