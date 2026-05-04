@@ -6,6 +6,7 @@ use App\Entity\Reservation;
 use App\Entity\ReservationItem;
 use App\Entity\User;
 use App\Message\ReservationNotificationMessage;
+use App\Repository\GlobalStatRepository;
 use App\Repository\ReservationRepository;
 use App\Repository\UserRepository;
 use App\Service\ActivityLogger;
@@ -48,7 +49,8 @@ class ReservationController extends AbstractController
         private MessageBusInterface $messageBus,
         private \Symfony\Component\RateLimiter\RateLimiterFactory $reservationLimiter,
         private HubInterface $hub,
-        private ReservationRepository $reservationRepo
+        private ReservationRepository $reservationRepo,
+        private GlobalStatRepository $globalStatRepository
     ) {
     }
 
@@ -194,7 +196,12 @@ class ReservationController extends AbstractController
                 }
 
                 if ($product->getStock() < $quantity) {
-                    $this->addFlash('danger', 'Stock insuffisant pour le produit : ' . $product->getName());
+                    $this->addFlash('danger', sprintf(
+                        'Stock insuffisant pour "%s" : seulement %d exemplaire(s) disponible(s), vous en avez demandé %d.',
+                        $product->getName(),
+                        $product->getStock(),
+                        $quantity
+                    ));
                     $entityManager->rollback();
                     return $this->redirectToRoute('app_cart_index');
                 }
@@ -604,6 +611,7 @@ class ReservationController extends AbstractController
     }
     /**
      * Nettoie les anciennes réservations terminées (plus de 7 jours).
+     * Archive le CA et les compteurs dans GlobalStat avant suppression.
      */
     #[Route('/employee/cleanup', name: 'app_employee_cleanup', methods: ['GET'])]
     #[IsGranted('ROLE_WARRIOR')]
@@ -611,16 +619,43 @@ class ReservationController extends AbstractController
     {
         $limitDate = (new \DateTimeImmutable())->modify('-7 days');
 
-        $count = $entityManager->createQueryBuilder()
-            ->delete(Reservation::class, 'r')
+        $reservations = $this->reservationRepo->createQueryBuilder('r')
             ->where('r.status IN (:statuses)')
             ->andWhere('r.reservedAt < :limitDate')
             ->setParameter('statuses', ['CANCELLED', 'COLLECTED', 'EXPIRED'])
             ->setParameter('limitDate', $limitDate)
             ->getQuery()
-            ->execute();
+            ->getResult();
 
-        $this->addFlash('success', sprintf('%d anciennes réservations ont été définitivement supprimées.', $count));
+        if (empty($reservations)) {
+            $this->addFlash('info', 'Aucune ancienne réservation à supprimer.');
+            return $this->redirectToRoute('app_employee_reservations');
+        }
+
+        $globalStat = $this->globalStatRepository->getOrCreate();
+        $revenueToAdd = 0.0;
+        $collectedCount = 0;
+        $expiredCount = 0;
+
+        foreach ($reservations as $reservation) {
+            if ($reservation->getStatus() === 'COLLECTED') {
+                $collectedCount++;
+                foreach ($reservation->getReservationItems() as $item) {
+                    $revenueToAdd += $item->getPrice() * $item->getQuantity();
+                }
+            } else {
+                $expiredCount++;
+            }
+            $entityManager->remove($reservation);
+        }
+
+        $globalStat->setTotalRevenue($globalStat->getTotalRevenue() + $revenueToAdd);
+        $globalStat->setTotalCollectedCount($globalStat->getTotalCollectedCount() + $collectedCount);
+        $globalStat->setTotalExpiredCount($globalStat->getTotalExpiredCount() + $expiredCount);
+        $entityManager->persist($globalStat);
+        $entityManager->flush();
+
+        $this->addFlash('success', sprintf('%d anciennes réservations supprimées. CA archivé : %.2f €.', count($reservations), $revenueToAdd));
 
         return $this->redirectToRoute('app_employee_reservations');
     }

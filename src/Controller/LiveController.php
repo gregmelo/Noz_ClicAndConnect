@@ -113,20 +113,23 @@ class LiveController extends AbstractController
         $product->setActivatedAt(new \DateTimeImmutable());
         $entityManager->flush();
 
-        // Publier l'événement vers tous les clients abonnés
-        $hub->publish(new Update(
-            self::LIVE_TOPIC,
-            json_encode([
-                'event'         => 'product_activated',
-                'id'            => $product->getId(),
-                'name'          => $product->getName(),
-                'description'   => $product->getDescription(),
-                'price'         => $product->getPrice(),
-                'originalPrice' => $product->getOriginalPrice(),
-                'stock'         => $product->getStock(),
-                'image'         => $product->getImageFilename(),
-            ])
-        ));
+        try {
+            $hub->publish(new Update(
+                self::LIVE_TOPIC,
+                json_encode([
+                    'event'         => 'product_activated',
+                    'id'            => $product->getId(),
+                    'name'          => $product->getName(),
+                    'description'   => $product->getDescription(),
+                    'price'         => $product->getPrice(),
+                    'originalPrice' => $product->getOriginalPrice(),
+                    'stock'         => $product->getStock(),
+                    'image'         => $product->getImageFilename(),
+                ])
+            ));
+        } catch (\Exception $e) {
+            // Mercure indisponible : le produit est activé en base mais sans notification temps réel
+        }
 
         return $this->json([
             'success' => true,
@@ -149,14 +152,17 @@ class LiveController extends AbstractController
         $product->setIsLive(false);
         $entityManager->flush();
 
-        // Notifier tous les clients que ce produit est retiré
-        $hub->publish(new Update(
-            self::LIVE_TOPIC,
-            json_encode([
-                'event' => 'product_deactivated',
-                'id'    => $product->getId(),
-            ])
-        ));
+        try {
+            $hub->publish(new Update(
+                self::LIVE_TOPIC,
+                json_encode([
+                    'event' => 'product_deactivated',
+                    'id'    => $product->getId(),
+                ])
+            ));
+        } catch (\Exception $e) {
+            // Mercure indisponible : le produit est désactivé en base mais sans notification temps réel
+        }
 
         return $this->json([
             'success' => true,

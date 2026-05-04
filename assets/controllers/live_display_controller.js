@@ -219,8 +219,8 @@ export default class extends Controller {
 
         const stockEl = card.querySelector("[data-stock-display]");
         if (stockEl) {
-            stockEl.textContent = stock > 0 ? `Stock : ${stock}` : "Rupture de stock";
-            stockEl.className = stock <= 5 ? "text-red-600 font-bold" : "text-gray-500";
+            stockEl.textContent = stock > 0 ? "En stock" : "Rupture de stock";
+            stockEl.className = stock <= 0 ? "text-red-600 font-bold" : "text-gray-500";
         }
     }
 
@@ -245,9 +245,11 @@ export default class extends Controller {
             <div id="product-card-${p.id}" class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 transition-all hover:shadow-xl group">
                 <div class="relative h-48 sm:h-64 overflow-hidden">
                     <img src="${imagePath}" alt="${p.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                    <div class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse flex items-center gap-1">
-                        <span class="w-2 h-2 bg-white rounded-full"></span> EN LIVE
-                    </div>
+                    ${/* Badge "EN LIVE" désactivé — décommenter pour le réactiver
+                    '<div class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse flex items-center gap-1">' +
+                    '<span class="w-2 h-2 bg-white rounded-full"></span> EN LIVE' +
+                    '</div>'
+                    */ ''}
                     ${p.stock <= 0 ? '<div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white font-bold text-xl uppercase tracking-widest">Épuisé</div>' : ""}
                 </div>
                 <div class="p-5">
@@ -258,8 +260,8 @@ export default class extends Controller {
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="text-sm">
-                            <span data-stock-display class="${p.stock <= 5 ? "text-red-600 font-bold" : "text-gray-500"}">
-                                ${p.stock > 0 ? `Stock : ${p.stock}` : "Rupture de stock"}
+                            <span data-stock-display class="${p.stock <= 0 ? "text-red-600 font-bold" : "text-gray-500"}">
+                                ${p.stock > 0 ? "En stock" : "Rupture de stock"}
                             </span>
                         </div>
                         <a href="/produit/${p.id}" class="bg-noz-yellow text-noz-black font-bold px-4 py-2 rounded-lg hover:bg-yellow-400 transition-all flex items-center gap-2 ${p.stock <= 0 ? "opacity-50 pointer-events-none grayscale" : ""}">

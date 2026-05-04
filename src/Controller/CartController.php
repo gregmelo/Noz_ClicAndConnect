@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\ProductRepository;
 use App\Service\CartService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -38,7 +39,7 @@ class CartController extends AbstractController
      * @return Response
      */
     #[Route('/add/{id}', name: 'app_cart_add')]
-    public function add(int $id, Request $request): Response
+    public function add(int $id, Request $request, ProductRepository $productRepository): Response
     {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('add_to_cart', $request->request->get('_token'))) {
@@ -55,6 +56,27 @@ class CartController extends AbstractController
         }
 
         $quantity = (int) $request->request->get('quantity', 1);
+
+        $product = $productRepository->find($id);
+        if (!$product || !$product->isLive()) {
+            $this->addFlash('danger', 'Ce produit n\'est plus disponible.');
+            return $this->redirectToRoute('app_home');
+        }
+
+        if ($product->getStock() <= 0) {
+            $this->addFlash('danger', 'Ce produit est épuisé.');
+            return $this->redirectToRoute('app_product_show_public', ['id' => $id]);
+        }
+
+        if ($quantity > $product->getStock()) {
+            $this->addFlash('danger', sprintf(
+                'Seulement %d exemplaire(s) disponible(s) pour "%s".',
+                $product->getStock(),
+                $product->getName()
+            ));
+            return $this->redirectToRoute('app_product_show_public', ['id' => $id]);
+        }
+
         $this->cartService->add($id, $quantity);
 
         $this->addFlash('success', 'Produit ajouté au panier.');
