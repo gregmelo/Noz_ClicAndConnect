@@ -53,10 +53,38 @@
             <table class="min-w-full table-auto" aria-label="Liste des utilisateurs">
             <thead>
                 <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                    <th scope="col" class="py-3 px-6 text-left">Email</th>
-                    <th scope="col" class="py-3 px-6 text-left">Nom</th>
-                    <th scope="col" class="py-3 px-6 text-center">Rôle</th>
-                    <th scope="col" class="py-3 px-6 text-center">Avertissements</th>
+                    {% set sortParams = {q: currentQuery, role: currentRole, page: 1} %}
+                    {% macro sortIcon(field, currentSort, currentDirection) %}
+                        {% if currentSort == field %}
+                            {% if currentDirection == 'asc' %}
+                                <svg width="11" height="11" class="inline ml-1 text-noz-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7"/></svg>
+                            {% else %}
+                                <svg width="11" height="11" class="inline ml-1 text-noz-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
+                            {% endif %}
+                        {% else %}
+                            <svg width="11" height="11" class="inline ml-1 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg>
+                        {% endif %}
+                    {% endmacro %}
+                    <th scope="col" class="py-3 px-6 text-left">
+                        <a href="{{ path('app_admin_users_index', sortParams|merge({sort: 'email', direction: (currentSort == 'email' and currentDirection == 'asc') ? 'desc' : 'asc'})) }}" class="hover:text-gray-900 transition-colors whitespace-nowrap">
+                            Email{{ _self.sortIcon('email', currentSort, currentDirection) }}
+                        </a>
+                    </th>
+                    <th scope="col" class="py-3 px-6 text-left">
+                        <a href="{{ path('app_admin_users_index', sortParams|merge({sort: 'nom', direction: (currentSort == 'nom' and currentDirection == 'asc') ? 'desc' : 'asc'})) }}" class="hover:text-gray-900 transition-colors whitespace-nowrap">
+                            Nom{{ _self.sortIcon('nom', currentSort, currentDirection) }}
+                        </a>
+                    </th>
+                    <th scope="col" class="py-3 px-6 text-center">
+                        <a href="{{ path('app_admin_users_index', sortParams|merge({sort: 'role', direction: (currentSort == 'role' and currentDirection == 'asc') ? 'desc' : 'asc'})) }}" class="hover:text-gray-900 transition-colors whitespace-nowrap">
+                            Rôle{{ _self.sortIcon('role', currentSort, currentDirection) }}
+                        </a>
+                    </th>
+                    <th scope="col" class="py-3 px-6 text-center">
+                        <a href="{{ path('app_admin_users_index', sortParams|merge({sort: 'strikes', direction: (currentSort == 'strikes' and currentDirection == 'asc') ? 'desc' : 'asc'})) }}" class="hover:text-gray-900 transition-colors whitespace-nowrap">
+                            Avertissements{{ _self.sortIcon('strikes', currentSort, currentDirection) }}
+                        </a>
+                    </th>
                     <th scope="col" class="py-3 px-6 text-center">Actions</th>
                 </tr>
             </thead>
@@ -179,8 +207,9 @@
     {% if totalPages > 1 %}
         <div class="mt-6 flex justify-center">
             <nav class="inline-flex rounded-md shadow-sm -space-x-px">
+                {% set pageParams = {q: currentQuery, role: currentRole, sort: currentSort, direction: currentDirection} %}
                 {% if currentPage > 1 %}
-                    <a href="{{ path('app_admin_users_index', {page: currentPage - 1, q: currentQuery, role: currentRole}) }}" 
+                    <a href="{{ path('app_admin_users_index', pageParams|merge({page: currentPage - 1})) }}"
                        class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                         ‹ Précédent
                     </a>
@@ -196,7 +225,7 @@
                             {{ page }}
                         </span>
                     {% elseif page == 1 or page == totalPages or (page >= currentPage - 2 and page <= currentPage + 2) %}
-                        <a href="{{ path('app_admin_users_index', {page: page, q: currentQuery, role: currentRole}) }}" 
+                        <a href="{{ path('app_admin_users_index', pageParams|merge({page: page})) }}"
                            class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
                             {{ page }}
                         </a>
@@ -206,7 +235,7 @@
                 {% endfor %}
 
                 {% if currentPage < totalPages %}
-                    <a href="{{ path('app_admin_users_index', {page: currentPage + 1, q: currentQuery, role: currentRole}) }}" 
+                    <a href="{{ path('app_admin_users_index', pageParams|merge({page: currentPage + 1})) }}"
                        class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                         Suivant ›
                     </a>

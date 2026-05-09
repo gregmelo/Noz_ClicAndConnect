@@ -41,11 +41,43 @@ class UserAdminController extends AbstractController
         $query = $request->query->get('q');
         $role = $request->query->get('role');
 
+        $allowedSorts = ['email', 'nom', 'role', 'strikes'];
+        $allowedDirections = ['asc', 'desc'];
+        $sortField = $request->query->get('sort', 'email');
+        $sortDirection = strtolower((string) $request->query->get('direction', 'asc'));
+        if (!in_array($sortField, $allowedSorts, true)) {
+            $sortField = 'email';
+        }
+        if (!in_array($sortDirection, $allowedDirections, true)) {
+            $sortDirection = 'asc';
+        }
+
         if ($query || $role) {
             $allUsers = $userRepository->search($query, $role);
         } else {
             $allUsers = $userRepository->findAll();
         }
+
+        $roleOrder = ['ROLE_DEVELOPER' => 0, 'ROLE_SUPER_WARRIOR' => 1, 'ROLE_WARRIOR' => 2, 'ROLE_WARRIOR_JUNIOR' => 3];
+        $getRoleRank = static function (User $u) use ($roleOrder): int {
+            foreach (array_keys($roleOrder) as $r) {
+                if (in_array($r, $u->getRoles(), true)) {
+                    return $roleOrder[$r];
+                }
+            }
+            return 99;
+        };
+
+        usort($allUsers, static function (User $a, User $b) use ($sortField, $sortDirection, $getRoleRank): int {
+            $cmp = match ($sortField) {
+                'email'   => strcmp($a->getEmail(), $b->getEmail()),
+                'nom'     => strcmp($a->getLastName() . $a->getFirstName(), $b->getLastName() . $b->getFirstName()),
+                'role'    => $getRoleRank($a) <=> $getRoleRank($b),
+                'strikes' => $a->getStrikes() <=> $b->getStrikes(),
+                default   => 0,
+            };
+            return $sortDirection === 'desc' ? -$cmp : $cmp;
+        });
 
         $totalUsers = count($allUsers);
         $totalPages = ceil($totalUsers / $limit);
@@ -57,6 +89,8 @@ class UserAdminController extends AbstractController
             'totalPages' => $totalPages,
             'currentQuery' => $query,
             'currentRole' => $role,
+            'currentSort' => $sortField,
+            'currentDirection' => $sortDirection,
         ]);
     }
 
