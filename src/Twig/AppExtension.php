@@ -5,6 +5,7 @@ namespace App\Twig;
 use App\Repository\ReservationRepository;
 use App\Repository\GlobalStatRepository;
 use App\Service\CartService;
+use Doctrine\ORM\EntityManagerInterface;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
@@ -13,7 +14,8 @@ class AppExtension extends AbstractExtension
     public function __construct(
         private ReservationRepository $reservationRepository,
         private CartService $cartService,
-        private GlobalStatRepository $globalStatRepository
+        private GlobalStatRepository $globalStatRepository,
+        private EntityManagerInterface $entityManager
     ) {
     }
 
@@ -45,31 +47,12 @@ class AppExtension extends AbstractExtension
 
     public function getStoreRevenue(): float
     {
-        // 1. Live Revenue from existing reservations
-        $liveRevenue = 0.0;
-        
         try {
-            $liveRevenue = (float) $this->reservationRepository->createQueryBuilder('r')
-                ->select('SUM(ri.quantity * p.price)')
-                ->join('r.reservationItems', 'ri')
-                ->join('ri.product', 'p')
-                ->where('r.status = :status')
-                ->setParameter('status', 'COLLECTED')
-                ->getQuery()
-                ->getSingleScalarResult();
+            return (float) $this->entityManager->createQuery(
+                'SELECT SUM(u.cumulativeRevenue) FROM App\Entity\User u WHERE u.cumulativeRevenue > 0'
+            )->getSingleScalarResult() ?? 0.0;
         } catch (\Exception $e) {
-            // Ignore if null
+            return 0.0;
         }
-
-        // 2. Archived Revenue from GlobalStat
-        $archivedRevenue = 0.0;
-        try {
-            $globalStat = $this->globalStatRepository->getOrCreate();
-            $archivedRevenue = $globalStat->getTotalRevenue();
-        } catch (\Exception $e) {
-            // Fallback if table doesn't exist yet or other error
-        }
-
-        return $liveRevenue + $archivedRevenue;
     }
 }

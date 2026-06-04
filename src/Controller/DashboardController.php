@@ -65,15 +65,9 @@ class DashboardController extends AbstractController
         $collectedReservations = $liveCollected + $globalStat->getTotalCollectedCount();
 
         // Calcul du CA total (Live + Archives)
-        $liveRevenue = $reservationRepository->createQueryBuilder('r')
-            ->select('SUM(ri.quantity * ri.price)')
-            ->join('r.reservationItems', 'ri')
-            ->where('r.status = :status')
-            ->setParameter('status', 'COLLECTED')
-            ->getQuery()
-            ->getSingleScalarResult() ?? 0;
-
-        $totalRevenue = $liveRevenue + $globalStat->getTotalRevenue();
+        $totalRevenue = $entityManager->getConnection()->fetchOne(
+            'SELECT SUM(cumulative_revenue) FROM user WHERE cumulative_revenue > 0'
+        ) ?? 0;
 
         // Réservations à récupérer aujourd'hui
         $today = new \DateTimeImmutable();

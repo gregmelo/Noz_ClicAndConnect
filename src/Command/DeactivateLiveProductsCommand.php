@@ -1,5 +1,5 @@
 <?php
-
+//DeactivateLiveProductsCommand.php
 namespace App\Command;
 
 use App\Repository\GlobalStatRepository;

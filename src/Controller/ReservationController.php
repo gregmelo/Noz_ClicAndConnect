@@ -1,5 +1,5 @@
 <?php
-
+//ReservationController.php
 namespace App\Controller;
 
 use App\Entity\Reservation;
@@ -435,6 +435,54 @@ class ReservationController extends AbstractController
     }
 
     /**
+ * Marque une réservation EXPIRÉE comme récupérée en retard.
+ * Sans strike supplémentaire, mais avec mise à jour du CA.
+ */
+#[Route('/collect-late/{id}', name: 'app_reservation_collect_late', methods: ['POST'])]
+#[IsGranted('ROLE_WARRIOR_JUNIOR')]
+public function markAsCollectedLate(Reservation $reservation, Request $request, EntityManagerInterface $entityManager): Response
+{
+    if (!$this->isCsrfTokenValid('collect_late_reservation' . $reservation->getId(), $request->request->get('_token'))) {
+        $this->addFlash('danger', 'Jeton de sécurité invalide.');
+        return $this->redirectToRoute('app_employee_reservations');
+    }
+
+    if ($reservation->getStatus() !== 'EXPIRED') {
+        $this->addFlash('danger', 'Cette réservation n\'est pas expirée.');
+        return $this->redirectToRoute('app_employee_reservations');
+    }
+
+    $reservation->setStatus('COLLECTED');
+
+    // Mise à jour du CA des vendeurs
+    foreach ($reservation->getReservationItems() as $item) {
+        $product = $item->getProduct();
+        $creator = $product->getCreatedBy();
+        if ($creator) {
+            $creator->addCumulativeRevenue((float) ($item->getQuantity() * $item->getPrice()));
+            $creator->addCumulativeSoldItems($item->getQuantity());
+            $entityManager->persist($creator);
+        }
+    }
+
+    // Retirer le stock qui avait été remis lors de l'expiration
+    foreach ($reservation->getReservationItems() as $item) {
+        $product = $item->getProduct();
+        $product->setStock(max(0, $product->getStock() - $item->getQuantity()));
+        $entityManager->persist($product);
+    }
+
+    $entityManager->flush();
+    $this->publishStatsUpdate();
+    $this->publishPageRefresh();
+
+    $this->activityLogger->logReservationCollected($reservation->getReference(), $this->getUser()->getUserIdentifier());
+    $this->addFlash('success', 'Réservation récupérée en retard marquée comme collectée.');
+
+    return $this->redirectToRoute('app_employee_reservations');
+}
+
+    /**
      * Tableau de bord employé : Affiche les réservations triées par importance logistique.
      */
     #[Route('/employee/reservations', name: 'app_employee_reservations')]
@@ -640,16 +688,15 @@ class ReservationController extends AbstractController
         foreach ($reservations as $reservation) {
             if ($reservation->getStatus() === 'COLLECTED') {
                 $collectedCount++;
-                foreach ($reservation->getReservationItems() as $item) {
-                    $revenueToAdd += $item->getPrice() * $item->getQuantity();
-                }
+                // Ne pas ajouter au globalStat->totalRevenue car déjà compté
+                // dynamiquement dans DashboardController via $liveRevenue
             } else {
                 $expiredCount++;
             }
             $entityManager->remove($reservation);
         }
 
-        $globalStat->setTotalRevenue($globalStat->getTotalRevenue() + $revenueToAdd);
+        // $globalStat->setTotalRevenue($globalStat->getTotalRevenue() + $revenueToAdd);
         $globalStat->setTotalCollectedCount($globalStat->getTotalCollectedCount() + $collectedCount);
         $globalStat->setTotalExpiredCount($globalStat->getTotalExpiredCount() + $expiredCount);
         $entityManager->persist($globalStat);
