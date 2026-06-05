@@ -46,7 +46,7 @@
             <div class="md:w-1/2 p-4 flex flex-col gap-4">
                 <div>
                     {% if product.imageFilename %}
-                        <img class="w-full h-96 object-cover object-center rounded-lg shadow-sm" src="{{ asset('uploads/images/' ~ product.imageFilename) }}" alt="{{ product.name }}">
+                        <img class="w-full h-96 object-contain object-center rounded-lg shadow-sm bg-white p-2" src="{{ asset('uploads/images/' ~ product.imageFilename) }}" alt="{{ product.name }}">
                     {% else %}
                         <div class="w-full h-96 bg-gray-200 flex items-center justify-center text-gray-400">
                             <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -63,7 +63,7 @@
                             <div class="border border-gray-200 rounded-lg overflow-hidden bg-white">
                                 <img src="{{ asset('uploads/images/' ~ filename) }}" 
                                      alt="{{ product.name }} - photo {{ loop.index }}" 
-                                     class="w-full h-20 object-cover">
+                                     class="w-full h-20 object-contain bg-white p-1">
                             </div>
                         {% endfor %}
                     </div>
