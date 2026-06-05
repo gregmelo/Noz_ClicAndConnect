@@ -106,13 +106,14 @@
                                         {% elseif type == 'expired' and reservation.status == 'EXPIRED' %}
     <div class="flex flex-col gap-1 items-center">
         <span class="text-xs text-gray-400 italic">Expirée (Avertissement)</span>
-        <form action="{{ path('app_reservation_collect_late', {'id': reservation.id}) }}" method="post"
-              data-confirm="Marquer cette réservation comme récupérée en retard ? Le stock sera déduit mais aucun strike supplémentaire ne sera ajouté.">
-            <input type="hidden" name="_token" value="{{ csrf_token('collect_late_reservation' ~ reservation.id) }}">
-            <button class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-1 px-3 rounded text-xs shadow">
-                🕐 Récupérer en retard
-            </button>
-        </form>
+        <form action="{{ path('app_reservation_collect_late', {'id': reservation.id}) }}" method="post">
+    <input type="hidden" name="_token" value="{{ csrf_token('collect_late_reservation' ~ reservation.id) }}">
+    <button type="submit" 
+            data-confirm="Marquer cette réservation comme récupérée en retard ? Le stock sera déduit mais aucun strike supplémentaire ne sera ajouté."
+            style="background-color:#f97316;color:white;font-weight:bold;padding:4px 12px;border-radius:4px;font-size:12px;cursor:pointer;">
+        🕐 Récupérer en retard
+    </button>
+</form>
     </div>
 {% elseif type == 'expired' and reservation.status == 'CANCELLED' %}
     <span class="text-xs text-gray-400 italic">Annulée</span>
@@ -196,13 +197,14 @@
         </button>
     </form>
 {% elseif type == 'expired' and reservation.status == 'EXPIRED' %}
-    <form action="{{ path('app_reservation_collect_late', {'id': reservation.id}) }}" method="post" class="w-full"
-          data-confirm="Marquer cette réservation comme récupérée en retard ?">
-        <input type="hidden" name="_token" value="{{ csrf_token('collect_late_reservation' ~ reservation.id) }}">
-        <button class="w-full bg-orange-500 text-white hover:bg-orange-600 py-2 rounded text-sm font-bold shadow">
-            🕐 Récupérer en retard
-        </button>
-    </form>
+    <form action="{{ path('app_reservation_collect_late', {'id': reservation.id}) }}" method="post" class="w-full">
+    <input type="hidden" name="_token" value="{{ csrf_token('collect_late_reservation' ~ reservation.id) }}">
+    <button type="submit"
+            data-confirm="Marquer cette réservation comme récupérée en retard ?"
+            style="width:100%;background-color:#f97316;color:white;padding:8px;border-radius:4px;font-size:14px;font-weight:bold;cursor:pointer;">
+        🕐 Récupérer en retard
+    </button>
+</form>
 {% endif %}
                     </div>
                 </div>
