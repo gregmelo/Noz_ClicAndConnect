@@ -582,5 +582,55 @@
                 setInterval(globalPing, 120000);
             })();
         </script>
+
+        {% if is_granted('ROLE_WARRIOR_JUNIOR') %}
+<script>
+(function() {
+    function refreshAllCsrfTokens() {
+        document.querySelectorAll('input[name="_token"]').forEach(function(input) {
+            const form = input.closest('form');
+            if (!form) return;
+            const action = form.action || '';
+
+            let intention = '';
+            const patterns = [
+                { regex: /\/ready\/(\d+)/, prefix: 'ready_reservation' },
+                { regex: /\/collect\/(\d+)/, prefix: 'collect_reservation' },
+                { regex: /\/collect-late\/(\d+)/, prefix: 'collect_late_reservation' },
+                { regex: /\/cancel\/(\d+)/, prefix: 'cancel_reservation' },
+            ];
+
+            for (const p of patterns) {
+                const match = action.match(p.regex);
+                if (match) { intention = p.prefix + match[1]; break; }
+            }
+
+            if (!intention) return;
+
+            fetch('/reservation/api/csrf-token/' + intention)
+                .then(r => r.json())
+                .then(data => { if (data.token) input.value = data.token; })
+                .catch(() => {});
+        });
+    }
+
+    // Refresh toutes les 10 minutes
+    setInterval(refreshAllCsrfTokens, 10 * 60 * 1000);
+
+    // Refresh au retour de l'app (PWA arrière-plan)
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+            refreshAllCsrfTokens();
+        }
+    });
+
+    // Refresh au focus de la fenêtre
+    window.addEventListener('focus', refreshAllCsrfTokens);
+
+    // Refresh après Turbo navigation
+    document.addEventListener('turbo:load', refreshAllCsrfTokens);
+})();
+</script>
+{% endif %}
     </body>
 </html>
