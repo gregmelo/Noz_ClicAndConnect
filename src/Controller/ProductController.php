@@ -198,13 +198,46 @@ final class ProductController extends AbstractController
     public function delete(Request $request, Product $product, EntityManagerInterface $entityManager, ActivityLogger $logger): Response
     {
         if ($this->isCsrfTokenValid('delete' . $product->getId(), $request->getPayload()->getString('_token'))) {
+
+            // Vérifie si le produit est présent dans des réservations non terminées
+            $activeCount = (int) $entityManager->createQuery(
+                'SELECT COUNT(ri.id) FROM App\Entity\ReservationItem ri
+             JOIN ri.reservation r
+             WHERE ri.product = :product
+             AND r.status IN (:statuses)'
+            )
+                ->setParameter('product', $product)
+                ->setParameter('statuses', ['ACTIVE', 'READY', 'EXPIRED'])
+                ->getSingleScalarResult();
+
+            if ($activeCount > 0) {
+                $this->addFlash('danger', sprintf(
+                    'Impossible de supprimer "%s" : ce produit fait partie de %d réservation(s) en cours (en attente, prête ou expirée). Traitez d\'abord ces réservations.',
+                    $product->getName(),
+                    $activeCount
+                ));
+                return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
+            }
+
             $logger->logProductDeleted($this->getUser(), $product->getId(), $product->getName());
-            // Supprimer les reservation_items liés avant suppression du produit
+
+            // Supprime uniquement les reservation_items liés à des réservations déjà archivées (COLLECTED/CANCELLED)
             $conn = $entityManager->getConnection();
-            $conn->executeStatement("DELETE FROM reservation_item WHERE product_id = ?", [$product->getId()]);
+            $conn->executeStatement(
+                "DELETE ri FROM reservation_item ri
+             JOIN reservation r ON ri.reservation_id = r.id
+             WHERE ri.product_id = ? AND r.status IN ('COLLECTED', 'CANCELLED')",
+                [$product->getId()]
+            );
+
             $entityManager->remove($product);
             $entityManager->flush();
+
+            $this->addFlash('success', sprintf('Le produit "%s" a été supprimé.', $product->getName()));
+        } else {
+            $this->addFlash('danger', 'Jeton de sécurité invalide.');
         }
+
         return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
     }
 }
