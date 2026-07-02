@@ -30,3 +30,27 @@
         </div>
     {{ form_end(form) }}
 </div>
+
+<script>
+(function() {
+    function refreshProductCsrfToken() {
+        fetch('{{ path('app_product_csrf_token') }}')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.token) {
+                    var tokenField = document.querySelector('input[name$="[_token]"]');
+                    if (tokenField) tokenField.value = data.token;
+                }
+            })
+            .catch(function() {});
+    }
+
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+            refreshProductCsrfToken();
+        }
+    });
+
+    window.addEventListener('focus', refreshProductCsrfToken);
+})();
+</script>

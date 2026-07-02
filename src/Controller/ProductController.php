@@ -240,4 +240,13 @@ final class ProductController extends AbstractController
 
         return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
     }
+
+    #[Route('/csrf-token', name: 'app_product_csrf_token', methods: ['GET'])]
+    public function getCsrfToken(): Response
+    {
+        return $this->json([
+            'token' => $this->container->get('security.csrf.token_manager')
+                ->getToken('product')->getValue()
+        ]);
+    }
 }
