@@ -244,7 +244,7 @@ export default class extends Controller {
         return `
             <div id="product-card-${p.id}" class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 transition-all hover:shadow-xl group">
                 <div class="relative h-48 sm:h-64 overflow-hidden">
-                    <img src="${imagePath}" alt="${p.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                    <img src="${imagePath}" alt="${p.name}" style="height:220px;width:100%;object-fit:contain;padding:8px;" class="transition-transform duration-500 group-hover:scale-105">
                     ${/* Badge "EN LIVE" désactivé — décommenter pour le réactiver
                     '<div class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse flex items-center gap-1">' +
                     '<span class="w-2 h-2 bg-white rounded-full"></span> EN LIVE' +

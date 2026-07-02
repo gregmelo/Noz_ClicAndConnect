@@ -8,3 +8,4 @@ import './bootstrap.js';
 import './styles/app.css';
 
 // Ce fichier est le point d'entrée principal de l'application.
+import './lightbox.js';

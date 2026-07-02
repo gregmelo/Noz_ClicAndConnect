@@ -234,11 +234,11 @@
              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {% for product in products %}
                 <div class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 transition-all hover:shadow-xl group">
-                    <div class="relative h-48 sm:h-64 overflow-hidden">
+                    <div class="relative bg-gray-50 flex items-center justify-center" style="height:220px;">
                         {% if product.imageFilename %}
                             <img src="{{ asset('uploads/images/' ~ product.imageFilename) }}" 
                                  alt="{{ product.name }}" 
-                                 class="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-105">
+                                 style="height:220px;width:100%;object-fit:contain;padding:8px;" class="transition-transform duration-500 group-hover:scale-105">
                         {% else %}
                             <div class="w-full h-full flex items-center justify-center bg-gray-50">
                                 <svg class="w-16 h-16 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
