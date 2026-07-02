@@ -91,43 +91,6 @@
 
         <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><path d='M40 40V30C40 16.7 50.7 6 64 6s24 10.7 24 24v10h17c5.5 0 10 4.5 10 10v55c0 8.3-6.7 15-15 15H28c-8.3 0-15-6.7-15-15V50c0-5.5 4.5-10 10-10h17zm8 0h32V30c0-8.8-7.2-16-16-16s-16 7.2-16 16v10z' fill='%23ffcc00'/><g stroke='%230078d7' stroke-width='6' stroke-linecap='round'><line x1='85' x2='90' y1='55' y2='50'/><line x1='95' x2='102' y1='65' y2='62'/><line x1='82' x2='77' y1='68' y2='72'/></g><path d='M95 65l25 35h-12l7 15-10 5-7-15-12 5V65z' fill='%230078d7'/></svg>">
 
-        {# Lightbox globale — disponible sur toutes les pages #}
-        <script>
-function initLightbox() {
-    // Crée le lightbox s'il n'existe pas
-    if (!document.getElementById('lightbox')) {
-        var lb = document.createElement('div');
-        lb.id = 'lightbox';
-        lb.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;cursor:pointer;align-items:center;justify-content:center;';
-        lb.innerHTML = '<img id="lightbox-img" style="max-height:90vh;max-width:90vw;object-fit:contain;border-radius:8px;"><button style="position:absolute;top:20px;right:30px;background:none;border:none;color:white;font-size:40px;cursor:pointer;">✕</button>';
-        lb.onclick = function() { lb.style.display = 'none'; document.body.style.overflow = ''; };
-        document.body.appendChild(lb);
-    }
-    
-    // Attache les événements sur toutes les images cliquables
-    document.querySelectorAll('[data-lightbox-src]').forEach(function(el) {
-        el.style.cursor = 'pointer';
-        el.onclick = function(e) {
-            e.stopPropagation();
-            var lb = document.getElementById('lightbox');
-            document.getElementById('lightbox-img').src = el.dataset.lightboxSrc;
-            lb.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        };
-    });
-}
-
-document.addEventListener('DOMContentLoaded', initLightbox);
-document.addEventListener('turbo:load', initLightbox);
-document.addEventListener('turbo:render', initLightbox);
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        var lb = document.getElementById('lightbox');
-        if (lb) { lb.style.display = 'none'; document.body.style.overflow = ''; }
-    }
-});
-</script>
-
         {% block stylesheets %}
         {% endblock %}
     </head>
@@ -503,6 +466,9 @@ document.addEventListener('keydown', function(e) {
                     document.removeEventListener('click', window.NozConfirmHandler, true);
                 }
                 window.NozConfirmHandler = function(e) {
+                    // Ignorer les clics sur la lightbox et son bouton fermeture
+    if (e.target.closest('#lightbox')) return;
+
                     const trigger = e.target.closest('[data-confirm]');
                     if (trigger) {
                         e.preventDefault();
@@ -559,12 +525,6 @@ document.addEventListener('keydown', function(e) {
         {# Global Scripts #}
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
-
-        <div id="lightbox" data-turbo-permanent onclick="window.closeLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;cursor:pointer;align-items:center;justify-content:center;">
-            <img id="lightbox-img" style="max-height:90vh;max-width:90vw;object-fit:contain;border-radius:8px;box-shadow:0 0 40px rgba(0,0,0,0.5);">
-            <button onclick="window.closeLightbox()" style="position:absolute;top:20px;right:30px;background:none;border:none;color:white;font-size:40px;cursor:pointer;line-height:1;">✕</button>
-            <p style="position:absolute;bottom:20px;color:rgba(255,255,255,0.6);font-size:14px;">Cliquez n'importe où pour fermer · Échap</p>
-        </div>
 
         {% block javascripts %}
             {{ importmap('app') }}
